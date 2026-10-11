@@ -631,6 +631,11 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .daybar.now { background: var(--brand); }
 .dayl { font-size: 9.5px; color: var(--ink-faint); white-space: nowrap; }
 
+.srclist { margin: 6px 0 0; padding-left: 15px; font-weight: 500; font-size: 10.5px; line-height: 1.45; }
+.srclist li { margin-bottom: 2px; }
+.srclist a { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.srcnote { margin-top: 3px; font-weight: 500; font-size: 10px; opacity: .85; }
+
 .posterstrip {
   display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px;
   scrollbar-width: thin; overscroll-behavior-x: contain;

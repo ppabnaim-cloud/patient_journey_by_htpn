@@ -326,6 +326,7 @@ export const T = {
   ubat_preview: L('Official posters — tap to read', 'Poster rasmi — ketik untuk membaca'),
   ubat_charge: L('What it costs', 'Kosnya'),
   ubat_confirm: L('Confirm before ordering', 'Sahkan sebelum memesan'),
+  ubat_reported_by: L('Reported by', 'Dilaporkan oleh'),
 
   /* --- rakyat / triage ----------------------------------------------- */
   rakyat_sub_posters: L('Posters', 'Poster'),

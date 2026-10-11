@@ -1357,7 +1357,29 @@ function TabMyUbat ({ onEvent, onLightbox }) {
                     <div className="flagline" style={{ marginTop: 9 }}>
                       <b>{t(T.ubat_charge)} — {t(T.ubat_confirm)}.</b> {t(MYUBAT.deliveryCharge.text)}
                       {MYUBAT.deliveryCharge.verified ? null : (
-                        <div style={{ marginTop: 4, fontWeight: 500 }}>⚠ {t(MYUBAT.deliveryCharge.source)}</div>
+                        <>
+                          <div style={{ marginTop: 5, fontWeight: 500 }}>
+                            ⚠ {t(MYUBAT.deliveryCharge.confirmNote)}
+                          </div>
+                          {/* Each source named, and linked where a link was
+                              supplied, so the claim can be followed back. */}
+                          <ul className="srclist">
+                            {MYUBAT.deliveryCharge.sources.map((src, i) => (
+                              <li key={i}>
+                                {src.url ? (
+                                  <a href={src.url} target="_blank" rel="noreferrer"
+                                     onClick={() => onEvent('article_opened', 'none')}>
+                                    {src.publisher} ↗
+                                  </a>
+                                ) : <span>{src.publisher}</span>}
+                                {' · '}{t(src.published)}{' — '}
+                                <i>{t(src.headlineFromSlug)}</i>
+                                {src.headlineIsExact ? '' : ' *'}
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="srcnote">* {t(T.ann_headline_note)}</div>
+                        </>
                       )}
                     </div>
                   </>
@@ -1607,6 +1629,19 @@ function WalkingLog ({ record, update, onEvent }) {
         {weekMinutes === 0 && days.every(d => d.value === 0)
           ? <div className="chart-blank"><Art name="week" /><p className="chart-empty">{t(T.gh_nolog)}</p></div>
           : <DayBars days={days} unit="min" todayLabel={t(T.gh_today)} />}
+      </div>
+
+      <div className="card tight">
+        <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.walker} /></span>{t(CAMPAIGN.trackers.title)}</p>
+        <p className="card-s">{t(CAMPAIGN.trackers.lead)}</p>
+        <div className="btnrow" style={{ marginTop: 8 }}>
+          {CAMPAIGN.trackers.apps.map(a => (
+            <a key={a.id} className="btn ghost" style={{ flex: '1 1 40%' }}
+               href={a.url} target="_blank" rel="noreferrer"
+               onClick={() => onEvent('tracker_opened', a.id)}>{a.name} ↗</a>
+          ))}
+        </div>
+        <p className="note" style={{ marginTop: 7 }}>{t(CAMPAIGN.trackers.caveat)}</p>
       </div>
 
       <span style={{ flex: 1 }} />

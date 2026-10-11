@@ -129,15 +129,59 @@ export const MYUBAT = {
      a patient who reads "free" in December and is charged has been misled by
      this app. Replace `verified: false` once the circular is in hand, and set
      `endedOn` when the allocation is exhausted. */
+  /* The charge and the current waiver, kept apart because they come from
+     different places and have different lifespans.
+
+     The charge is from the official 2021 poster set (PPF/A&P/IF042021), which
+     is bundled in this app and says payment is made in cash on receipt.
+
+     The waiver is reported by two named national outlets, listed below. That
+     is a good deal stronger than a single report relayed second hand, but it
+     is still journalism and not a Ministry circular, so `verified` stays
+     false and the screen keeps telling the patient to confirm with the
+     pharmacy. Neither outlet could be opened from the build environment, so
+     each headline is the URL's own slug turned back into a sentence and is
+     labelled as such rather than quoted — the same treatment the One Citizen
+     One Record article got before its exact wording was supplied.
+
+     The part that matters clinically is unaffected by any of this: the waiver
+     ends when its allocation is spent, on no fixed date, so a patient who
+     reads a flat "free" in December and is then charged has been misled by
+     this app. Set verified true and add `endedOn` once the circular is in
+     hand. */
   deliveryCharge: {
     verified: false,
-    source: { en: 'Reported to HTPN; not yet confirmed against a Ministry circular.',
-              ms: 'Dilaporkan kepada HTPN; belum disahkan dengan pekeliling Kementerian.' },
     startedOn: '2026-10-01',
     endedOn: null,
+    sources: [
+      {
+        publisher: 'Berita Harian',
+        published: { en: 'September 2026', ms: 'September 2026' },
+        url: 'https://www.bharian.com.my/berita/nasional/2026/09/1650296/mcmc-bantu-kkm-hantar-ubat-melalui-pos-secara-percuma-kepada-pesakit',
+        headlineFromSlug: {
+          en: 'MCMC helps the Ministry of Health deliver medicines by post free of charge to patients',
+          ms: 'MCMC bantu KKM hantar ubat melalui pos secara percuma kepada pesakit'
+        },
+        headlineIsExact: false
+      },
+      {
+        publisher: 'Sirap Limau',
+        published: { en: 'October 2026', ms: 'Oktober 2026' },
+        url: null,
+        headlineFromSlug: {
+          en: 'Free postal delivery of medicines from 1 October, funded to RM5 million',
+          ms: 'Penghantaran ubat melalui pos secara percuma mulai 1 Oktober, peruntukan RM5 juta'
+        },
+        headlineIsExact: false
+      }
+    ],
+    confirmNote: {
+      en: 'Reported by national media; not yet confirmed against a Ministry circular.',
+      ms: 'Dilaporkan oleh media kebangsaan; belum disahkan dengan pekeliling Kementerian.'
+    },
     text: {
-      en: 'Free delivery has been running since 1 October 2026, funded to RM5 million, and stops when that allocation is spent. There is no fixed end date, so ask the pharmacy whether it still applies before you order. Outside that period UMP carries a charge paid in cash to the courier.',
-      ms: 'Penghantaran percuma sedang berjalan sejak 1 Oktober 2026, dengan peruntukan RM5 juta, dan akan berhenti apabila peruntukan itu habis. Tiada tarikh tamat yang ditetapkan, jadi sila tanya pihak farmasi sama ada ia masih terpakai sebelum anda memesan. Di luar tempoh tersebut, UMP dikenakan caj yang dibayar secara tunai kepada syarikat penghantaran.'
+      en: 'Free delivery has been running since 1 October 2026, reported as assisted by MCMC and funded to RM5 million, and it stops when that allocation is spent. There is no fixed end date, so ask the pharmacy whether it still applies before you order. Outside that period UMP carries a charge paid in cash to the courier.',
+      ms: 'Penghantaran percuma sedang berjalan sejak 1 Oktober 2026, dilaporkan dengan bantuan MCMC dan peruntukan RM5 juta, dan akan berhenti apabila peruntukan itu habis. Tiada tarikh tamat yang ditetapkan, jadi sila tanya pihak farmasi sama ada ia masih terpakai sebelum anda memesan. Di luar tempoh tersebut, UMP dikenakan caj yang dibayar secara tunai kepada syarikat penghantaran.'
     }
   },
 

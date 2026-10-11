@@ -29,7 +29,7 @@ are not yet joined up.
 | 4 | **Finding Your Way** | The two sites with photographs, and 21 further points. Every location offers *Get directions* — which opens Google Maps routing from wherever the phone is, with no origin in the URL so this app never sees a coordinate — and *Exact location*, the precise link HTPN supplied. |
 | 5 | **Queue Number** | The iQMS poster and the live queue link for HTPN. |
 | 6 | **Medicine Delivery** | MyUbat's two services (Appointment System and Medicine By Post), the delivery charge stated plainly, a pictogram list of what it must **not** be used for — cold chain above all — and the official 8-page poster set from Program Perkhidmatan Farmasi. |
-| 8 | **#gayahidupsihatHTPN** | An on-device walking log against the WHO weekly target, and a share panel that opens the hashtag on the patient's own platform. It hosts nothing. |
+| 8 | **#gayahidupsihatHTPN** | An on-device walking log against the WHO weekly target, links to Strava and BookDoc for patients who prefer a counter, and a share panel that opens the hashtag on the patient's own platform. It hosts nothing. |
 | 7 | **The Public's Role** | All 12 posters designed by Dr Naim plus the Ministry's Langkah Sihat poster, grouped by the five roles; and *Emergency, or not?*, the two triage lists rendered bilingually from the HTPN patient-guidance poster. |
 
 Everything is in both languages, clinical text included.
@@ -47,6 +47,16 @@ no-scroll rule at 800×1280, and at 390×664 and 360×600 that the shell fits, t
 nothing paints over the tab bar, and that cards stack rather than overlap.
 
 ---
+
+### Pointing patients at other companies' apps
+
+The walking tab links to Strava and BookDoc because some patients already use
+one. Neither is required — the on-device log works alone — and the screen says
+so. It also says plainly that these are **other companies' apps, not HTPN's**,
+that what they collect is governed by their own privacy policies and not this
+one, and that an activity app usually records where you walked. A hospital
+placing a commercial app in front of patients should say that out loud rather
+than let the placement imply endorsement.
 
 ### Who can see what a patient posts
 

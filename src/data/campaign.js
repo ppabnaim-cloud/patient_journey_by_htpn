@@ -65,6 +65,34 @@ export const CAMPAIGN = {
     { id: 'x', name: 'X', url: `https://x.com/hashtag/${HASHTAG}` }
   ],
 
+  /* Apps some patients already use to count what they walk. Both links were
+     supplied by HTPN and are Google Play listings.
+
+     Deliberately named without describing what they do beyond counting
+     activity: this build could not open either listing, and a government
+     hospital describing a commercial app's features wrongly is worse than
+     describing them not at all. The caveat below matters more than the
+     description anyway — these are other companies' apps, and a hospital
+     pointing patients at them should say so plainly rather than let the
+     placement imply endorsement. */
+  trackers: {
+    title: { en: 'Apps that count it for you', ms: 'Aplikasi yang mengira untuknya' },
+    lead: {
+      en: 'Some patients already use one of these. Neither is needed — the log above works on its own — but if a counter keeps you going, use it and type the total in here.',
+      ms: 'Sesetengah pesakit sudah menggunakan salah satu daripadanya. Kedua-duanya tidak diperlukan — log di atas berfungsi dengan sendirinya — tetapi jika pengira membantu anda meneruskan, gunakannya dan taip jumlahnya di sini.'
+    },
+    apps: [
+      { id: 'strava', name: 'Strava',
+        url: 'https://play.google.com/store/apps/details?id=com.strava&hl=en' },
+      { id: 'bookdoc', name: 'BookDoc',
+        url: 'https://play.google.com/store/apps/details?id=com.bookdoc.bookdoc&hl=en' }
+    ],
+    caveat: {
+      en: 'These are other companies\u2019 apps, not HTPN\u2019s. What they collect about you, and where it goes, is governed by their own privacy policies and not by this one — an activity app usually records where you walked. Both links are the Android versions.',
+      ms: 'Ini aplikasi syarikat lain, bukan milik HTPN. Apa yang dikumpul mengenai anda, dan ke mana ia pergi, tertakluk kepada dasar privasi mereka sendiri dan bukan dasar aplikasi ini — aplikasi aktiviti kebiasaannya merekod lokasi anda berjalan. Kedua-dua pautan ialah versi Android.'
+    }
+  },
+
   /* Strava has no public hashtag page, so it gets a sentence rather than a
      broken link. */
   stravaNote: {

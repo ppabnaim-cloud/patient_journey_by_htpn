@@ -125,6 +125,7 @@ export const ACTIONS = [
   'activity_logged',
   'hashtag_opened',
   'article_opened',
+  'tracker_opened',
   'share_opened',
   'data_exported',
   'data_cleared',
@@ -140,7 +141,8 @@ export const DETAILS = [
   'wcc', 'main', 'department',
   'role_1', 'role_2', 'role_3', 'role_4', 'role_5', 'role_other',
   'camera', 'upload', 'manual',
-  'instagram', 'tiktok', 'facebook', 'threads', 'x'
+  'instagram', 'tiktok', 'facebook', 'threads', 'x',
+  'strava', 'bookdoc'
 ]
 
 const inVocab = (v, list, fallback) => (list.includes(v) ? v : fallback)
