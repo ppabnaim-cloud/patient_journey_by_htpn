@@ -118,6 +118,26 @@ for any research use. Set `CONTROLLER_KIND = 'private'` in
 
 ---
 
+## Deploying
+
+The repository's default branch is the one this lives on, so an import deploys
+it as production with no branch to switch.
+
+[**Import into Vercel**](https://vercel.com/new/import?s=https%3A%2F%2Fgithub.com%2Fppabnaim-cloud%2Fpatient_journey_by_htpn)
+
+Vercel reads `vercel.json`, so framework, build command and output directory are
+already set — accept the defaults. The first deploy needs **no environment
+variables at all**: both collection flags default to off, so the app ships
+collecting nothing, which is the correct state while no ethics submission
+describes it.
+
+Turn collection on later, once the sheet is ready and the governance question is
+settled, by setting `COLLECTION_ENABLED=true`, `VITE_COLLECTION_ENABLED=true`,
+`APPS_SCRIPT_URL` and `APPS_SCRIPT_SECRET` in **Settings → Environment
+Variables**, then redeploying. `VITE_` variables are read at build time, so a
+redeploy is required for that one to take effect — changing it without
+rebuilding does nothing.
+
 ## Running it
 
 ```bash

@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Patient Journey by HTPN - bilingual on-device patient record companion. Prototype design by Dr Naim, HTPN.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "node scripts/vendor-ocr.mjs && vite build",
