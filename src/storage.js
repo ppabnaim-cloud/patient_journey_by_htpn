@@ -26,6 +26,7 @@ export const EMPTY_RECORD = {
   surgeries: [],
   labs: [],
   imaging: [],
+  activity: [],
   measurements: [],
   photos: []        // metadata only; the bytes live in IndexedDB
 }
@@ -53,10 +54,12 @@ export function loadRecord () {
    hospital uses with patients. Anyone who used the v1 build keeps their
    answer rather than being asked again. */
 function migrate (r) {
+  if (!Array.isArray(r.activity)) r.activity = []
   if (r.version < 2 || (r.gender == null && r.sex != null)) {
     r.gender = r.gender ?? r.sex ?? null
     delete r.sex
     r.imaging = r.imaging || []
+    r.activity = r.activity || []
     r.version = 2
   }
   return r

@@ -65,6 +65,7 @@ export const T = {
   tab_iqms: L('Queue Number', 'Nombor Giliran'),
   tab_myubat: L('Medicine Delivery', 'Penghantaran Ubat'),
   tab_rakyat: L("The Public's Role", 'Peranan Rakyat'),
+  tab_gayahidup: L('Healthy Living', 'Gaya Hidup Sihat'),
 
   /* --- dashboard ----------------------------------------------------- */
   dash_lead: L(
@@ -95,6 +96,8 @@ export const T = {
   chart_hba1c: L('HbA1c over time', 'HbA1c mengikut masa'),
   chart_weight: L('Weight over time', 'Berat mengikut masa'),
   chart_bmi: L('BMI over time', 'BMI mengikut masa'),
+  chart_bp: L('Blood pressure over time', 'Tekanan darah mengikut masa'),
+  chart_fpg: L('Fasting glucose over time', 'Glukosa puasa mengikut masa'),
   chart_meds_by: L('Medicines by indication', 'Ubat mengikut indikasi'),
   chart_cutoff: L('Cut-off', 'Titik potong'),
   chart_other: L('Other', 'Lain-lain'),
@@ -224,6 +227,13 @@ export const T = {
   m_height: L('Height', 'Tinggi'),
   m_waist: L('Waist circumference', 'Lilit Pinggang'),
   m_bmi: L('BMI', 'BMI'),
+  m_bp: L('Blood pressure', 'Tekanan Darah'),
+  m_sys: L('Upper (systolic)', 'Atas (sistolik)'),
+  m_dia: L('Lower (diastolic)', 'Bawah (diastolik)'),
+  m_bp_how: L(
+    'Sit and rest for five minutes first, feet flat, arm supported at heart level, and do not talk while it measures.',
+    'Duduk dan berehat selama lima minit dahulu, tapak kaki rata di lantai, lengan disokong pada aras jantung, dan jangan bercakap semasa pengukuran.'
+  ),
   m_gender: L('Gender', 'Jantina'),
   m_male: L('Male', 'Lelaki'),
   m_female: L('Female', 'Perempuan'),
@@ -279,6 +289,8 @@ export const T = {
   ubat_not_for: L('Not suitable for', 'Tidak Sesuai Untuk'),
   ubat_cold: L('Cold chain', 'Rantaian Sejuk'),
   ubat_posters: L('Official posters', 'Poster Rasmi'),
+  ubat_charge: L('What it costs', 'Kosnya'),
+  ubat_confirm: L('Confirm before ordering', 'Sahkan sebelum memesan'),
 
   /* --- rakyat / triage ----------------------------------------------- */
   rakyat_sub_posters: L('Posters', 'Poster'),
@@ -291,6 +303,29 @@ export const T = {
     'This copy of the poster was recovered from a screenshot and is lower in quality than the original. The two lists above are the same content, in both languages.',
     'Salinan poster ini diperoleh daripada tangkapan skrin dan kualitinya lebih rendah daripada yang asal. Kedua-dua senarai di atas mengandungi kandungan yang sama, dalam dua bahasa.'
   ),
+
+  /* --- #gayahidupsihatHTPN -------------------------------------------- */
+  gh_sub_log: L('My walking', 'Jalan Kaki Saya'),
+  gh_sub_share: L('Share it', 'Kongsikan'),
+  gh_week: L('This week', 'Minggu Ini'),
+  gh_target: L('weekly target', 'sasaran mingguan'),
+  gh_minutes: L('Minutes walked', 'Minit Berjalan'),
+  gh_km: L('Distance (km)', 'Jarak (km)'),
+  gh_steps: L('Steps', 'Langkah'),
+  gh_log: L('Record today', 'Rekod hari ini'),
+  gh_today: L('Today', 'Hari ini'),
+  gh_last7: L('Last 7 days', '7 Hari Lepas'),
+  gh_nolog: L('Nothing recorded this week yet.', 'Belum ada rekod minggu ini.'),
+  gh_howto: L('How it works', 'Cara Penggunaan'),
+  gh_open_on: L('Open the hashtag on', 'Buka hashtag di'),
+  gh_copy: L('Copy the hashtag', 'Salin hashtag'),
+  gh_copied: L('Copied', 'Telah disalin'),
+  gh_share: L('Share from this device', 'Kongsi dari peranti ini'),
+  gh_share_unavailable: L(
+    'Your browser cannot open a share sheet, so the text has been copied instead. Paste it into your post.',
+    'Pelayar anda tidak dapat membuka lembaran perkongsian, maka teks telah disalin. Tampalkannya ke dalam hantaran anda.'
+  ),
+  gh_safety: L('Before you start', 'Sebelum Anda Mula'),
 
   /* --- privacy / settings -------------------------------------------- */
   priv_title: L('Where your information goes', 'Ke Mana Maklumat Anda Pergi'),

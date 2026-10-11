@@ -111,7 +111,7 @@ input, select, textarea { font: inherit; color: inherit; }
 /* ---------- tab bar ---------- */
 .tabbar {
   height: var(--tabbar-h); flex: 0 0 auto;
-  display: grid; grid-template-columns: repeat(7, 1fr);
+  display: grid; grid-template-columns: repeat(8, 1fr);
   background: var(--card); border-top: 1px solid var(--line);
 }
 .tabbtn {
@@ -291,8 +291,7 @@ input, select, textarea { font: inherit; color: inherit; }
 
 /* The dashboard's chart grid. Rows share the leftover height, and each chart
    keeps its aspect ratio inside its row rather than being stretched. */
-.chartgrid { display: grid; grid-template-columns: 1fr; gap: 9px; flex: 1 1 auto; min-height: 0;
-  align-content: start; }
+.chartgrid { display: grid; grid-template-columns: 1fr; gap: 9px; flex: 1 1 auto; min-height: 0; }
 .chartgrid .card { overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
 .chartgrid .chart { flex: 1 1 auto; min-height: 0; max-height: 100%; width: 100%; margin: 0 auto; }
 
@@ -386,12 +385,12 @@ input, select, textarea { font: inherit; color: inherit; }
 .chart .cutoff { stroke: var(--attention); stroke-width: 1; stroke-dasharray: 3 3; }
 .chart .line { stroke: var(--brand); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .chart .dot { fill: var(--brand); stroke: var(--card); stroke-width: 2; }
-.chart .axis { font-size: 11px; fill: var(--ink-faint); }
+.chart .axis { font-size: 10.5px; fill: var(--ink-faint); }
 .chart .endlabel { font-size: 14px; font-weight: 700; fill: var(--ink); }
 .chart .seglabel { font-size: 11px; font-weight: 700; fill: #fff; }
 .cite .cutkey { display: inline-block; width: 14px; height: 0; vertical-align: middle;
   border-top: 2px dashed var(--attention); margin-right: 3px; }
-.chart-empty { font-size: 12px; color: var(--ink-faint); margin: 6px 0; }
+.chart-empty { font-size: 12px; color: var(--ink-faint); margin: 5px 0; }
 .chart-t { font-size: 12px; font-weight: 700; margin: 0 0 5px; }
 
 .legend { display: flex; flex-wrap: wrap; gap: 4px 11px; margin-top: 7px; }
@@ -457,10 +456,11 @@ input, select, textarea { font: inherit; color: inherit; }
   flex: 1 1 0; min-height: 0; display: flex; flex-direction: column;
   border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card);
 }
- /* contain, not cover: a cropped photograph of a building loses the half a
-    patient would actually recognise from the road. */
-.sitecard img { width: 100%; flex: 1 1 auto; min-height: 56px; object-fit: contain;
-  display: block; background: var(--brand-tint); }
+ /* Full-bleed: the photograph fills the card edge to edge. The crop is from
+    sky and foreground, so the building itself — the thing a patient is looking
+    for from the road — stays whole. */
+.sitecard img { width: 100%; flex: 1 1 auto; min-height: 56px; object-fit: cover;
+  object-position: center; display: block; background: var(--brand-tint); }
 .sitecard .body { flex: 0 0 auto; padding: 9px 11px 10px; display: flex; flex-direction: column; gap: 2px; }
 .sitecard .nm { font-size: 15px; font-weight: 700; line-height: 1.2; }
 .sitecard .sub { font-size: 11.5px; color: var(--ink-soft); line-height: 1.3; }
@@ -498,6 +498,37 @@ input, select, textarea { font: inherit; color: inherit; }
 .tcol ul { margin: 0; padding-left: 16px; font-size: 11.5px; line-height: 1.45; color: var(--ink); }
 .tcol li { margin-bottom: 2px; }
 
+/* ---------- meter & day bars (#gayahidupsihatHTPN) ---------- */
+.meter { display: flex; flex-direction: column; gap: 5px; }
+.meter-top { display: flex; align-items: baseline; gap: 8px; }
+.meter-v { font-size: 25px; font-weight: 700; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+.meter-u { font-size: 12px; font-weight: 600; color: var(--ink-faint); }
+.meter-l { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px;
+  color: var(--ink-faint); margin-left: auto; }
+.meter-track { height: 10px; border-radius: 5px; background: var(--brand-tint); overflow: hidden; }
+.meter-fill { height: 100%; border-radius: 5px; background: var(--brand); }
+.meter-c { margin: 2px 0 0; font-size: 10.5px; color: var(--ink-faint); line-height: 1.35; }
+
+.daybars { display: flex; gap: 6px; align-items: stretch; height: 140px; min-height: 70px; }
+@media (max-width: 560px) { .daybars { height: 104px; } }
+.daycol { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+.dayv { font-size: 10px; font-weight: 700; color: var(--ink-soft); height: 13px; font-variant-numeric: tabular-nums; }
+.daytrack { flex: 1 1 auto; width: 100%; max-width: 24px; display: flex; align-items: flex-end; min-height: 0; }
+.daybar { width: 100%; background: color-mix(in srgb, var(--brand) 45%, transparent);
+  border-radius: 4px 4px 0 0; }
+.daybar.now { background: var(--brand); }
+.dayl { font-size: 9.5px; color: var(--ink-faint); white-space: nowrap; }
+
+.platgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 7px; }
+.platbtn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  border-radius: 11px; padding: 10px 8px; font-size: 13px; font-weight: 650;
+  text-decoration: none;
+}
+.hashline { display: flex; align-items: center; gap: 8px; }
+.hashtag { font-size: 17px; font-weight: 800; color: var(--brand); letter-spacing: -0.3px; }
+
 /* ---------- print ---------- */
 .printonly { display: none; }
 @media print {
@@ -532,6 +563,10 @@ input, select, textarea { font: inherit; color: inherit; }
   .stat { padding: 7px 9px; }
   .stat-v { font-size: 22px; }
   .glyphlist li { margin-bottom: 5px; }
+  .chartgrid { gap: 7px; }
+  .chart-empty { margin: 3px 0; font-size: 11.5px; }
+  .cite { margin-top: 4px; }
+  .kpirow { gap: 7px; }
 }
 @media (max-width: 430px) {
   :root { --pad: 11px; --tabbar-h: 56px; }

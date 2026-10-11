@@ -17,8 +17,8 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, createContext
 import { CSS } from './styles.js'
 import { T, pick, LANGS, DEFAULT_LANG } from './i18n.js'
 import { APP, CONTROLLER, ETHICS, PRIVACY, COLLECTION_UI_ENABLED, collectionStatement } from './governance.js'
-import { SRC, LAB_PANEL, BMI_BANDS, WAIST_THRESHOLD } from './engine/sources.js'
-import { calcBMI, classifyBMI, classifyWaist } from './engine/anthro.js'
+import { SRC, LAB_PANEL, BMI_BANDS, WAIST_THRESHOLD, BP_THRESHOLD, ACTIVITY_TARGET } from './engine/sources.js'
+import { calcBMI, classifyBMI, classifyWaist, classifyBP } from './engine/anthro.js'
 import { classifyResult, seriesFor } from './engine/labs.js'
 import { reviewRecord, summarise } from './engine/review.js'
 import * as store from './storage.js'
@@ -28,8 +28,9 @@ import { CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl
 import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
+import { CAMPAIGN, HASHTAG } from './data/campaign.js'
 import { GLYPH, TRIAGE_GLYPHS } from './data/glyphs.js'
-import { Stat, LineChart, StackedBar } from './charts.jsx'
+import { Stat, LineChart, MultiLineChart, StackedBar, Meter, DayBars } from './charts.jsx'
 
 /* --- language ----------------------------------------------------------- */
 const LangCtx = createContext(DEFAULT_LANG)
@@ -68,7 +69,8 @@ const ICONS = {
   wayfinding: ['M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z', 'M12 10.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z'],
   iqms: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 7.5V12l3 2'],
   myubat: ['M4.5 13.5l9-9a4.6 4.6 0 0 1 6.5 6.5l-9 9a4.6 4.6 0 0 1-6.5-6.5z', 'M9 9l6 6'],
-  rakyat: ['M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.8a4.2 4.2 0 0 1 7.5 2.7c0 5.4-7.5 10-7.5 10z']
+  rakyat: ['M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.8a4.2 4.2 0 0 1 7.5 2.7c0 5.4-7.5 10-7.5 10z'],
+  gayahidup: ['M13.5 5.2a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4z', 'M10 21l2-5.5-2.5-2.5.8-4.5 3.2 2.5 3 1', 'M9.3 8.5L6 10l-1 3.5', 'M12 15.5L8.5 21']
 }
 
 const shortDate = (iso) => String(iso || '').slice(2).replace(/-/g, '/')
@@ -192,6 +194,7 @@ function Overview ({ record }) {
     : null
 
   const hba1c = seriesFor(record.labs, 'hba1c').map(r => ({ label: shortDate(r.date), value: r.value }))
+  const fpg = seriesFor(record.labs, 'fpg').map(r => ({ label: shortDate(r.date), value: r.value }))
   const measures = (record.measurements || [])
     .filter(m => m.date)
     .sort((a, b) => String(a.date).localeCompare(String(b.date)))
@@ -203,6 +206,13 @@ function Overview ({ record }) {
   const bmis = measures
     .map(m => ({ label: shortDate(m.date), value: calcBMI(m.weightKg, m.heightCm) }))
     .filter(p => p.value !== null)
+  /* Both series come from the same rows, so the two lines always line up on
+     the same dates rather than being interleaved from separate lists. */
+  const bpRows = measures.filter(m => m.systolic != null && m.diastolic != null)
+  const bpSeries = [
+    { key: 'sys', label: t(T.m_sys), points: bpRows.map(m => ({ label: shortDate(m.date), value: m.systolic })) },
+    { key: 'dia', label: t(T.m_dia), points: bpRows.map(m => ({ label: shortDate(m.date), value: m.diastolic })) }
+  ]
 
   /* Medicines grouped by what they are for. Four named groups at most, the
      tail folded into "Other" — never a generated ninth colour. */
@@ -234,6 +244,35 @@ function Overview ({ record }) {
                      emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
           <p className="cite" style={{ marginTop: 4 }}>
             <span className="cutkey" /> {t(T.chart_cutoff)} 6.5% — <b>{t(T.basedOn)}:</b> {t(SRC.WHO_HBA1C_2011.short)}
+          </p>
+        </div>
+      )
+    },
+    {
+      id: 'fpg', plottable: fpg.length >= 2,
+      node: (
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_fpg)} (mmol/L)</p>
+          {/* Both cited lines, not just one: 6.1 opens the raised band and 7.0
+              is the diagnostic threshold. Showing one would misstate WHO. */}
+          <LineChart points={fpg} unit="mmol/L" cutoff={[6.1, 7.0]}
+                     emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+          <p className="cite" style={{ marginTop: 4 }}>
+            <span className="cutkey" /> {t(T.chart_cutoff)} 6.1 / 7.0 — <b>{t(T.basedOn)}:</b> {t(SRC.WHO_IDF_2006_GLUCOSE.short)}
+          </p>
+        </div>
+      )
+    },
+    {
+      id: 'bp', plottable: bpRows.length >= 2,
+      node: (
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_bp)} (mmHg)</p>
+          <MultiLineChart series={bpSeries} unit="mmHg"
+                          refLines={[{ value: BP_THRESHOLD.raisedSystolic }, { value: BP_THRESHOLD.raisedDiastolic }]}
+                          emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+          <p className="cite" style={{ marginTop: 4 }}>
+            <span className="cutkey" /> {t(T.chart_cutoff)} 140 / 90 — <b>{t(T.basedOn)}:</b> {t(SRC.WHO_HTN_2021.short)}
           </p>
         </div>
       )
@@ -274,7 +313,7 @@ function Overview ({ record }) {
     }
   ]
 
-  const paged = usePaged(cards, narrow ? 2 : 4)
+  const paged = usePaged(cards, narrow ? 2 : 3)
 
   return (
     <>
@@ -291,7 +330,11 @@ function Overview ({ record }) {
       {/* A card that cannot plot anything yet should not hold a full row open,
           so each row is sized from whether that chart has a trend to draw. */}
       <div className="chartgrid" style={{
-        gridTemplateRows: cards.map(c => (c.plottable ? 'minmax(0, 1fr)' : 'min-content')).join(' ')
+        /* The template must describe the rows actually rendered, not every
+           card in the set. Built from all six it declared six rows for three
+           items, so the cards landed on the min-content rows and the 1fr rows
+           sat empty underneath — which is why the charts stayed small. */
+        gridTemplateRows: paged.slice.map(c => (c.plottable ? 'minmax(0, 1fr)' : 'min-content')).join(' ')
       }}>
         {paged.slice.map(c => <React.Fragment key={c.id}>{c.node}</React.Fragment>)}
       </div>
@@ -918,26 +961,31 @@ function TabMeasurements ({ record, update, onEvent }) {
   const latest = rows[0]
   const lastHeight = rows.find(r => r.heightCm)?.heightCm || ''
   const [draft, setDraft] = useState({
-    date: new Date().toISOString().slice(0, 10), weightKg: '', heightCm: lastHeight, waistCm: ''
+    date: new Date().toISOString().slice(0, 10), weightKg: '', heightCm: lastHeight,
+    waistCm: '', systolic: '', diastolic: ''
   })
   const paged = usePaged(rows, PAGE.measurements)
 
   const liveBmi = calcBMI(draft.weightKg, draft.heightCm)
   const bmiF = latest ? classifyBMI(calcBMI(latest.weightKg, latest.heightCm)) : null
   const waistF = latest ? classifyWaist(latest.waistCm, record.gender) : null
+  const latestBP = rows.find(r => r.systolic != null && r.diastolic != null)
+  const bpF = latestBP ? classifyBP(latestBP.systolic, latestBP.diastolic) : null
 
   const save = () => {
-    if (!draft.weightKg && !draft.waistCm) return
+    if (!draft.weightKg && !draft.waistCm && !draft.systolic) return
     update(r => ({
       ...r,
       measurements: [...(r.measurements || []), {
         id: store.newId(), date: draft.date,
         weightKg: draft.weightKg === '' ? null : parseFloat(draft.weightKg),
         heightCm: draft.heightCm === '' ? null : parseFloat(draft.heightCm),
-        waistCm: draft.waistCm === '' ? null : parseFloat(draft.waistCm)
+        waistCm: draft.waistCm === '' ? null : parseFloat(draft.waistCm),
+        systolic: draft.systolic === '' ? null : parseInt(draft.systolic, 10),
+        diastolic: draft.diastolic === '' ? null : parseInt(draft.diastolic, 10)
       }]
     }))
-    setDraft({ ...draft, weightKg: '', waistCm: '' })
+    setDraft({ ...draft, weightKg: '', waistCm: '', systolic: '', diastolic: '' })
     onEvent('measurement_saved', 'manual')
     setView('now')
   }
@@ -967,6 +1015,8 @@ function TabMeasurements ({ record, update, onEvent }) {
                   <dt>{t(T.m_height)}</dt><dd>{latest.heightCm ? latest.heightCm + ' cm' : '—'}</dd>
                   <dt>{t(T.m_waist)}</dt><dd>{latest.waistCm ? latest.waistCm + ' cm' : '—'}</dd>
                   <dt>{t(T.m_bmi)}</dt><dd>{calcBMI(latest.weightKg, latest.heightCm) ?? '—'}</dd>
+                  <dt>{t(T.m_bp)}</dt>
+                  <dd>{latestBP ? `${latestBP.systolic}/${latestBP.diastolic} mmHg` : '—'}</dd>
                   <dt>{t(T.col_date)}</dt><dd>{latest.date}</dd>
                 </dl>
                 {weights.length > 1 ? (
@@ -980,6 +1030,7 @@ function TabMeasurements ({ record, update, onEvent }) {
               <div className="scroller">
                 {bmiF ? <Finding f={{ ...bmiF, folded: bmiF.level === 'none' }} /> : null}
                 {waistF ? <Finding f={{ ...waistF, folded: waistF.level === 'none' }} /> : null}
+                {bpF ? <Finding f={{ ...bpF, folded: bpF.level === 'none' }} /> : null}
               </div>
             </>
           ) : (
@@ -1009,6 +1060,14 @@ function TabMeasurements ({ record, update, onEvent }) {
                   <input type="number" step="0.1" inputMode="decimal" value={draft.waistCm}
                          onChange={e => setDraft({ ...draft, waistCm: e.target.value })} />
                 </Field>
+                <Field label={t(T.m_sys) + ' mmHg'}>
+                  <input type="number" inputMode="numeric" value={draft.systolic}
+                         onChange={e => setDraft({ ...draft, systolic: e.target.value })} />
+                </Field>
+                <Field label={t(T.m_dia) + ' mmHg'} hint={t(T.m_bp_how)}>
+                  <input type="number" inputMode="numeric" value={draft.diastolic}
+                         onChange={e => setDraft({ ...draft, diastolic: e.target.value })} />
+                </Field>
               </div>
               {liveBmi ? <p className="hint" style={{ marginTop: 7 }}>{t(T.m_bmi)}: <b>{liveBmi}</b> kg/m²</p> : null}
             </div>
@@ -1021,7 +1080,8 @@ function TabMeasurements ({ record, update, onEvent }) {
                 </select>
               </Field>
             </div>
-            <button className="btn wide" onClick={save} disabled={!draft.weightKg && !draft.waistCm}>{t(T.save)}</button>
+            <button className="btn wide" onClick={save}
+                  disabled={!draft.weightKg && !draft.waistCm && !draft.systolic}>{t(T.save)}</button>
           </>
         ) : null}
 
@@ -1033,7 +1093,8 @@ function TabMeasurements ({ record, update, onEvent }) {
               <table className="tbl">
                 <thead><tr>
                   <th>{t(T.col_date)}</th><th className="num">{t(T.m_weight)}</th>
-                  <th className="num">{t(T.m_waist)}</th><th className="num">{t(T.m_bmi)}</th><th />
+                  <th className="num">{t(T.m_waist)}</th><th className="num">{t(T.m_bmi)}</th>
+                  <th className="num">{t(T.m_bp)}</th><th />
                 </tr></thead>
                 <tbody>
                   {paged.slice.map(r => (
@@ -1042,6 +1103,7 @@ function TabMeasurements ({ record, update, onEvent }) {
                       <td className="num">{r.weightKg ?? '—'}</td>
                       <td className="num">{r.waistCm ?? '—'}</td>
                       <td className="num">{calcBMI(r.weightKg, r.heightCm) ?? '—'}</td>
+                      <td className="num">{r.systolic != null && r.diastolic != null ? `${r.systolic}/${r.diastolic}` : '—'}</td>
                       <td><button className="pgbtn" aria-label={t(T.remove)}
                                   onClick={() => update(x => ({ ...x, measurements: x.measurements.filter(m => m.id !== r.id) }))}>✕</button></td>
                     </tr>
@@ -1222,7 +1284,20 @@ function TabMyUbat ({ onEvent, onLightbox }) {
           <>
             <div className="card tight">
               {view === 'for'
-                ? <ul className="bullets">{MYUBAT.points.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
+                ? (
+                  <>
+                    <ul className="bullets">{MYUBAT.points.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
+                    {/* A waiver that ends when a budget runs out is not the
+                        same claim as "free", so it is shown as its own
+                        time-limited note with what is unconfirmed about it. */}
+                    <div className="flagline" style={{ marginTop: 9 }}>
+                      <b>{t(T.ubat_charge)} — {t(T.ubat_confirm)}.</b> {t(MYUBAT.deliveryCharge.text)}
+                      {MYUBAT.deliveryCharge.verified ? null : (
+                        <div style={{ marginTop: 4, fontWeight: 500 }}>⚠ {t(MYUBAT.deliveryCharge.source)}</div>
+                      )}
+                    </div>
+                  </>
+                )
                 : (
                   <>
                     {/* A glyph per exclusion: this is the list a patient skims
@@ -1382,6 +1457,210 @@ function TabRakyat ({ onEvent, onLightbox }) {
             <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
           </>
         )}
+      </div>
+    </div>
+  )
+}
+
+/* =========================================================================
+   TAB 8 — #gayahidupsihatHTPN
+
+   The tab hosts nothing. See the header of src/data/campaign.js for why: a
+   feature that publishes patient content would make this app's central
+   promise false, would make HTPN the publisher of whatever is posted, and
+   would put a hospital-branded step target in front of patients for whom
+   walking further is not safe.
+
+   So there are two halves, and neither of them uploads anything:
+     My walking — an on-device log, like the rest of the record.
+     Share it   — opens the hashtag on the platform the patient already uses,
+                  and hands them their own device's share sheet.
+   ====================================================================== */
+
+const startOfWeek = () => {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  /* Monday as day one, which is how a clinic week is spoken about here. */
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return d
+}
+const isoDay = (d) => d.toISOString().slice(0, 10)
+
+function WalkingLog ({ record, update, onEvent }) {
+  const [t, lang] = useT()
+  const today = isoDay(new Date())
+  const rows = record.activity || []
+  const [draft, setDraft] = useState({ minutes: '', km: '', steps: '' })
+
+  const weekStart = isoDay(startOfWeek())
+  const weekMinutes = rows
+    .filter(r => r.date >= weekStart)
+    .reduce((n, r) => n + (Number(r.minutes) || 0), 0)
+
+  /* Seven slots, oldest first, so the bars read left to right as a week. */
+  const days = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    d.setDate(d.getDate() - i)
+    const key = isoDay(d)
+    days.push({
+      label: d.toLocaleDateString(lang === 'ms' ? 'ms-MY' : 'en-GB', { weekday: 'short' }),
+      value: rows.filter(r => r.date === key).reduce((n, r) => n + (Number(r.minutes) || 0), 0)
+    })
+  }
+
+  const save = () => {
+    if (!draft.minutes && !draft.km && !draft.steps) return
+    update(r => ({
+      ...r,
+      activity: [...(r.activity || []), {
+        id: store.newId(), date: today,
+        minutes: draft.minutes === '' ? null : parseFloat(draft.minutes),
+        km: draft.km === '' ? null : parseFloat(draft.km),
+        steps: draft.steps === '' ? null : parseInt(draft.steps, 10)
+      }]
+    }))
+    setDraft({ minutes: '', km: '', steps: '' })
+    onEvent('activity_logged', 'manual')
+  }
+
+  return (
+    <>
+      <div className="card tight">
+        <Meter value={weekMinutes} target={ACTIVITY_TARGET.weeklyMinutes}
+               unit={ACTIVITY_TARGET.unit} label={t(T.gh_week)}
+               caption={t(ACTIVITY_TARGET.note)} />
+        <p className="cite" style={{ marginTop: 6 }}>
+          <b>{t(T.basedOn)}:</b> {t(SRC.WHO_PA_2020.full)}
+        </p>
+      </div>
+
+      <div className="card tight">
+        <p className="chart-t">{t(T.gh_last7)} — {t(T.gh_minutes).toLowerCase()}</p>
+        {weekMinutes === 0 && days.every(d => d.value === 0)
+          ? <p className="chart-empty">{t(T.gh_nolog)}</p>
+          : <DayBars days={days} unit="min" todayLabel={t(T.gh_today)} />}
+      </div>
+
+      <span style={{ flex: 1 }} />
+
+      <div className="card tight">
+        <div className="frm three">
+          <Field label={t(T.gh_minutes)}>
+            <input type="number" inputMode="numeric" value={draft.minutes}
+                   onChange={e => setDraft({ ...draft, minutes: e.target.value })} />
+          </Field>
+          <Field label={t(T.gh_km)}>
+            <input type="number" step="0.1" inputMode="decimal" value={draft.km}
+                   onChange={e => setDraft({ ...draft, km: e.target.value })} />
+          </Field>
+          <Field label={t(T.gh_steps)}>
+            <input type="number" inputMode="numeric" value={draft.steps}
+                   onChange={e => setDraft({ ...draft, steps: e.target.value })} />
+          </Field>
+        </div>
+        <button className="btn wide" style={{ marginTop: 8 }} onClick={save}
+                disabled={!draft.minutes && !draft.km && !draft.steps}>
+          + {t(T.gh_log)}
+        </button>
+      </div>
+    </>
+  )
+}
+
+function ShareIt ({ onEvent }) {
+  const [t, lang] = useT()
+  const [copied, setCopied] = useState(null)
+
+  const copy = async (text, what) => {
+    try { await navigator.clipboard.writeText(text) } catch { /* nothing to do */ }
+    setCopied(what)
+    setTimeout(() => setCopied(null), 1800)
+  }
+
+  const share = async () => {
+    const text = pick(CAMPAIGN.shareText, lang)
+    onEvent('share_opened', 'none')
+    /* The device's own share sheet. The app never sees what is chosen or
+       posted — it hands the text over and stops there. */
+    if (navigator.share) {
+      try { await navigator.share({ text }); return } catch { /* dismissed */ return }
+    }
+    copy(text, 'share')
+  }
+
+  return (
+    <>
+      <div className="card tight">
+        <div className="hashline">
+          <span className="hashtag">#{HASHTAG}</span>
+          <span style={{ flex: 1 }} />
+          <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
+                  onClick={() => copy('#' + HASHTAG, 'tag')}>
+            {copied === 'tag' ? '✓ ' + t(T.gh_copied) : t(T.gh_copy)}
+          </button>
+        </div>
+      </div>
+
+      <div className="card tight">
+        <p className="card-t">{t(T.gh_howto)}</p>
+        <ul className="bullets">{CAMPAIGN.how.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
+      </div>
+
+      <button className="btn wide" onClick={share}>↗ {t(T.gh_share)}</button>
+      {copied === 'share' ? <p className="note">{t(T.gh_share_unavailable)}</p> : null}
+
+      <div className="card tight">
+        <p className="card-t">{t(T.gh_open_on)}</p>
+        <div className="platgrid">
+          {CAMPAIGN.platforms.map(pl => (
+            <a key={pl.id} className="platbtn" href={pl.url} target="_blank" rel="noreferrer"
+               onClick={() => onEvent('hashtag_opened', pl.id)}>{pl.name} ↗</a>
+          ))}
+        </div>
+        <p className="note" style={{ marginTop: 8 }}>{t(CAMPAIGN.stravaNote)}</p>
+      </div>
+
+      <span style={{ flex: 1 }} />
+      <p className="note">{t(CAMPAIGN.privacyNote)}</p>
+    </>
+  )
+}
+
+function TabGayaHidup ({ record, update, onEvent }) {
+  const [t] = useT()
+  const [view, setView] = useState('log')
+  return (
+    <div className="pane">
+      <div className="pane-head">
+        <h1 className="pane-title">{t(CAMPAIGN.title)}</h1>
+        <p className="pane-lead">{t(CAMPAIGN.lead)}</p>
+      </div>
+      <div className="subtabs">
+        <button className="subtab" aria-selected={view === 'log'} onClick={() => setView('log')}>{t(T.gh_sub_log)}</button>
+        <button className="subtab" aria-selected={view === 'share'} onClick={() => setView('share')}>{t(T.gh_sub_share)}</button>
+        <button className="subtab" aria-selected={view === 'safe'} onClick={() => setView('safe')}>{t(T.gh_safety)}</button>
+      </div>
+      <div className="pane-body">
+        {view === 'log' ? <WalkingLog record={record} update={update} onEvent={onEvent} /> : null}
+        {view === 'share' ? <ShareIt onEvent={onEvent} /> : null}
+        {view === 'safe' ? (
+          <>
+            <div className="emergency">
+              <div style={{ fontWeight: 800, marginBottom: 4 }}>⚠ {t(T.gh_safety)}</div>
+              {t(CAMPAIGN.safety)}
+            </div>
+            <div className="card tight">
+              <p className="card-s">{t(ACTIVITY_TARGET.note)}</p>
+              <p className="cite" style={{ marginTop: 6 }}>
+                <b>{t(T.basedOn)}:</b> {t(SRC.WHO_PA_2020.full)}
+              </p>
+            </div>
+            <span style={{ flex: 1 }} />
+            <p className="note">{t(EMERGENCY.text)}</p>
+          </>
+        ) : null}
       </div>
     </div>
   )
@@ -1617,6 +1896,7 @@ function PrintSheet ({ record, identifiers, lang }) {
             <td>{t(T.m_height)}: {m.heightCm ?? '—'} cm</td>
             <td>{t(T.m_waist)}: {m.waistCm ?? '—'} cm</td>
             <td>{t(T.m_bmi)}: {calcBMI(m.weightKg, m.heightCm) ?? '—'}</td>
+            <td>{t(T.m_bp)}: {m.systolic != null && m.diastolic != null ? `${m.systolic}/${m.diastolic}` : '—'}</td>
             <td>{m.date}</td>
           </tr></tbody></table>
         </>
@@ -1705,7 +1985,8 @@ const TABS = [
   { id: 'wayfinding', label: T.tab_wayfinding },
   { id: 'iqms', label: T.tab_iqms },
   { id: 'myubat', label: T.tab_myubat },
-  { id: 'rakyat', label: T.tab_rakyat }
+  { id: 'rakyat', label: T.tab_rakyat },
+  { id: 'gayahidup', label: T.tab_gayahidup }
 ]
 
 export default function App () {
@@ -1842,6 +2123,7 @@ export default function App () {
         {tab === 'iqms' ? <TabIqms onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'rakyat' ? <TabRakyat onEvent={onEvent} onLightbox={setLightbox} /> : null}
+        {tab === 'gayahidup' ? <TabGayaHidup record={record} update={update} onEvent={onEvent} /> : null}
 
         <nav className="tabbar">
           {TABS.map(x => (

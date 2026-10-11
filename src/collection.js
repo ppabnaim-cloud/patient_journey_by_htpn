@@ -104,7 +104,7 @@ export function bandPlatform (ua) {
    Anything not listed here is replaced with 'other' before it is sent, so a
    free-text value can never ride out inside an enum field. */
 
-export const TABS = ['dashboard', 'records', 'measurements', 'wayfinding', 'iqms', 'myubat', 'rakyat', 'privacy']
+export const TABS = ['dashboard', 'records', 'measurements', 'wayfinding', 'iqms', 'myubat', 'rakyat', 'gayahidup', 'privacy']
 
 export const ACTIONS = [
   'app_open',
@@ -122,6 +122,9 @@ export const ACTIONS = [
   'myubat_opened',
   'poster_opened',
   'poster_downloaded',
+  'activity_logged',
+  'hashtag_opened',
+  'share_opened',
   'data_exported',
   'data_cleared',
   'consent_given',
@@ -135,7 +138,8 @@ export const DETAILS = [
   'meds', 'issues', 'allergies', 'surgery', 'bloods',
   'wcc', 'main', 'department',
   'role_1', 'role_2', 'role_3', 'role_4', 'role_5', 'role_other',
-  'camera', 'upload', 'manual'
+  'camera', 'upload', 'manual',
+  'instagram', 'tiktok', 'facebook', 'threads', 'x'
 ]
 
 const inVocab = (v, list, fallback) => (list.includes(v) ? v : fallback)

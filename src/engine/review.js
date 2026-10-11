@@ -9,7 +9,7 @@
    ========================================================================= */
 
 import { SRC } from './sources.js'
-import { calcBMI, classifyBMI, classifyWaist, weightTrend } from './anthro.js'
+import { calcBMI, classifyBMI, classifyWaist, classifyBP, weightTrend } from './anthro.js'
 import { classifyResult, latestPerAnalyte } from './labs.js'
 
 export const LEVEL_RANK = { warning: 3, attention: 2, watch: 1, none: 0 }
@@ -237,6 +237,13 @@ export function reviewRecord (record) {
     const bmi = calcBMI(latestMeasure.weightKg, latestMeasure.heightCm)
     findings.push(classifyBMI(bmi))
     findings.push(classifyWaist(latestMeasure.waistCm, r.gender))
+    /* The most recent reading that actually has both numbers, which is not
+       necessarily the most recent measurement entry. */
+    const latestBP = (r.measurements || [])
+      .filter(m => m && m.date && m.systolic != null && m.diastolic != null)
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+      .slice(-1)[0]
+    if (latestBP) findings.push(classifyBP(latestBP.systolic, latestBP.diastolic))
     const trend = weightTrend(r.measurements)
     if (trend) findings.push(trend)
   }

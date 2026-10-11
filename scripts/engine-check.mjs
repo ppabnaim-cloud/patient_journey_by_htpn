@@ -1,7 +1,7 @@
 /* Prints every threshold with its citation, then exercises the engine on a
    worked example. Run: node scripts/engine-check.mjs */
 import { SRC, BMI_BANDS, WAIST_THRESHOLD, FPG_BANDS, HBA1C_BANDS, LAB_PANEL } from '../src/engine/sources.js'
-import { calcBMI, classifyBMI, classifyWaist } from '../src/engine/anthro.js'
+import { calcBMI, classifyBMI, classifyWaist, classifyBP } from '../src/engine/anthro.js'
 import { classifyResult } from '../src/engine/labs.js'
 import { reviewRecord, summarise } from '../src/engine/review.js'
 
@@ -60,6 +60,14 @@ check('waist m 90', classifyWaist(90, 'male').level, 'attention')
 check('waist m 89', classifyWaist(89, 'male').level, 'none')
 check('waist f 80', classifyWaist(80, 'female').level, 'attention')
 check('waist no gender', classifyWaist(95, null).level, 'none')
+check('bp 118/76 normal', classifyBP(118, 76).level, 'none')
+check('bp 140/85 raised', classifyBP(140, 85).level, 'attention')
+check('bp 135/92 raised on diastolic', classifyBP(135, 92).level, 'attention')
+check('bp 182/95 is a warning', classifyBP(182, 95).level, 'warning')
+check('bp 150/112 is a warning', classifyBP(150, 112).level, 'warning')
+check('bp 85/55 low', classifyBP(85, 55).level, 'watch')
+check('bp typed backwards is not interpreted', classifyBP(80, 120).level, 'none')
+check('bp missing one number is not interpreted', classifyBP(130, null).level, 'none')
 check('fpg 3.2 is warning', classifyResult('fpg', 3.2).level, 'warning')
 check('fpg 5.5 normal', classifyResult('fpg', 5.5).level, 'none')
 check('fpg 6.5 watch', classifyResult('fpg', 6.5).level, 'watch')
@@ -82,8 +90,8 @@ const record = {
   issues: [{ text: 'Type 2 diabetes', status: 'active' }],
   surgeries: [{ name: 'Caesarean section', date: '2016-04-02' }],
   measurements: [
-    { date: '2026-01-10', weightKg: 78, heightCm: 158, waistCm: 92 },
-    { date: '2026-09-01', weightKg: 82, heightCm: 158, waistCm: 94 }
+    { date: '2026-01-10', weightKg: 78, heightCm: 158, waistCm: 92, systolic: 134, diastolic: 84 },
+    { date: '2026-09-01', weightKg: 82, heightCm: 158, waistCm: 94, systolic: 146, diastolic: 92 }
   ],
   imaging: [
     { date: '2026-08-20', modality: 'ct', bodyPart: 'Abdomen', finding: 'Fatty liver. No focal lesion.' }
@@ -111,6 +119,7 @@ check('first finding is the severe allergy', findings[0].id, 'allergy_severe')
 check('waist is interpreted when gender is recorded',
   findings.find(f => f.id === 'waist')?.level, 'attention')
 check('imaging findings appear', !!findings.find(f => f.id === 'imaging_count'), true)
+check('blood pressure is reviewed', findings.find(f => f.id === 'bp')?.level, 'attention')
 check('severe allergy is never folded', findings[0].folded, false)
 check('every finding carries a source', findings.every(f => !!f.source), true)
 

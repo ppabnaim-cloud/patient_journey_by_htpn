@@ -13,12 +13,13 @@ sites, and points them at iQMS and MyUbat.
 
 | | Tab | What it holds |
 |---|---|---|
-| 1 | **My Journey** | *Overview*: four stat tiles, HbA1c, weight and BMI trends, medicines by indication. *Needs attention*: the findings, warning signs first. *Reviewed*: findings with nothing to act on, folded but never deleted. Prints a clinic summary. |
+| 1 | **My Journey** | *Overview*: four stat tiles, then HbA1c, fasting glucose, blood pressure, weight and BMI trends, and medicines by indication. *Needs attention*: the findings, warning signs first. *Reviewed*: findings with nothing to act on, folded but never deleted. Prints a clinic summary. |
 | 2 | **My Records** | Six numbered stations — medicines, active problems, allergies, operations, blood results, imaging reports — shown as a pipeline so progress is visible. Medicines carry a start date and either a supply-until date or a stopped-on date; a supply date that has passed is raised on the dashboard. Photograph a document, upload one, or type it in. |
-| 3 | **Measurements** | Weight, height, BMI, waist circumference, with the trend. |
+| 3 | **Measurements** | Weight, height, BMI, waist circumference and blood pressure, with the trends. A reading at or above 180/110 is ranked as a warning and sorts to the top. |
 | 4 | **Finding Your Way** | The two sites with photographs, and 21 further points. Every location offers *Get directions* — which opens Google Maps routing from wherever the phone is, with no origin in the URL so this app never sees a coordinate — and *Exact location*, the precise link HTPN supplied. |
 | 5 | **Queue Number** | The iQMS poster and the live queue link for HTPN. |
 | 6 | **Medicine Delivery** | MyUbat's two services (Appointment System and Medicine By Post), the delivery charge stated plainly, a pictogram list of what it must **not** be used for — cold chain above all — and the official 8-page poster set from Program Perkhidmatan Farmasi. |
+| 8 | **#gayahidupsihatHTPN** | An on-device walking log against the WHO weekly target, and a share panel that opens the hashtag on the patient's own platform. It hosts nothing. |
 | 7 | **The Public's Role** | All 12 posters designed by Dr Naim plus the Ministry's Langkah Sihat poster, grouped by the five roles; and *Emergency, or not?*, the two triage lists rendered bilingually from the HTPN patient-guidance poster. |
 
 Everything is in both languages, clinical text included. Every screen fits a
@@ -26,6 +27,19 @@ Everything is in both languages, clinical text included. Every screen fits a
 into steps.
 
 ---
+
+### The campaign tab hosts nothing, on purpose
+
+`#gayahidupsihatHTPN` encourages patients to post, but the app stores,
+displays and moderates none of it. Three reasons, in order of weight: a
+feature that publishes patient content makes "everything stays on your
+device" false; patient-submitted content on a Ministry-branded surface makes
+HTPN its publisher, with the moderation and takedown duties that implies; and
+a hospital-branded step target tells every patient to walk further, including
+the ones for whom that is unsafe. So the tab sends them outward — to the
+hashtag on their own platform, through their own device's share sheet — and
+keeps the walking log entirely on-device like the rest of the record. The
+reasoning is written out at the top of `src/data/campaign.js`.
 
 ### What the dashboard plots, and what it refuses to
 

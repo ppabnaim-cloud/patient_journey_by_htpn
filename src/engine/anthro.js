@@ -14,7 +14,7 @@
    sentence when it is not. Nothing here diagnoses anything.
    ========================================================================= */
 
-import { SRC, BMI_BANDS, WAIST_THRESHOLD, UNVERIFIED_NOTE } from './sources.js'
+import { SRC, BMI_BANDS, WAIST_THRESHOLD, BP_THRESHOLD, UNVERIFIED_NOTE } from './sources.js'
 
 const num = (v) => {
   const n = typeof v === 'number' ? v : parseFloat(v)
@@ -125,6 +125,88 @@ export function classifyWaist (waistCm, gender) {
     }] : [],
     source: WAIST_THRESHOLD.anchoredTo,
     flag: WAIST_THRESHOLD.verified ? null : UNVERIFIED_NOTE
+  }
+}
+
+/* Blood pressure. Two numbers, one finding. The app reports which side of the
+   cited line a reading falls and never calls it hypertension — that is a
+   diagnosis made on repeated readings, which this app cannot make. */
+export function classifyBP (systolic, diastolic) {
+  const sys = num(systolic)
+  const dia = num(diastolic)
+  const base = {
+    id: 'bp',
+    title: { en: 'Blood pressure', ms: 'Tekanan darah' },
+    source: BP_THRESHOLD.anchoredTo,
+    note: BP_THRESHOLD.note,
+    flag: BP_THRESHOLD.verified ? null : UNVERIFIED_NOTE
+  }
+  if (sys === null || dia === null) {
+    return {
+      ...base, level: 'none', value: null,
+      detail: { en: 'Enter both the upper and the lower number to have this checked.',
+                ms: 'Masukkan kedua-dua nombor atas dan bawah untuk disemak.' },
+      steps: []
+    }
+  }
+  if (sys <= dia || sys > 300 || dia > 200 || sys < 40 || dia < 20) {
+    return {
+      ...base, level: 'none', value: `${sys}/${dia}`,
+      detail: { en: `${sys}/${dia} mmHg recorded. These two numbers do not look like a blood pressure reading, so the app has not interpreted them.`,
+                ms: `${sys}/${dia} mmHg direkodkan. Kedua-dua nombor ini tidak kelihatan seperti bacaan tekanan darah, jadi aplikasi tidak mentafsirkannya.` },
+      steps: [],
+      flag: { en: 'Not interpreted: the reading looks mistyped.', ms: 'Tidak ditafsirkan: bacaan kelihatan tersalah taip.' }
+    }
+  }
+
+  const severe = sys >= BP_THRESHOLD.severeSystolic || dia >= BP_THRESHOLD.severeDiastolic
+  const raised = sys >= BP_THRESHOLD.raisedSystolic || dia >= BP_THRESHOLD.raisedDiastolic
+  const low = sys < BP_THRESHOLD.lowSystolic
+
+  if (severe) {
+    return {
+      ...base, level: 'warning', value: `${sys}/${dia}`,
+      source: BP_THRESHOLD.severeSource,
+      detail: {
+        en: `${sys}/${dia} mmHg — at or above the ${BP_THRESHOLD.severeSystolic}/${BP_THRESHOLD.severeDiastolic} mark, which is the level at which a prompt check is advised.`,
+        ms: `${sys}/${dia} mmHg — pada atau melebihi paras ${BP_THRESHOLD.severeSystolic}/${BP_THRESHOLD.severeDiastolic}, iaitu paras yang memerlukan pemeriksaan segera.`
+      },
+      steps: [
+        { en: 'Sit quietly for five minutes and measure again. If it stays this high, be seen today rather than at your next appointment.',
+          ms: 'Duduk tenang selama lima minit dan ukur semula. Sekiranya ia kekal setinggi ini, dapatkan pemeriksaan hari ini dan bukan pada temujanji seterusnya.' },
+        { en: 'With chest pain, breathlessness, a bad headache, blurred vision or weakness on one side — go to the Emergency Department now.',
+          ms: 'Sekiranya disertai sakit dada, sesak nafas, sakit kepala teruk, penglihatan kabur atau lemah sebelah badan — terus ke Jabatan Kecemasan sekarang.' }
+      ]
+    }
+  }
+  if (raised) {
+    return {
+      ...base, level: 'attention', value: `${sys}/${dia}`,
+      detail: {
+        en: `${sys}/${dia} mmHg — at or above the ${BP_THRESHOLD.raisedSystolic}/${BP_THRESHOLD.raisedDiastolic} mark used to define raised blood pressure.`,
+        ms: `${sys}/${dia} mmHg — pada atau melebihi paras ${BP_THRESHOLD.raisedSystolic}/${BP_THRESHOLD.raisedDiastolic} yang digunakan untuk mentakrifkan tekanan darah tinggi.`
+      },
+      steps: [{
+        en: 'Bring your readings to your next appointment. A single raised reading is common and does not settle anything on its own.',
+        ms: 'Bawa bacaan anda ke temujanji seterusnya. Satu bacaan tinggi adalah perkara biasa dan tidak menentukan apa-apa dengan sendirinya.'
+      }]
+    }
+  }
+  if (low) {
+    return {
+      ...base, level: 'watch', value: `${sys}/${dia}`,
+      detail: { en: `${sys}/${dia} mmHg — below the usual range.`, ms: `${sys}/${dia} mmHg — bawah julat biasa.` },
+      steps: [{
+        en: 'Mention it if you have felt dizzy on standing, or faint.',
+        ms: 'Nyatakannya sekiranya anda berasa pening apabila berdiri, atau hampir pengsan.'
+      }]
+    }
+  }
+  return {
+    ...base, level: 'none', value: `${sys}/${dia}`,
+    detail: { en: `${sys}/${dia} mmHg — under the ${BP_THRESHOLD.raisedSystolic}/${BP_THRESHOLD.raisedDiastolic} mark.`,
+              ms: `${sys}/${dia} mmHg — bawah paras ${BP_THRESHOLD.raisedSystolic}/${BP_THRESHOLD.raisedDiastolic}.` },
+    steps: []
   }
 }
 

@@ -95,6 +95,42 @@ export const SRC = {
     },
     kind: 'ministry'
   },
+  WHO_HTN_2021: {
+    id: 'WHO_HTN_2021',
+    short: { en: 'WHO 2021', ms: 'WHO 2021' },
+    full: {
+      en: 'WHO. Guideline for the pharmacological treatment of hypertension in adults. Geneva: WHO, 2021 — hypertension is defined as an office systolic blood pressure of 140 mmHg or more, and/or a diastolic of 90 mmHg or more, on two separate occasions.',
+      ms: 'WHO. Guideline for the pharmacological treatment of hypertension in adults. Geneva: WHO, 2021 — hipertensi ditakrifkan sebagai tekanan darah sistolik di klinik 140 mmHg atau lebih, dan/atau diastolik 90 mmHg atau lebih, pada dua kesempatan berasingan.'
+    },
+    kind: 'international'
+  },
+  ISH_2020: {
+    id: 'ISH_2020',
+    short: { en: 'ISH 2020', ms: 'ISH 2020' },
+    full: {
+      en: 'International Society of Hypertension Global Hypertension Practice Guidelines. Hypertension 2020;75(6):1334-1357 — grade 2 hypertension from 160/100 mmHg; a reading at or above 180/110 mmHg warrants prompt assessment. A professional society guideline, NOT a Malaysian one.',
+      ms: 'International Society of Hypertension Global Hypertension Practice Guidelines. Hypertension 2020;75(6):1334-1357 — hipertensi gred 2 bermula 160/100 mmHg; bacaan pada atau melebihi 180/110 mmHg memerlukan penilaian segera. Garis panduan persatuan profesional, BUKAN garis panduan Malaysia.'
+    },
+    kind: 'society'
+  },
+  MOH_CPG_HTN: {
+    id: 'MOH_CPG_HTN',
+    short: { en: 'MOH CPG Hypertension (to confirm)', ms: 'CPG KKM Hipertensi (perlu disahkan)' },
+    full: {
+      en: 'Ministry of Health Malaysia. Clinical Practice Guidelines on Management of Hypertension. Named here as the Malaysian authority that should govern these cut-offs. NOT quoted in this build — the document could not be opened and read.',
+      ms: 'Kementerian Kesihatan Malaysia. Garis Panduan Amalan Klinikal Pengurusan Hipertensi. Dinamakan sebagai pihak berkuasa Malaysia yang sepatutnya mengawal titik potong ini. TIDAK dipetik dalam binaan ini.'
+    },
+    kind: 'ministry'
+  },
+  WHO_PA_2020: {
+    id: 'WHO_PA_2020',
+    short: { en: 'WHO 2020', ms: 'WHO 2020' },
+    full: {
+      en: 'WHO guidelines on physical activity and sedentary behaviour. Geneva: WHO, 2020 — adults should do 150-300 minutes of moderate-intensity aerobic activity a week; adults living with a chronic condition should aim for the same where they are able, and should seek advice from a health professional on what is appropriate for them.',
+      ms: 'Garis panduan WHO mengenai aktiviti fizikal dan tingkah laku sedentari. Geneva: WHO, 2020 — orang dewasa disarankan melakukan 150-300 minit aktiviti aerobik intensiti sederhana seminggu; mereka yang mempunyai penyakit kronik disarankan mensasarkan jumlah yang sama sekiranya mampu, dan hendaklah mendapatkan nasihat profesional kesihatan tentang apa yang sesuai bagi diri mereka.'
+    },
+    kind: 'international'
+  },
   OWN_LAB_REPORT: {
     id: 'OWN_LAB_REPORT',
     short: { en: "the reference range on your own report", ms: 'julat rujukan pada laporan anda sendiri' },
@@ -187,6 +223,42 @@ export const HBA1C_BANDS = {
   note: {
     en: 'HbA1c is unreliable in anaemia, recent transfusion, pregnancy and haemoglobin variants, which are common in Malaysia. A number here is not a diagnosis.',
     ms: 'HbA1c tidak boleh dipercayai dalam anemia, pemindahan darah baru-baru ini, kehamilan dan varian hemoglobin, yang lazim di Malaysia. Nombor di sini bukan diagnosis.'
+  }
+}
+
+/* Blood pressure. A home or clinic reading is a single measurement, not a
+   diagnosis: hypertension is defined on repeated readings, and this app says
+   so wherever it shows a band. */
+export const BP_THRESHOLD = {
+  anchoredTo: SRC.WHO_HTN_2021.id,
+  severeSource: SRC.ISH_2020.id,
+  localAuthority: SRC.MOH_CPG_HTN.id,
+  verified: false,            // WHO/ISH figures quoted; Malaysian CPG not read.
+  unit: 'mmHg',
+  raisedSystolic: 140,
+  raisedDiastolic: 90,
+  severeSystolic: 180,
+  severeDiastolic: 110,
+  lowSystolic: 90,
+  note: {
+    en: 'One reading is not a diagnosis. Hypertension is defined on readings taken on separate occasions, by someone using a cuff of the right size on a rested arm.',
+    ms: 'Satu bacaan bukan diagnosis. Hipertensi ditakrifkan berdasarkan bacaan yang diambil pada kesempatan berasingan, menggunakan saiz cuff yang betul pada lengan yang telah berehat.'
+  }
+}
+
+/* The weekly activity target the app measures against. WHO publishes a range;
+   the app uses the lower bound as the target because that is the figure the
+   guideline frames as the minimum, and overstating a target discourages the
+   people most likely to benefit from starting. */
+export const ACTIVITY_TARGET = {
+  anchoredTo: SRC.WHO_PA_2020.id,
+  verified: true,            // WHO figure, quoted directly from the guideline.
+  unit: 'min/week',
+  weeklyMinutes: 150,
+  upperMinutes: 300,
+  note: {
+    en: 'This target is for adults in general. It is not a target this app has set for you, and this app does not know whether it is safe for you.',
+    ms: 'Sasaran ini adalah untuk orang dewasa secara umum. Ia bukan sasaran yang ditetapkan oleh aplikasi ini untuk anda, dan aplikasi ini tidak mengetahui sama ada ia selamat untuk anda.'
   }
 }
 

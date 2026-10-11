@@ -72,8 +72,8 @@ export const MYUBAT = {
       ms: 'Dua perkhidmatan. Sistem Temu Janji: bekalan ubat susulan anda disediakan lebih awal dan anda mengambilnya di fasiliti pada tarikh yang dipersetujui, tanpa menunggu lama.' },
     { en: 'Medicine By Post (UMP): a courier delivers your repeat supply to an address you choose.',
       ms: 'Ubat Melalui Pos (UMP): syarikat penghantaran menghantar bekalan ubat susulan anda ke lokasi pilihan anda.' },
-    { en: 'Delivery is NOT free. UMP carries a charge, paid in cash to the courier when your medicine is handed over.',
-      ms: 'Penghantaran BUKAN percuma. UMP dikenakan caj tertentu, dibayar secara tunai kepada syarikat penghantaran semasa menerima bekalan ubat.' },
+    { en: 'Delivery normally carries a charge, paid in cash to the courier on receipt. A free-delivery initiative has been running since 1 October 2026 while its allocation lasts — see the note below before you assume it is free.',
+      ms: 'Penghantaran kebiasaannya dikenakan caj, dibayar secara tunai kepada syarikat penghantaran semasa menerima. Inisiatif penghantaran percuma sedang berjalan sejak 1 Oktober 2026 selagi peruntukannya masih ada — sila baca nota di bawah sebelum menganggap ia percuma.' },
     { en: 'For repeat supplies of a medicine you already take. Keep taking your current supply until the new one arrives — do not stop and wait.',
       ms: 'Untuk bekalan ulangan ubat yang anda sudah ambil. Teruskan bekalan semasa anda sehingga yang baharu tiba — jangan berhenti dan menunggu.' }
   ],
@@ -112,6 +112,32 @@ export const MYUBAT = {
       en: 'Anything you have run out of today. Delivery takes days — go to the pharmacy counter instead.',
       ms: 'Apa-apa yang anda kehabisan hari ini. Penghantaran mengambil masa berhari-hari — pergi ke kaunter farmasi sebaliknya.' }
   ],
+  /* The charge and the current waiver, kept apart because they come from
+     different places and have different lifespans.
+
+     The charge is from the official 2021 poster set (PPF/A&P/IF042021), which
+     is bundled in this app and says payment is made in cash on receipt.
+
+     The waiver was reported to this build as a free-delivery initiative from
+     1 October 2026, funded to RM5 million and ending when that is spent. The
+     source given was a news item (siraplimau.com), not a Ministry circular,
+     and the build environment could not open it to read it. It is therefore
+     shown as a time-limited initiative to confirm, NOT as a standing fact:
+     a patient who reads "free" in December and is charged has been misled by
+     this app. Replace `verified: false` once the circular is in hand, and set
+     `endedOn` when the allocation is exhausted. */
+  deliveryCharge: {
+    verified: false,
+    source: { en: 'Reported to HTPN; not yet confirmed against a Ministry circular.',
+              ms: 'Dilaporkan kepada HTPN; belum disahkan dengan pekeliling Kementerian.' },
+    startedOn: '2026-10-01',
+    endedOn: null,
+    text: {
+      en: 'Free delivery has been running since 1 October 2026, funded to RM5 million, and stops when that allocation is spent. There is no fixed end date, so ask the pharmacy whether it still applies before you order. Outside that period UMP carries a charge paid in cash to the courier.',
+      ms: 'Penghantaran percuma sedang berjalan sejak 1 Oktober 2026, dengan peruntukan RM5 juta, dan akan berhenti apabila peruntukan itu habis. Tiada tarikh tamat yang ditetapkan, jadi sila tanya pihak farmasi sama ada ia masih terpakai sebelum anda memesan. Di luar tempoh tersebut, UMP dikenakan caj yang dibayar secara tunai kepada syarikat penghantaran.'
+    }
+  },
+
   coldChainWarning: {
     en: 'If you are not sure whether your medicine needs to stay cold, ask the pharmacy before ordering. Getting this wrong makes the medicine useless and you will not be able to tell by looking at it.',
     ms: 'Jika anda tidak pasti sama ada ubat anda perlu kekal sejuk, tanya farmasi sebelum memesan. Kesilapan ini menjadikan ubat tidak berkesan dan anda tidak akan dapat mengetahuinya dengan melihat sahaja.'

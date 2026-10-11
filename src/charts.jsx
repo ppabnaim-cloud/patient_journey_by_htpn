@@ -52,20 +52,67 @@ export function Stat ({ label, value, unit, sub, tone }) {
   )
 }
 
+/* --- meter ---------------------------------------------------------------
+   A single ratio against a limit is a meter, never a pie of two slices. The
+   track and the fill are the same hue, two steps apart, so it reads as "how
+   far along" rather than as two competing categories. Over-target does not
+   change colour: exceeding a minimum is not a warning state. */
+export function Meter ({ value, target, unit, label, caption }) {
+  const pct = Math.max(0, Math.min(100, (value / target) * 100))
+  return (
+    <div className="meter">
+      <div className="meter-top">
+        <span className="meter-v">{fmt(value, 0)}<span className="meter-u"> / {target} {unit}</span></span>
+        <span className="meter-l">{label}</span>
+      </div>
+      <div className="meter-track" role="img" aria-label={`${fmt(value, 0)} of ${target} ${unit}`}>
+        <div className="meter-fill" style={{ width: pct + '%' }} />
+      </div>
+      {caption ? <p className="meter-c">{caption}</p> : null}
+    </div>
+  )
+}
+
+/* --- day bars ------------------------------------------------------------
+   Magnitude across a small fixed set of slots: columns, one hue, capped at
+   24px thick with a 4px rounded cap and a square baseline. Labelled
+   selectively — today only — because a number on every column goes unread. */
+export function DayBars ({ days, unit, todayLabel }) {
+  const max = Math.max(1, ...days.map(d => d.value))
+  return (
+    <div className="daybars">
+      {days.map((d, i) => {
+        const h = (d.value / max) * 100
+        const isLast = i === days.length - 1
+        return (
+          <div key={i} className="daycol" title={`${d.label}: ${fmt(d.value, 0)} ${unit}`}>
+            <span className="dayv">{d.value > 0 ? fmt(d.value, 0) : ''}</span>
+            <div className="daytrack">
+              <div className={'daybar' + (isLast ? ' now' : '')} style={{ height: Math.max(d.value > 0 ? 3 : 0, h) + '%' }} />
+            </div>
+            <span className="dayl">{isLast && todayLabel ? todayLabel : d.label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 /* --- line chart ---------------------------------------------------------
    One series, so no legend: the title names what is plotted. `cutoff` draws a
    cited reference line; the caller passes the citation, this never invents one. */
 export function LineChart ({ points, unit, cutoff, emptyText, tableLabels }) {
+  const cuts = cutoff == null ? [] : (Array.isArray(cutoff) ? cutoff : [cutoff])
   const uid = useId()
   const [showTable, setShowTable] = useState(false)
   const rows = (points || []).filter(p => Number.isFinite(Number(p.value)))
 
   if (rows.length < 2) return <p className="chart-empty">{emptyText}</p>
 
-  const W = 700, H = 210, PL = 52, PR = 24, PT = 20, PB = 34
+  const W = 700, H = 130, PL = 50, PR = 26, PT = 12, PB = 26
   const vals = rows.map(r => Number(r.value))
-  const lo = Math.min(...vals, ...(cutoff != null ? [cutoff] : []))
-  const hi = Math.max(...vals, ...(cutoff != null ? [cutoff] : []))
+  const lo = Math.min(...vals, ...cuts)
+  const hi = Math.max(...vals, ...cuts)
   const pad = (hi - lo) * 0.18 || Math.abs(hi * 0.1) || 1
   const yMin = lo - pad, yMax = hi + pad
   const x = i => PL + (i * (W - PL - PR)) / Math.max(1, rows.length - 1)
@@ -104,9 +151,9 @@ export function LineChart ({ points, unit, cutoff, emptyText, tableLabels }) {
         {/* The reference line is drawn, but its label lives beside the chart:
             at this size an inline label collides with the axis ticks, and the
             rule is that a label which does not fit is moved, never clipped. */}
-        {cutoff != null
-          ? <line x1={PL} x2={W - PR} y1={y(cutoff)} y2={y(cutoff)} className="cutoff" />
-          : null}
+        {cuts.map((c, i) => (
+          <line key={i} x1={PL} x2={W - PR} y1={y(c)} y2={y(c)} className="cutoff" />
+        ))}
 
         <path d={d} className="line" fill="none" />
 
@@ -117,7 +164,7 @@ export function LineChart ({ points, unit, cutoff, emptyText, tableLabels }) {
         ))}
 
         {/* one direct label, on the endpoint only */}
-        <text x={x(rows.length - 1)} y={y(Number(last.value)) - 12} className="endlabel" textAnchor="end">
+        <text x={x(rows.length - 1)} y={y(Number(last.value)) - 10} className="endlabel" textAnchor="end">
           {fmt(last.value, 1)}
         </text>
 
@@ -127,6 +174,100 @@ export function LineChart ({ points, unit, cutoff, emptyText, tableLabels }) {
       <button className="linkbtn" onClick={() => setShowTable(true)} aria-describedby={uid}>
         {tableLabels.tableView}
       </button>
+    </>
+  )
+}
+
+/* --- two-series line chart ----------------------------------------------
+   Systolic and diastolic share a unit and a scale, so they share ONE axis.
+   This is never a dual-axis chart: two y-scales on one plot is the single
+   most misleading thing a chart can do, and two measures that genuinely do
+   not share a scale get two charts instead.
+
+   Two series means a legend is mandatory — identity is never carried by
+   colour alone — and both endpoints are directly labelled. */
+export function MultiLineChart ({ series, unit, refLines, emptyText, tableLabels }) {
+  const [showTable, setShowTable] = useState(false)
+  const clean = (series || []).filter(s => s.points.length >= 2)
+  if (!clean.length) return <p className="chart-empty">{emptyText}</p>
+
+  const labels = clean[0].points.map(p => p.label)
+
+  if (showTable) {
+    return (
+      <>
+        <table className="tbl mini">
+          <thead>
+            <tr><th>{tableLabels.date}</th>{clean.map(s => <th key={s.key} className="num">{s.label}</th>)}</tr>
+          </thead>
+          <tbody>
+            {labels.map((lab, i) => (
+              <tr key={i}>
+                <td>{lab}</td>
+                {clean.map(s => <td key={s.key} className="num">{fmt(s.points[i]?.value, 0)}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button className="linkbtn" onClick={() => setShowTable(false)}>{tableLabels.chartView}</button>
+      </>
+    )
+  }
+
+  const W = 700, H = 130, PL = 50, PR = 46, PT = 12, PB = 26
+  const all = clean.flatMap(s => s.points.map(p => Number(p.value)))
+             .concat((refLines || []).map(r => r.value))
+  const lo = Math.min(...all), hi = Math.max(...all)
+  const pad = (hi - lo) * 0.15 || 10
+  const yMin = lo - pad, yMax = hi + pad
+  const x = i => PL + (i * (W - PL - PR)) / Math.max(1, labels.length - 1)
+  const y = v => PT + (1 - (v - yMin) / (yMax - yMin || 1)) * (H - PT - PB)
+
+  return (
+    <>
+      <svg viewBox={`0 0 ${W} ${H}`} className="chart" role="img"
+           aria-label={clean.map(s => `${s.label}: ${s.points.map(p => `${p.label} ${p.value}`).join(', ')}`).join('. ')}>
+        {[yMin, (yMin + yMax) / 2, yMax].map((v, i) => (
+          <g key={i}>
+            <line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} className="grid" />
+            <text x={PL - 8} y={y(v) + 4} className="axis" textAnchor="end">{fmt(v, 0)}</text>
+          </g>
+        ))}
+        {(refLines || []).map((r, i) => (
+          <line key={i} x1={PL} x2={W - PR} y1={y(r.value)} y2={y(r.value)} className="cutoff" />
+        ))}
+
+        {clean.map((sr, si) => (
+          <g key={sr.key}>
+            <path d={sr.points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(Number(p.value)).toFixed(1)}`).join(' ')}
+                  fill="none" stroke={SERIES[si % SERIES.length]} strokeWidth="2"
+                  strokeLinejoin="round" strokeLinecap="round" />
+            {sr.points.map((p, i) => (
+              <circle key={i} cx={x(i)} cy={y(Number(p.value))} r="5"
+                      fill={SERIES[si % SERIES.length]} stroke="var(--card)" strokeWidth="2">
+                <title>{`${sr.label} — ${p.label}: ${fmt(p.value, 0)} ${unit}`}</title>
+              </circle>
+            ))}
+            <text x={x(sr.points.length - 1) + 8} y={y(Number(sr.points[sr.points.length - 1].value)) + 4}
+                  className="endlabel" textAnchor="start">
+              {fmt(sr.points[sr.points.length - 1].value, 0)}
+            </text>
+          </g>
+        ))}
+
+        <text x={PL} y={H - 8} className="axis">{labels[0]}</text>
+        <text x={W - PR} y={H - 8} className="axis" textAnchor="end">{labels[labels.length - 1]}</text>
+      </svg>
+      {clean.length > 1 ? (
+        <div className="legend">
+          {clean.map((sr, si) => (
+            <span key={sr.key} className="lg">
+              <i style={{ background: SERIES[si % SERIES.length] }} />{sr.label}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      <button className="linkbtn" onClick={() => setShowTable(true)}>{tableLabels.tableView}</button>
     </>
   )
 }
