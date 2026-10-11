@@ -29,6 +29,7 @@ import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
 import { CAMPAIGN, HASHTAG } from './data/campaign.js'
+import { TAGS, TEMPLATES, HTPN_PAGE, TEMPLATE_NOTE, UNCHECKED_NOTE, BEFORE_POSTING } from './data/templates.js'
 import { THEME, ARTICLE, ANNOUNCEMENT } from './data/announcement.js'
 import { GLYPH, TRIAGE_GLYPHS } from './data/glyphs.js'
 import { Stat, AllergyTile, LineChart, MultiLineChart, StackedBar, Meter, DayBars, Art } from './charts.jsx'
@@ -1031,7 +1032,7 @@ function TabMeasurements ({ record, update, onEvent }) {
   const lastHeight = rows.find(r => r.heightCm)?.heightCm || ''
   const [draft, setDraft] = useState({
     date: new Date().toISOString().slice(0, 10), weightKg: '', heightCm: lastHeight,
-    waistCm: '', systolic: '', diastolic: '', fpg: ''
+    waistCm: '', systolic: '', diastolic: '', fpg: '', steps: '', kcal: ''
   })
   const paged = usePaged(rows, PAGE.measurements)
 
@@ -1040,10 +1041,14 @@ function TabMeasurements ({ record, update, onEvent }) {
   const waistF = latest ? classifyWaist(latest.waistCm, record.gender) : null
   const latestBP = rows.find(r => r.systolic != null && r.diastolic != null)
   const latestFpg = seriesFor(record.labs, 'fpg').slice(-1)[0] || null
+  const latestAct = [...(record.activity || [])]
+    .filter(a => a?.date && (a.steps != null || a.kcal != null))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date))).slice(-1)[0] || null
   const bpF = latestBP ? classifyBP(latestBP.systolic, latestBP.diastolic) : null
 
   const save = () => {
-    if (!draft.weightKg && !draft.waistCm && !draft.systolic && !draft.fpg) return
+    if (!draft.weightKg && !draft.waistCm && !draft.systolic && !draft.fpg &&
+        !draft.steps && !draft.kcal) return
     update(r => ({
       ...r,
       /* A fasting sugar taken at home and one taken by the laboratory are the
@@ -1055,6 +1060,18 @@ function TabMeasurements ({ record, update, onEvent }) {
             id: store.newId(), date: draft.date, analyteId: 'fpg',
             value: parseFloat(draft.fpg), refLow: '', refHigh: '', atHome: true
           }],
+      /* Steps and energy entered here go to the SAME activity list the
+         walking station writes to. Two entry points, one store — the patient
+         should not have to know which screen the app filed it under, and the
+         charts must never disagree about the same day. */
+      activity: (draft.steps === '' && draft.kcal === '')
+        ? (r.activity || [])
+        : [...(r.activity || []), {
+            id: store.newId(), date: draft.date,
+            minutes: null, km: null,
+            steps: draft.steps === '' ? null : parseInt(draft.steps, 10),
+            kcal: draft.kcal === '' ? null : parseInt(draft.kcal, 10)
+          }],
       measurements: [...(r.measurements || []), {
         id: store.newId(), date: draft.date,
         weightKg: draft.weightKg === '' ? null : parseFloat(draft.weightKg),
@@ -1064,7 +1081,7 @@ function TabMeasurements ({ record, update, onEvent }) {
         diastolic: draft.diastolic === '' ? null : parseInt(draft.diastolic, 10)
       }]
     }))
-    setDraft({ ...draft, weightKg: '', waistCm: '', systolic: '', diastolic: '', fpg: '' })
+    setDraft({ ...draft, weightKg: '', waistCm: '', systolic: '', diastolic: '', fpg: '', steps: '', kcal: '' })
     onEvent('measurement_saved', 'manual')
     setView('now')
   }
@@ -1098,6 +1115,10 @@ function TabMeasurements ({ record, update, onEvent }) {
                   <dd>{latestBP ? `${latestBP.systolic}/${latestBP.diastolic} mmHg` : '—'}</dd>
                   <dt>{t(T.m_fpg)}</dt>
                   <dd>{latestFpg ? `${latestFpg.value} mmol/L (${latestFpg.date})` : '—'}</dd>
+                  <dt>{t(T.gh_steps)}</dt>
+                  <dd>{latestAct?.steps != null ? `${latestAct.steps} (${latestAct.date})` : '—'}</dd>
+                  <dt>{t(T.gh_kcal)}</dt>
+                  <dd>{latestAct?.kcal != null ? `${latestAct.kcal} kcal (${latestAct.date})` : '—'}</dd>
                   <dt>{t(T.col_date)}</dt><dd>{latest.date}</dd>
                 </dl>
                 {weights.length > 1 ? (
@@ -1153,6 +1174,14 @@ function TabMeasurements ({ record, update, onEvent }) {
                   <input type="number" step="0.1" inputMode="decimal" value={draft.fpg}
                          onChange={e => setDraft({ ...draft, fpg: e.target.value })} />
                 </Field>
+                <Field label={t(T.gh_steps)}>
+                  <input type="number" inputMode="numeric" value={draft.steps}
+                         onChange={e => setDraft({ ...draft, steps: e.target.value })} />
+                </Field>
+                <Field label={t(T.gh_kcal)} hint={t(T.m_steps_help)}>
+                  <input type="number" inputMode="numeric" value={draft.kcal}
+                         onChange={e => setDraft({ ...draft, kcal: e.target.value })} />
+                </Field>
               </div>
               {liveBmi ? <p className="hint" style={{ marginTop: 7 }}>{t(T.m_bmi)}: <b>{liveBmi}</b> kg/m²</p> : null}
             </div>
@@ -1166,7 +1195,8 @@ function TabMeasurements ({ record, update, onEvent }) {
               </Field>
             </div>
             <button className="btn wide" onClick={save}
-                  disabled={!draft.weightKg && !draft.waistCm && !draft.systolic && !draft.fpg}>
+                  disabled={!draft.weightKg && !draft.waistCm && !draft.systolic && !draft.fpg &&
+                            !draft.steps && !draft.kcal}>
             {t(T.save)}
           </button>
           </>
@@ -1398,35 +1428,12 @@ function TabMyUbat ({ onEvent, onLightbox }) {
                   <>
                     <ul className="bullets">{MYUBAT.points.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
                     {/* A waiver that ends when a budget runs out is not the
-                        same claim as "free", so it is shown as its own
-                        time-limited note with what is unconfirmed about it. */}
+                        same claim as "free", so the note keeps the one line
+                        that protects the patient: ask before you order. HTPN
+                        withdrew the press-source strip that stood here; the
+                        provenance is kept in src/data/services.js. */}
                     <div className="flagline" style={{ marginTop: 9 }}>
                       <b>{t(T.ubat_charge)} — {t(T.ubat_confirm)}.</b> {t(MYUBAT.deliveryCharge.text)}
-                      {MYUBAT.deliveryCharge.verified ? null : (
-                        <>
-                          <div style={{ marginTop: 5, fontWeight: 500 }}>
-                            ⚠ {t(MYUBAT.deliveryCharge.confirmNote)}
-                          </div>
-                          {/* Each source named, and linked where a link was
-                              supplied, so the claim can be followed back. */}
-                          <ul className="srclist">
-                            {MYUBAT.deliveryCharge.sources.map((src, i) => (
-                              <li key={i}>
-                                {src.url ? (
-                                  <a href={src.url} target="_blank" rel="noreferrer"
-                                     onClick={() => onEvent('article_opened', 'none')}>
-                                    {src.publisher} ↗
-                                  </a>
-                                ) : <span>{src.publisher}</span>}
-                                {' · '}{t(src.published)}{' — '}
-                                <i>{t(src.headlineFromSlug)}</i>
-                                {src.headlineIsExact ? '' : ' *'}
-                              </li>
-                            ))}
-                          </ul>
-                          <div className="srcnote">* {t(T.ann_headline_note)}</div>
-                        </>
-                      )}
                     </div>
                   </>
                 )
@@ -1443,7 +1450,6 @@ function TabMyUbat ({ onEvent, onLightbox }) {
                         </li>
                       ))}
                     </ul>
-                    <div className="flagline" style={{ marginTop: 10 }}>❄ {t(T.ubat_cold)} — {t(MYUBAT.coldChainWarning)}</div>
                   </>
                 )}
             </div>
@@ -1682,9 +1688,30 @@ function ActivitySection ({ record, update, onEvent }) {
 
       <div className="card tight">
         <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.walker} /></span>{t(T.gh_last7)} — {t(T.gh_minutes).toLowerCase()}</p>
-        {weekMinutes === 0 && days.every(d => d.value === 0)
+        {rows.length === 0
           ? <div className="chart-blank"><Art name="week" /><p className="chart-empty">{t(T.gh_nolog)}</p></div>
           : <DayBars days={days} unit="min" todayLabel={t(T.gh_today)} />}
+        {/* The bars above count minutes. Steps and energy are logged here too
+            — and from the Monitoring tab, into this same list — so the entries
+            themselves are listed rather than left invisible whenever a day was
+            recorded as a step count and nothing else. */}
+        {rows.length > 0 ? (
+          <>
+            <p className="card-t" style={{ marginTop: 9 }}>{t(T.gh_recent)}</p>
+            <table className="mini">
+              <tbody>
+                {[...rows].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 3).map(r => (
+                  <tr key={r.id}>
+                    <td>{r.date}</td>
+                    <td>{r.minutes != null ? `${r.minutes} ${t(T.gh_minutes).toLowerCase()}` : '—'}</td>
+                    <td>{r.steps != null ? `${r.steps.toLocaleString()} ${t(T.gh_steps).toLowerCase()}` : '—'}</td>
+                    <td>{r.kcal != null ? `${r.kcal} kcal` : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        ) : null}
       </div>
 
       <div className="card tight">
@@ -1799,6 +1826,84 @@ function ShareIt ({ onEvent }) {
   )
 }
 
+function Templates ({ onEvent }) {
+  const [t, lang] = useT()
+  const narrow = useNarrow()
+  const [copied, setCopied] = useState(null)
+  const tagOf = (id) => TAGS.find(x => x.id === id)
+  /* On a phone the pane scrolls, so everything can be listed; on a tablet it
+     does not, and two posts is what fits beside the hashtag list. */
+  const paged = usePaged(TEMPLATES, narrow ? TEMPLATES.length : 2)
+
+  const copy = async (text, what) => {
+    try { await navigator.clipboard.writeText(text) } catch { /* nothing to do */ }
+    setCopied(what); setTimeout(() => setCopied(null), 1800)
+  }
+
+  return (
+    <>
+      {/* Tagging the page is the step that decides whether HTPN ever sees the
+          post, so it sits above the templates rather than inside a footnote. */}
+      <div className="card tight">
+        <p className="card-t">{t(T.gh_tag_htpn)}</p>
+        <div className="hashline">
+          <span className="hashtag">{HTPN_PAGE.handle}</span>
+          <span style={{ flex: 1 }} />
+          <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
+                  onClick={() => copy(HTPN_PAGE.handle, 'page')}>
+            {copied === 'page' ? '\u2713 ' + t(T.gh_copied) : t(T.gh_copy)}
+          </button>
+        </div>
+        <p className="card-s" style={{ marginTop: 7 }}>{t(HTPN_PAGE.howToTag)}</p>
+        <a className="btn ghost" style={{ marginTop: 8 }} href={HTPN_PAGE.url}
+           target="_blank" rel="noreferrer" onClick={() => onEvent('hashtag_opened', 'facebook')}>
+          {t(T.gh_open_page)} ↗
+        </a>
+      </div>
+
+      <div className="card tight">
+        <p className="card-t">{t(T.gh_tpl_title)}</p>
+        <div className="taggrid">
+          {TAGS.map(x => (
+            <div key={x.id} className="tagchip">
+              <span className="hashtag sm">#{x.tag}</span>
+              <span className="tagtheme">{t(x.theme)}</span>
+              {!x.verified ? <span className="badge warn">{t(T.gh_unchecked)}</span> : null}
+            </div>
+          ))}
+        </div>
+        <div className="flagline" style={{ marginTop: 8 }}>⚠ {t(UNCHECKED_NOTE)}</div>
+      </div>
+
+      {paged.slice.map(tpl => {
+        const tag = tagOf(tpl.tagId)
+        return (
+          <div className="card tight" key={tpl.id}>
+            <div className="hashline">
+              <span className="card-t" style={{ margin: 0 }}>{t(tpl.title)}</span>
+              <span style={{ flex: 1 }} />
+              <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
+                      onClick={() => { copy(pick(tpl.body, lang), tpl.id); onEvent('share_opened', 'none') }}>
+                {copied === tpl.id ? '\u2713 ' + t(T.gh_copied) : t(T.gh_copy_post)}
+              </button>
+            </div>
+            <pre className="tplbody">{t(tpl.body)}</pre>
+            {tag?.note ? <p className="note" style={{ marginTop: 6 }}>{t(tag.note)}</p> : null}
+          </div>
+        )
+      })}
+
+      <span style={{ flex: 1 }} />
+      {!narrow ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} /> : null}
+
+      <div className="card tight">
+        <p className="card-s">{t(TEMPLATE_NOTE)}</p>
+        <div className="flagline" style={{ marginTop: 7 }}>⚠ {t(BEFORE_POSTING)}</div>
+      </div>
+    </>
+  )
+}
+
 function TabGayaHidup ({ onEvent }) {
   const [t] = useT()
   const [view, setView] = useState('share')
@@ -1810,10 +1915,12 @@ function TabGayaHidup ({ onEvent }) {
       </div>
       <div className="subtabs">
         <button className="subtab" aria-selected={view === 'share'} onClick={() => setView('share')}>{t(T.gh_sub_share)}</button>
+        <button className="subtab" aria-selected={view === 'tpl'} onClick={() => setView('tpl')}>{t(T.gh_sub_tpl)}</button>
         <button className="subtab" aria-selected={view === 'safe'} onClick={() => setView('safe')}>{t(T.gh_safety)}</button>
       </div>
       <div className="pane-body">
         {view === 'share' ? <ShareIt onEvent={onEvent} /> : null}
+        {view === 'tpl' ? <Templates onEvent={onEvent} /> : null}
         {view === 'safe' ? (
           <>
             <div className="emergency">

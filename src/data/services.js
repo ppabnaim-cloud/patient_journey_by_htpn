@@ -103,14 +103,11 @@ export const MYUBAT = {
      as its own list rather than buried in the points above. */
   notFor: [
     { glyph: 'cold',
-      en: 'Anything that must stay cold. Insulin, some eye drops, some injections and all vaccines go by cold chain and are collected in person.',
-      ms: 'Apa-apa yang mesti kekal sejuk. Insulin, sesetengah titisan mata, sesetengah suntikan dan semua vaksin menggunakan rantaian sejuk dan diambil sendiri.' },
-    { glyph: 'lock',
-      en: 'Controlled medicines such as strong painkillers, which must be handed over in person.',
-      ms: 'Ubat terkawal seperti ubat tahan sakit kuat, yang mesti diserahkan sendiri.' },
+      en: 'Anything that must stay cold. Insulin, some eye drops, some injections go by cold chain and are collected in person.',
+      ms: 'Apa-apa yang mesti kekal sejuk. Insulin, sesetengah titisan mata, sesetengah suntikan menggunakan rantaian sejuk dan diambil sendiri.' },
     { glyph: 'counsel',
-      en: 'A medicine you have never taken before, or one whose dose has just been changed. The pharmacist needs to counsel you for those.',
-      ms: 'Ubat yang anda tidak pernah ambil sebelum ini, atau yang dosnya baru ditukar. Ahli farmasi perlu memberi kaunseling untuk itu.' },
+      en: 'A medicine you have never taken before. The pharmacist needs to counsel you for that.',
+      ms: 'Ubat yang anda tidak pernah ambil sebelum ini. Ahli farmasi perlu memberi kaunseling untuk itu.' },
     { glyph: 'empty',
       en: 'Anything you have run out of today. Delivery takes days — go to the pharmacy counter instead.',
       ms: 'Apa-apa yang anda kehabisan hari ini. Penghantaran mengambil masa berhari-hari — pergi ke kaunter farmasi sebaliknya.' }
@@ -134,6 +131,11 @@ export const MYUBAT = {
 
      The charge is from the official 2021 poster set (PPF/A&P/IF042021), which
      is bundled in this app and says payment is made in cash on receipt.
+
+     WITHDRAWN FROM THE SCREEN BY HTPN: the press-source strip, the "not yet
+     confirmed against a Ministry circular" line and the cold-chain banner
+     were removed on instruction. The provenance below is kept here so the
+     claim can still be traced in the repository, and `verified` stays false.
 
      The waiver is reported by two named national outlets, listed below. That
      is a good deal stronger than a single report relayed second hand, but it
@@ -180,8 +182,8 @@ export const MYUBAT = {
       ms: 'Dilaporkan oleh media kebangsaan; belum disahkan dengan pekeliling Kementerian.'
     },
     text: {
-      en: 'Free delivery has been running since 1 October 2026, reported as assisted by MCMC and funded to RM5 million, and it stops when that allocation is spent. There is no fixed end date, so ask the pharmacy whether it still applies before you order. Outside that period UMP carries a charge paid in cash to the courier.',
-      ms: 'Penghantaran percuma sedang berjalan sejak 1 Oktober 2026, dilaporkan dengan bantuan MCMC dan peruntukan RM5 juta, dan akan berhenti apabila peruntukan itu habis. Tiada tarikh tamat yang ditetapkan, jadi sila tanya pihak farmasi sama ada ia masih terpakai sebelum anda memesan. Di luar tempoh tersebut, UMP dikenakan caj yang dibayar secara tunai kepada syarikat penghantaran.'
+      en: 'Free delivery has been running since 1 October 2026 and stops when its allocation is spent. There is no fixed end date, so ask the pharmacy whether it still applies before you order. Outside that period UMP carries a charge paid in cash to the courier.',
+      ms: 'Penghantaran percuma sedang berjalan sejak 1 Oktober 2026 dan akan berhenti apabila peruntukannya habis. Tiada tarikh tamat yang ditetapkan, jadi sila tanya pihak farmasi sama ada ia masih terpakai sebelum anda memesan. Di luar tempoh tersebut, UMP dikenakan caj yang dibayar secara tunai kepada syarikat penghantaran.'
     }
   },
 

@@ -125,6 +125,18 @@ export const T = {
     'Langkah, tenaga dan berat dipaparkan pada tarikh yang sama supaya anda boleh melihatnya bersama. Aplikasi ini tidak mengira hubungan antara ketiga-tiganya: berat dipengaruhi oleh makanan, cecair, penyakit dan ubat sama banyak dengan berjalan, dan sebulan bacaan daripada seorang individu tidak dapat memisahkan faktor-faktor itu.'
   ),
   m_activity: L('From your watch', 'Daripada jam anda'),
+  gh_sub_tpl: L('Templates', 'Templat'),
+  gh_tpl_title: L('Hashtags and ready-made posts', 'Hashtag dan templat hantaran'),
+  gh_tag_htpn: L('Tag the hospital', 'Tandakan hospital'),
+  gh_open_page: L('Open the hospital page', 'Buka halaman hospital'),
+  gh_copy_post: L('Copy the post', 'Salin hantaran'),
+  gh_unchecked: L('Not yet checked', 'Belum disemak'),
+  gh_also: L('Post it with', 'Kongsikan bersama'),
+  gh_recent: L('Latest entries', 'Entri terkini'),
+  m_steps_help: L(
+    'Steps and energy are saved with your walking log, so they appear on the same charts whichever screen you enter them on.',
+    'Langkah dan tenaga disimpan bersama log jalan kaki anda, maka ia dipaparkan pada carta yang sama tidak kira skrin mana anda memasukkannya.'
+  ),
   chart_meds_by: L('Medicines by indication', 'Ubat mengikut indikasi'),
   chart_cutoff: L('Cut-off', 'Titik potong'),
   chart_other: L('Other', 'Lain-lain'),

@@ -133,6 +133,16 @@ const DEPARTMENT_NAMES = [
   { confirmed: false }                                                                      // 21
 ]
 
+/* Points 9 to 21 were withdrawn by HTPN: the links did not correspond to
+   anything on the hospital campus, and a numbered pin with no name on a
+   public way-finding screen reads as a department the patient has failed to
+   recognise. Removed rather than renamed — a short list that is right beats a
+   long one that is not. Only points HTPN has named appear here; new ones are
+   added by naming them, never by listing a link and hoping.
+   The numbering of what remains is NOT shifted to close the gap: 1 to 8 are
+   the numbers HTPN itself used when it named them. */
+const WITHDRAWN = new Set([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21])
+
 export const DEPARTMENTS = RAW_DEPARTMENT_LINKS.map((map, i) => {
   const n = DEPARTMENT_NAMES[i] || { confirmed: false }
   const ok = !!(n.confirmed && n.en && n.ms)
@@ -152,7 +162,7 @@ export const DEPARTMENTS = RAW_DEPARTMENT_LINKS.map((map, i) => {
        to the hospital itself rather than to a guess. */
     destination: ok ? `${n.ms}, ${HOSPITAL}` : HOSPITAL
   }
-})
+}).filter(d => !WITHDRAWN.has(d.index))
 
 export const UNCONFIRMED_NOTE = {
   en: 'HTPN has not yet confirmed a name for this point. The exact-location link still opens the right place in Google Maps, where its real name is shown.',

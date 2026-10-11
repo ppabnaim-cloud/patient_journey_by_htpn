@@ -47,21 +47,26 @@ export const CAMPAIGN = {
     { en: 'Then post on your own account — a photograph, your step count, or a screenshot from whichever app you use.',
       ms: 'Kemudian kongsikan di akaun anda sendiri — gambar, kiraan langkah, atau tangkapan skrin daripada aplikasi yang anda gunakan.' },
     { en: 'Add the hashtag so others at HTPN can find it. Nothing you post passes through this app.',
-      ms: 'Tambah hashtag supaya orang lain di HTPN dapat menemuinya. Tiada apa-apa yang anda kongsikan melalui aplikasi ini.' }
+      ms: 'Tambah hashtag supaya orang lain di HTPN dapat menemuinya. Tiada apa-apa yang anda kongsikan melalui aplikasi ini.' },
+    /* Without this step the post exists but nobody at the hospital sees it. */
+    { en: 'Do not forget to tag the hospital\u2019s official Facebook page, @hospitalkajangofficial \u2014 otherwise nobody at HTPN sees your post.',
+      ms: 'Jangan lupa menandakan halaman Facebook rasmi hospital, @hospitalkajangofficial \u2014 jika tidak, tiada sesiapa di HTPN akan melihat hantaran anda.' }
   ],
 
   /* What the share sheet pre-fills. The patient edits it before posting; it is
      a starting point, not a script, and it carries no figures of theirs. */
   shareText: {
-    en: 'Walked today. One step at a time. #gayahidupsihatHTPN',
-    ms: 'Berjalan kaki hari ini. Selangkah demi selangkah. #gayahidupsihatHTPN'
+    en: 'Walked today. One step at a time. #gayahidupsihatHTPN #10ribulangkahHTPN @hospitalkajangofficial',
+    ms: 'Berjalan kaki hari ini. Selangkah demi selangkah. #gayahidupsihatHTPN #10ribulangkahHTPN @hospitalkajangofficial'
   },
 
+  /* Facebook only. HTPN confirmed the hospital has no Instagram, TikTok or
+     Threads account, and a hashtag page on a platform where the hospital is
+     not present sends a patient somewhere nobody at HTPN is reading. X is
+     still listed because it was not named either way — if HTPN has no X
+     account it should come out too. */
   platforms: [
-    { id: 'instagram', name: 'Instagram', url: `https://www.instagram.com/explore/tags/${HASHTAG.toLowerCase()}/` },
-    { id: 'tiktok', name: 'TikTok', url: `https://www.tiktok.com/tag/${HASHTAG.toLowerCase()}` },
     { id: 'facebook', name: 'Facebook', url: `https://www.facebook.com/hashtag/${HASHTAG.toLowerCase()}` },
-    { id: 'threads', name: 'Threads', url: `https://www.threads.net/search?q=%23${HASHTAG}` },
     { id: 'x', name: 'X', url: `https://x.com/hashtag/${HASHTAG}` }
   ],
 

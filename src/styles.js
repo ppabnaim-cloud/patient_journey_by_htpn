@@ -659,6 +659,20 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   text-decoration: none;
 }
 .hashline { display: flex; align-items: center; gap: 8px; }
+.hashtag.sm { font-size: 13px; }
+.taggrid { display: flex; flex-direction: column; gap: 5px; margin-top: 7px; }
+.tagchip { display: flex; align-items: center; gap: 8px; padding: 5px 9px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--card2); }
+.tagtheme { font-size: 12px; color: var(--ink2); flex: 1; }
+.badge.warn { font-size: 10px; font-weight: 700; letter-spacing: .02em; padding: 2px 6px;
+  border-radius: 999px; background: var(--warnbg); color: var(--warnink); white-space: nowrap; }
+.tplbody { margin: 7px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--card2);
+  border: 1px solid var(--line); font: 400 12.5px/1.5 inherit; white-space: pre-wrap;
+  color: var(--ink); overflow-wrap: anywhere; }
+table.mini { width: 100%; border-collapse: collapse; margin-top: 5px; }
+table.mini td { font-size: 12px; color: var(--ink2); padding: 3px 0;
+  border-top: 1px solid var(--line); white-space: nowrap; }
+table.mini td:first-child { color: var(--ink); font-weight: 600; }
 .hashtag { font-size: 17px; font-weight: 800; color: var(--brand); letter-spacing: -0.3px; }
 
 /* ---------- print ---------- */
