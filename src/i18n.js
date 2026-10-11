@@ -60,12 +60,24 @@ export const T = {
   /* --- tabs ---------------------------------------------------------- */
   tab_dashboard: L('My Journey', 'Perjalanan Saya'),
   tab_records: L('My Records', 'Rekod Saya'),
-  tab_measurements: L('Measurements', 'Ukuran'),
+  tab_measurements: L('Monitoring', 'Pemantauan'),
   tab_wayfinding: L('Finding Your Way', 'Mencari Arah'),
   tab_iqms: L('Queue Number', 'Nombor Giliran'),
   tab_myubat: L('Medicine Delivery', 'Penghantaran Ubat'),
   tab_rakyat: L("The Public's Role", 'Peranan Rakyat'),
   tab_gayahidup: L('Healthy Living', 'Gaya Hidup Sihat'),
+
+  /* Short labels for the tab bar itself. Eight tabs across a 360px phone
+     leaves about seven characters each, and a truncated word with an ellipsis
+     names nothing. The full names stay on the screen headings. */
+  short_dashboard: L('Home', 'Utama'),
+  short_records: L('Records', 'Rekod'),
+  short_measurements: L('Monitor', 'Pantau'),
+  short_wayfinding: L('Map', 'Arah'),
+  short_iqms: L('Queue', 'Giliran'),
+  short_myubat: L('Medicine', 'Ubat'),
+  short_rakyat: L('Public', 'Rakyat'),
+  short_gayahidup: L('Active', 'Sihat'),
 
   /* --- dashboard ----------------------------------------------------- */
   dash_lead: L(
@@ -130,6 +142,15 @@ export const T = {
   sec_surgery: L('Operations', 'Pembedahan'),
   sec_bloods: L('Blood results', 'Keputusan Darah'),
   sec_imaging: L('Imaging reports', 'Laporan Pengimejan'),
+
+  /* Short names for the station pipeline; six across a phone leaves little
+     room, and a truncated station name tells a patient nothing. */
+  short_meds: L('Medicines', 'Ubat'),
+  short_issues: L('Problems', 'Masalah'),
+  short_allergies: L('Allergies', 'Alahan'),
+  short_surgery: L('Surgery', 'Bedah'),
+  short_bloods: L('Bloods', 'Darah'),
+  short_imaging: L('Scans', 'Imbasan'),
 
   col_drug: L('Medicine', 'Ubat'),
   col_dose: L('Dose', 'Dos'),
@@ -220,8 +241,13 @@ export const T = {
 
   /* --- measurements -------------------------------------------------- */
   meas_lead: L(
-    'Weigh yourself the same way each time — the same scale, at a similar time of day.',
-    'Timbang berat anda dengan cara yang sama setiap kali — penimbang yang sama, pada waktu yang lebih kurang serupa.'
+    'The readings you take yourself, followed over time. Measure the same way each time — the same scale, at a similar time of day.',
+    'Bacaan yang anda ambil sendiri, dipantau dari semasa ke semasa. Ukur dengan cara yang sama setiap kali — penimbang yang sama, pada waktu yang lebih kurang serupa.'
+  ),
+  m_fpg: L('Fasting blood sugar', 'Gula Dalam Darah Puasa'),
+  m_fpg_how: L(
+    'Taken before eating in the morning. It is saved with your blood results, so it appears on the same chart as a laboratory fasting glucose.',
+    'Diambil sebelum makan pada waktu pagi. Ia disimpan bersama keputusan darah anda, maka ia dipaparkan pada carta yang sama dengan glukosa puasa makmal.'
   ),
   m_weight: L('Weight', 'Berat'),
   m_height: L('Height', 'Tinggi'),

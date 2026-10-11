@@ -15,16 +15,26 @@ sites, and points them at iQMS and MyUbat.
 |---|---|---|
 | 1 | **My Journey** | *Overview*: four stat tiles, then HbA1c, fasting glucose, blood pressure, weight and BMI trends, and medicines by indication. *Needs attention*: the findings, warning signs first. *Reviewed*: findings with nothing to act on, folded but never deleted. Prints a clinic summary. |
 | 2 | **My Records** | Six numbered stations — medicines, active problems, allergies, operations, blood results, imaging reports — shown as a pipeline so progress is visible. Medicines carry a start date and either a supply-until date or a stopped-on date; a supply date that has passed is raised on the dashboard. Photograph a document, upload one, or type it in. |
-| 3 | **Measurements** | Weight, height, BMI, waist circumference and blood pressure, with the trends. A reading at or above 180/110 is ranked as a warning and sorts to the top. |
+| 3 | **Monitoring** | The readings a patient takes themselves: weight, height, BMI, waist, blood pressure and home fasting blood sugar, each followed over time. A blood pressure at or above 180/110 is ranked a warning and sorts to the top. Fasting sugar is written to the same store as a laboratory result, so home and lab readings share one chart. |
 | 4 | **Finding Your Way** | The two sites with photographs, and 21 further points. Every location offers *Get directions* — which opens Google Maps routing from wherever the phone is, with no origin in the URL so this app never sees a coordinate — and *Exact location*, the precise link HTPN supplied. |
 | 5 | **Queue Number** | The iQMS poster and the live queue link for HTPN. |
 | 6 | **Medicine Delivery** | MyUbat's two services (Appointment System and Medicine By Post), the delivery charge stated plainly, a pictogram list of what it must **not** be used for — cold chain above all — and the official 8-page poster set from Program Perkhidmatan Farmasi. |
 | 8 | **#gayahidupsihatHTPN** | An on-device walking log against the WHO weekly target, and a share panel that opens the hashtag on the patient's own platform. It hosts nothing. |
 | 7 | **The Public's Role** | All 12 posters designed by Dr Naim plus the Ministry's Langkah Sihat poster, grouped by the five roles; and *Emergency, or not?*, the two triage lists rendered bilingually from the HTPN patient-guidance poster. |
 
-Everything is in both languages, clinical text included. Every screen fits a
-10-inch tablet in portrait with **no scrolling**: lists page, long sections split
-into steps.
+Everything is in both languages, clinical text included.
+
+**The no-scroll rule is a tablet rule.** Every screen fits a 10-inch tablet in
+portrait without scrolling: lists page, long sections split into steps. A phone
+is different. Safari gives about 390×664 once its own chrome is accounted for —
+roughly 180px less than the 390×844 these screens were first checked against —
+and holding the rule at that height does not make content fit, it makes it
+overlap. A patient cannot scroll to recover a Save button sitting underneath the
+tab bar. So on a phone the header, tab bar and status line stay fixed and the
+content pane between them scrolls, which is what a phone app does anyway.
+`scripts`-adjacent harnesses check the two contracts separately: the strict
+no-scroll rule at 800×1280, and at 390×664 and 360×600 that the shell fits, that
+nothing paints over the tab bar, and that cards stack rather than overlap.
 
 ---
 

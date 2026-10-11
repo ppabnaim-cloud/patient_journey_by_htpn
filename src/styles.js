@@ -59,6 +59,10 @@ export const CSS = `
 
 html, body, #root {
   height: 100%;
+  /* dvh, not vh: on iOS Safari the toolbar shrinks the visible area and a
+     100vh shell ends up taller than the screen, which is how content came to
+     sit on top of the tab bar on a real phone. */
+  height: 100dvh;
   margin: 0;
   overflow: hidden;
 }
@@ -79,7 +83,9 @@ input, select, textarea { font: inherit; color: inherit; }
 .shell { height: 100%; display: flex; flex-direction: column; min-height: 0; }
 
 .hdr {
-  height: var(--header-h); flex: 0 0 auto;
+  height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  flex: 0 0 auto;
   display: flex; align-items: center; gap: 10px;
   padding: 0 var(--pad);
   background: var(--brand); color: #fff;
@@ -128,9 +134,11 @@ input, select, textarea { font: inherit; color: inherit; }
 
 /* ---------- status line ---------- */
 .statusbar {
-  height: var(--status-h); flex: 0 0 auto;
+  height: calc(var(--status-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  flex: 0 0 auto;
   display: flex; align-items: center; gap: 8px;
-  padding: 0 var(--pad);
+  padding-left: var(--pad); padding-right: var(--pad);
   background: var(--brand-dark); color: #fff; font-size: 11px;
 }
 .statusbar > span { white-space: nowrap; }
@@ -152,6 +160,10 @@ input, select, textarea { font: inherit; color: inherit; }
   padding: 12px; min-height: 0;
 }
 .card.tight { padding: 10px; }
+/* A list card fills the space it is given on a tablet; inside the phone's
+   scrolling pane it takes its own height instead (see the small-screen
+   block below). */
+.listcard { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .card-t { font-weight: 700; font-size: 14px; margin: 0 0 4px; }
 .card-s { color: var(--ink-soft); font-size: 13px; margin: 0; }
 
@@ -498,6 +510,15 @@ input, select, textarea { font: inherit; color: inherit; }
 .tcol ul { margin: 0; padding-left: 16px; font-size: 11.5px; line-height: 1.45; color: var(--ink); }
 .tcol li { margin-bottom: 2px; }
 
+/* The iQMS poster sits beside its points on a tablet and above them on a
+   phone, where a 36% column is too narrow for a tall portrait poster. */
+.pane-body.sidebyside { flex-direction: row; gap: 12px; }
+.pane-body.sidebyside > .postercard { flex: 0 0 36%; }
+@media (max-width: 560px) {
+  .pane-body.sidebyside { flex-direction: column; gap: 10px; }
+  .pane-body.sidebyside > .postercard { flex: 0 0 auto; max-height: 46vh; }
+}
+
 /* ---------- meter & day bars (#gayahidupsihatHTPN) ---------- */
 .meter { display: flex; flex-direction: column; gap: 5px; }
 .meter-top { display: flex; align-items: baseline; gap: 8px; }
@@ -547,10 +568,39 @@ input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* ---------- small screens ----------------------------------------------
-   A phone has roughly 440px of content height once the header, tab bar,
-   status line, title and footer are taken out. Everything below buys that
-   back: the type does not shrink, the padding does. */
+   THE NO-SCROLL RULE IS A TABLET RULE, AND IT STOPS HERE.
+
+   The brief asks that every screen fit a 10-inch tablet in portrait without
+   scrolling, and on a tablet it does. A phone in Safari gives about 390x664
+   once the browser's own chrome is taken out — roughly 180px less than the
+   390x844 these screens were first checked against. Holding the no-scroll
+   rule at that height does not make the content fit; it makes it overlap,
+   which is strictly worse than a scrollbar: a patient cannot scroll to
+   recover a button that is sitting underneath the tab bar.
+
+   So on a phone the header, the tab bar and the status line stay fixed, and
+   the content pane between them scrolls. The chart rows take their natural
+   height here rather than sharing a fixed one, and the pagers stand down
+   because there is nothing left to page around.
+   ---------------------------------------------------------------------- */
 @media (max-width: 560px) {
+  .pane { overflow: hidden; }
+  .pane-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* A flex column whose children may shrink will squash them below their own
+     content when the container is scrollable, and a card with no overflow of
+     its own then paints over the card beneath it. In a scrolling column the
+     children keep their height and the container scrolls instead. */
+  .pane-body > * { flex-shrink: 0; }
+  .listcard { flex: 0 0 auto; }
+  /* A chart sized to a share of the viewport would be squashed inside a
+     scrolling container, so on a phone it takes its own height. */
+  .chartgrid { flex: 0 0 auto; }
+  .chartgrid .chart { max-height: none; }
+  .scroller { flex: 0 0 auto; }
   .card, .card.tight { padding: 9px 10px; }
   .empty { padding: 10px; gap: 6px; }
   .cite { font-size: 10px; line-height: 1.32; margin-top: 5px; }

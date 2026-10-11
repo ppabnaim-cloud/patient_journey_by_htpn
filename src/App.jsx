@@ -313,7 +313,9 @@ function Overview ({ record }) {
     }
   ]
 
-  const paged = usePaged(cards, narrow ? 2 : 3)
+  /* A phone scrolls, so there is nothing to page around; a tablet does not,
+     so three cards is what a page holds there. */
+  const paged = usePaged(cards, narrow ? cards.length : 3)
 
   return (
     <>
@@ -334,7 +336,8 @@ function Overview ({ record }) {
            card in the set. Built from all six it declared six rows for three
            items, so the cards landed on the min-content rows and the 1fr rows
            sat empty underneath — which is why the charts stayed small. */
-        gridTemplateRows: paged.slice.map(c => (c.plottable ? 'minmax(0, 1fr)' : 'min-content')).join(' ')
+        gridTemplateRows: paged.slice
+          .map(c => (!narrow && c.plottable ? 'minmax(0, 1fr)' : 'min-content')).join(' ')
       }}>
         {paged.slice.map(c => <React.Fragment key={c.id}>{c.node}</React.Fragment>)}
       </div>
@@ -359,7 +362,7 @@ function TabDashboard ({ record, goTo, onPrint }) {
   const [view, setView] = useState('overview')
   const narrow = useNarrow()
   const list = view === 'actions' ? actionable : quiet
-  const paged = usePaged(list, narrow ? 1 : 4)
+  const paged = usePaged(list, narrow ? list.length || 1 : 4)
 
   return (
     <div className="pane">
@@ -416,12 +419,12 @@ function TabDashboard ({ record, goTo, onPrint }) {
    a clinic desk. `field` is what makes a station count as done, which is what
    drives the progress state on the pipeline. */
 const REC_SECTIONS = [
-  { id: 'meds', label: T.sec_meds, detail: 'meds', field: 'medications' },
-  { id: 'issues', label: T.sec_issues, detail: 'issues', field: 'issues' },
-  { id: 'allergies', label: T.sec_allergies, detail: 'allergies', field: 'allergies' },
-  { id: 'surgery', label: T.sec_surgery, detail: 'surgery', field: 'surgeries' },
-  { id: 'bloods', label: T.sec_bloods, detail: 'bloods', field: 'labs' },
-  { id: 'imaging', label: T.sec_imaging, detail: 'bloods', field: 'imaging' }
+  { id: 'meds', label: T.sec_meds, short: T.short_meds, detail: 'meds', field: 'medications' },
+  { id: 'issues', label: T.sec_issues, short: T.short_issues, detail: 'issues', field: 'issues' },
+  { id: 'allergies', label: T.sec_allergies, short: T.short_allergies, detail: 'allergies', field: 'allergies' },
+  { id: 'surgery', label: T.sec_surgery, short: T.short_surgery, detail: 'surgery', field: 'surgeries' },
+  { id: 'bloods', label: T.sec_bloods, short: T.short_bloods, detail: 'bloods', field: 'labs' },
+  { id: 'imaging', label: T.sec_imaging, short: T.short_imaging, detail: 'bloods', field: 'imaging' }
 ]
 
 /* The pipeline. Numbered, connected, and filled in as each station gets its
@@ -438,7 +441,7 @@ function Stations ({ record, current, onPick }) {
             <button key={sec.id} role="tab" className={'station' + (done ? ' done' : '')}
                     aria-selected={current === sec.id} onClick={() => onPick(sec.id)}>
               <span className="num">{done ? '✓' : i + 1}</span>
-              <span className="nm">{t(sec.label)}</span>
+              <span className="nm">{t(sec.short || sec.label)}</span>
             </button>
           )
         })}
@@ -527,7 +530,7 @@ function MedsSection ({ record, update, onEvent }) {
         if (!rows.length) return
         update(r => ({ ...r, medications: [...(r.medications || []), ...rows.map(x => ({ ...x, id: store.newId() }))] }))
       }} />
-      <div className="card tight" style={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <div className="card tight listcard">
         {meds.length === 0
           ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
           : (
@@ -618,7 +621,7 @@ function SimpleListSection ({ record, update, onEvent, field, columns, makeEmpty
 
   return (
     <>
-      <div className="card tight" style={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <div className="card tight listcard">
         {rows.length === 0
           ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
           : (
@@ -732,7 +735,7 @@ function BloodsSection ({ record, update, onEvent }) {
       ) : null}
 
       {view === 'list' ? (
-        <div className="card tight" style={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div className="card tight listcard">
           {sorted.length === 0
             ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
             : (
@@ -839,7 +842,7 @@ function ImagingSection ({ record, update, onEvent }) {
       ) : null}
 
       {view === 'list' ? (
-        <div className="card tight" style={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div className="card tight listcard">
           <p className="hint" style={{ marginBottom: 6 }}>{t(T.img_lead)}</p>
           {rows.length === 0
             ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
@@ -962,7 +965,7 @@ function TabMeasurements ({ record, update, onEvent }) {
   const lastHeight = rows.find(r => r.heightCm)?.heightCm || ''
   const [draft, setDraft] = useState({
     date: new Date().toISOString().slice(0, 10), weightKg: '', heightCm: lastHeight,
-    waistCm: '', systolic: '', diastolic: ''
+    waistCm: '', systolic: '', diastolic: '', fpg: ''
   })
   const paged = usePaged(rows, PAGE.measurements)
 
@@ -970,12 +973,22 @@ function TabMeasurements ({ record, update, onEvent }) {
   const bmiF = latest ? classifyBMI(calcBMI(latest.weightKg, latest.heightCm)) : null
   const waistF = latest ? classifyWaist(latest.waistCm, record.gender) : null
   const latestBP = rows.find(r => r.systolic != null && r.diastolic != null)
+  const latestFpg = seriesFor(record.labs, 'fpg').slice(-1)[0] || null
   const bpF = latestBP ? classifyBP(latestBP.systolic, latestBP.diastolic) : null
 
   const save = () => {
-    if (!draft.weightKg && !draft.waistCm && !draft.systolic) return
+    if (!draft.weightKg && !draft.waistCm && !draft.systolic && !draft.fpg) return
     update(r => ({
       ...r,
+      /* A fasting sugar taken at home and one taken by the laboratory are the
+         same measurement, so they go to the same place rather than to two
+         lists that would each tell half the story. */
+      labs: draft.fpg === ''
+        ? (r.labs || [])
+        : [...(r.labs || []), {
+            id: store.newId(), date: draft.date, analyteId: 'fpg',
+            value: parseFloat(draft.fpg), refLow: '', refHigh: '', atHome: true
+          }],
       measurements: [...(r.measurements || []), {
         id: store.newId(), date: draft.date,
         weightKg: draft.weightKg === '' ? null : parseFloat(draft.weightKg),
@@ -985,7 +998,7 @@ function TabMeasurements ({ record, update, onEvent }) {
         diastolic: draft.diastolic === '' ? null : parseInt(draft.diastolic, 10)
       }]
     }))
-    setDraft({ ...draft, weightKg: '', waistCm: '', systolic: '', diastolic: '' })
+    setDraft({ ...draft, weightKg: '', waistCm: '', systolic: '', diastolic: '', fpg: '' })
     onEvent('measurement_saved', 'manual')
     setView('now')
   }
@@ -1017,6 +1030,8 @@ function TabMeasurements ({ record, update, onEvent }) {
                   <dt>{t(T.m_bmi)}</dt><dd>{calcBMI(latest.weightKg, latest.heightCm) ?? '—'}</dd>
                   <dt>{t(T.m_bp)}</dt>
                   <dd>{latestBP ? `${latestBP.systolic}/${latestBP.diastolic} mmHg` : '—'}</dd>
+                  <dt>{t(T.m_fpg)}</dt>
+                  <dd>{latestFpg ? `${latestFpg.value} mmol/L (${latestFpg.date})` : '—'}</dd>
                   <dt>{t(T.col_date)}</dt><dd>{latest.date}</dd>
                 </dl>
                 {weights.length > 1 ? (
@@ -1068,6 +1083,10 @@ function TabMeasurements ({ record, update, onEvent }) {
                   <input type="number" inputMode="numeric" value={draft.diastolic}
                          onChange={e => setDraft({ ...draft, diastolic: e.target.value })} />
                 </Field>
+                <Field label={t(T.m_fpg) + ' (mmol/L)'} hint={t(T.m_fpg_how)}>
+                  <input type="number" step="0.1" inputMode="decimal" value={draft.fpg}
+                         onChange={e => setDraft({ ...draft, fpg: e.target.value })} />
+                </Field>
               </div>
               {liveBmi ? <p className="hint" style={{ marginTop: 7 }}>{t(T.m_bmi)}: <b>{liveBmi}</b> kg/m²</p> : null}
             </div>
@@ -1081,12 +1100,14 @@ function TabMeasurements ({ record, update, onEvent }) {
               </Field>
             </div>
             <button className="btn wide" onClick={save}
-                  disabled={!draft.weightKg && !draft.waistCm && !draft.systolic}>{t(T.save)}</button>
+                  disabled={!draft.weightKg && !draft.waistCm && !draft.systolic && !draft.fpg}>
+            {t(T.save)}
+          </button>
           </>
         ) : null}
 
         {view === 'past' ? (
-          <div className="card tight" style={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <div className="card tight listcard">
             {rows.length === 0
               ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
               : (
@@ -1221,8 +1242,9 @@ function TabIqms ({ onEvent, onLightbox }) {
         <h1 className="pane-title">{t(T.tab_iqms)}</h1>
         <p className="pane-lead">{t(T.iqms_lead)}</p>
       </div>
-      <div className="pane-body" style={{ flexDirection: 'row', gap: 12 }}>
-        <button className="postercard" style={{ flex: '0 0 36%', minHeight: 0 }}
+      <div className="pane-body sidebyside">
+        <button className="postercard"
+                style={{ minHeight: 0 }}
                 onClick={() => { onLightbox({ src: IQMS.poster, title: T.iqms_poster_alt }); onEvent('poster_opened', 'none') }}>
           <img src={IQMS.poster} alt={t(T.iqms_poster_alt)} />
           <span className="cap">{t(T.tapToEnlarge)}</span>
@@ -1979,14 +2001,14 @@ function PrintDialog ({ identifiers, setIdentifiers, onPrint, onClose }) {
    The shell
    ====================================================================== */
 const TABS = [
-  { id: 'dashboard', label: T.tab_dashboard },
-  { id: 'records', label: T.tab_records },
-  { id: 'measurements', label: T.tab_measurements },
-  { id: 'wayfinding', label: T.tab_wayfinding },
-  { id: 'iqms', label: T.tab_iqms },
-  { id: 'myubat', label: T.tab_myubat },
-  { id: 'rakyat', label: T.tab_rakyat },
-  { id: 'gayahidup', label: T.tab_gayahidup }
+  { id: 'dashboard', label: T.tab_dashboard, short: T.short_dashboard },
+  { id: 'records', label: T.tab_records, short: T.short_records },
+  { id: 'measurements', label: T.tab_measurements, short: T.short_measurements },
+  { id: 'wayfinding', label: T.tab_wayfinding, short: T.short_wayfinding },
+  { id: 'iqms', label: T.tab_iqms, short: T.short_iqms },
+  { id: 'myubat', label: T.tab_myubat, short: T.short_myubat },
+  { id: 'rakyat', label: T.tab_rakyat, short: T.short_rakyat },
+  { id: 'gayahidup', label: T.tab_gayahidup, short: T.short_gayahidup }
 ]
 
 export default function App () {
@@ -2129,7 +2151,7 @@ export default function App () {
           {TABS.map(x => (
             <button key={x.id} className="tabbtn" aria-selected={tab === x.id} onClick={() => goTo(x.id)}>
               <Icon d={ICONS[x.id]} />
-              <span className="tablabel">{pick(x.label, lang)}</span>
+              <span className="tablabel">{pick(x.short || x.label, lang)}</span>
               <span className="tabdot" />
             </button>
           ))}
