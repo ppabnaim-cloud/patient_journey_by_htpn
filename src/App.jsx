@@ -29,6 +29,7 @@ import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
 import { CAMPAIGN, HASHTAG } from './data/campaign.js'
+import { THEME, ARTICLE, ANNOUNCEMENT } from './data/announcement.js'
 import { GLYPH, TRIAGE_GLYPHS } from './data/glyphs.js'
 import { Stat, LineChart, MultiLineChart, StackedBar, Meter, DayBars } from './charts.jsx'
 
@@ -526,6 +527,7 @@ function MedsSection ({ record, update, onEvent }) {
 
   return (
     <>
+      <p className="note multisite">⌁ {t(ANNOUNCEMENT.medsNote)}</p>
       <OcrPanel kind="meds" onEvent={onEvent} onDraft={(rows) => {
         if (!rows.length) return
         update(r => ({ ...r, medications: [...(r.medications || []), ...rows.map(x => ({ ...x, id: store.newId() }))] }))
@@ -1712,6 +1714,59 @@ function Lightbox ({ item, onClose, onEvent }) {
 }
 
 /* =========================================================================
+   The announcement behind the theme line in the header.
+
+   The article's quote block renders only when announcement.js actually holds
+   one. It is null in this build because the source could not be read, and an
+   approximate quotation attributed to a named minister is not something a
+   hospital app should ever print.
+   ====================================================================== */
+function AnnouncementModal ({ onClose, onEvent }) {
+  const [t] = useT()
+  return (
+    <div className="modal" role="dialog" aria-modal="true">
+      <div className="modal-card">
+        <h2>{t(THEME.full)}</h2>
+        <div className="modal-scroll">
+          <div className="card tight">
+            <p className="card-t">{t(ANNOUNCEMENT.title)}</p>
+            <p className="card-s">{t(ANNOUNCEMENT.body)}</p>
+            <ul className="bullets" style={{ marginTop: 8 }}>
+              {ANNOUNCEMENT.steps.map((x, i) => <li key={i}>{t(x)}</li>)}
+            </ul>
+          </div>
+
+          <div className="flagline" style={{ marginTop: 10 }}>
+            {t(ANNOUNCEMENT.notTheProgramme)}
+          </div>
+
+          <div className="card tight" style={{ marginTop: 10 }}>
+            <p className="card-t">{t(T.ann_source)}</p>
+            {ARTICLE.quote ? (
+              <blockquote className="quote">
+                “{t(ARTICLE.quote.text)}”
+                <cite>— {t(ARTICLE.quote.speaker)}</cite>
+              </blockquote>
+            ) : null}
+            <p className="card-s">{t(ARTICLE.headlineFromSlug)}</p>
+            <p className="note" style={{ marginTop: 4 }}>
+              {ARTICLE.publisher}, {t(ARTICLE.published)}
+              {ARTICLE.headlineIsExact ? '' : ' · ' + t(T.ann_headline_note)}
+            </p>
+            <a className="btn ghost wide" style={{ marginTop: 8 }} href={ARTICLE.url}
+               target="_blank" rel="noreferrer" onClick={() => onEvent('article_opened', 'none')}>
+              {t(ARTICLE.readMore)} ↗
+            </a>
+            <p className="note" style={{ marginTop: 5 }}>{t(T.needsInternet)}</p>
+          </div>
+        </div>
+        <button className="btn wide" onClick={onClose}>{t(T.close)}</button>
+      </div>
+    </div>
+  )
+}
+
+/* =========================================================================
    Consent — asked ONCE, before any question is answered. Declining is a
    first-class outcome: the app is identical either way and never asks again.
    Only shown at all when the client flag is on; with it off there is nothing
@@ -2018,6 +2073,7 @@ export default function App () {
   const [lightbox, setLightbox] = useState(null)
   const [showPrivacy, setShowPrivacy] = useState(false)
   const [showPrint, setShowPrint] = useState(false)
+  const [showAnnouncement, setShowAnnouncement] = useState(false)
   const [identifiers, setIdentifiers] = useState({ name: '', ic: '' })   /* never persisted */
   const [status, setStatus] = useState(COLLECTION_UI_ENABLED ? 'queued' : 'off')
   const [online, setOnline] = useState(globalThis.navigator?.onLine !== false)
@@ -2122,10 +2178,11 @@ export default function App () {
             <img src="brand/logo-kkm-htpn.jpg" alt="Kementerian Kesihatan Malaysia — HTPN" className="wide-only" />
             <img src="brand/logo-kajang.png" alt="Hospital Kajang" />
           </div>
-          <div>
-            <div className="hdr-title">{pick(T.appName, lang)}</div>
-            <div className="hdr-sub">{pick(T.appBy, lang)} · {pick(T.prototype, lang)}</div>
-          </div>
+          <button className="hdr-id" onClick={() => setShowAnnouncement(true)}
+                  aria-label={pick(T.ann_open, lang)}>
+            <span className="hdr-title">{pick(T.appName, lang)}</span>
+            <span className="hdr-sub">{pick(THEME.full, lang)} ⓘ</span>
+          </button>
           <span className="hdr-spacer" />
           <div className="langset">
             {LANGS.map(l => (
@@ -2176,6 +2233,9 @@ export default function App () {
       {showPrivacy ? (
         <PrivacyScreen record={record} prefs={prefs} onClose={() => setShowPrivacy(false)}
                        onClear={clearAll} onEvent={onEvent} exampleRecord={exampleRecord} />
+      ) : null}
+      {showAnnouncement ? (
+        <AnnouncementModal onClose={() => setShowAnnouncement(false)} onEvent={onEvent} />
       ) : null}
       {showPrint ? (
         <PrintDialog identifiers={identifiers} setIdentifiers={setIdentifiers}

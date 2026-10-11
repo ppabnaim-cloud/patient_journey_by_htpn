@@ -90,8 +90,33 @@ input, select, textarea { font: inherit; color: inherit; }
   padding: 0 var(--pad);
   background: var(--brand); color: #fff;
 }
-.hdr-title { font-weight: 700; font-size: 16px; letter-spacing: -0.2px; line-height: 1.1; }
-.hdr-sub { font-size: 11px; opacity: .82; line-height: 1.1; }
+.hdr-id {
+  background: none; border: 0; padding: 2px 4px; margin-left: -4px; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  min-width: 0; text-align: left; color: inherit;
+}
+.hdr-id:hover, .hdr-id:focus-visible { background: rgba(255,255,255,.12); }
+.hdr-title { display: block; font-weight: 700; font-size: 16px; letter-spacing: -0.2px; line-height: 1.1; }
+.hdr-sub {
+  display: block; font-size: 11px; opacity: .88; line-height: 1.1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+@media (max-width: 430px) { .hdr-title { font-size: 15px; } .hdr-sub { font-size: 10px; } }
+
+/* The multi-centre line sits above the medicines list, which is where a
+   patient is standing when it is relevant. */
+.note.multisite {
+  flex: 0 0 auto; border-left: 3px solid var(--brand); padding: 6px 0 6px 9px;
+  color: var(--ink-soft); font-size: 11.5px;
+}
+
+blockquote.quote {
+  margin: 0 0 8px; padding: 9px 11px; border-left: 3px solid var(--brand);
+  background: var(--brand-tint); border-radius: 0 9px 9px 0;
+  font-size: 13px; line-height: 1.45; font-style: italic; color: var(--ink);
+}
+blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
+  font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
 .hdr-spacer { flex: 1; }
 .hdr-btn {
   background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3);

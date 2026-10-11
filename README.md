@@ -5,7 +5,17 @@ Permaisuri Norashikin, Kajang**. It keeps a patient's own medicines, results and
 measurements **on their own device**, helps them find their way around the two
 sites, and points them at iQMS and MyUbat.
 
+**Ke Arah 1 Pesakit 1 Rekod — Towards 1 Patient 1 Record.**
+
 *Prototype design by Dr Naim, HTPN.*
+
+The theme line in the header opens a notice for patients seen at more than one
+hospital: no single one of them holds the whole record, so ask the doctor or
+pharmacist at each place to help update this app, or photograph the medicine
+list they hand over. It also states plainly that **One Citizen One Record is a
+Ministry of Health programme and this app is not part of it** — this is a
+record the patient keeps themselves, useful precisely because their hospitals
+are not yet joined up.
 
 ---
 
@@ -259,10 +269,20 @@ another third-party credential.
    this app (about 10 MB, fetched only when someone actually uses OCR) so it
    works with no connection.
 
-4. **No ethics submission describes this build.** Both flags are off by default
+4. **The Health Minister is not quoted.** The brief asked for words from the
+   NST article behind the theme. The build environment could not open
+   nst.com.my, so `ARTICLE.quote` in `src/data/announcement.js` is `null` and
+   the UI omits the block entirely rather than filling it with something
+   approximate. A quotation attributed to a named minister, printed in a
+   hospital's own app, is the last thing that should be reconstructed from
+   memory. Paste the exact sentence into that field and it renders. The
+   publisher and date are read off the URL's own path; the headline is the
+   slug turned back into a sentence and is labelled as such, not quoted.
+
+5. **No ethics submission describes this build.** Both flags are off by default
    and nothing is collected until that changes.
 
-5. **The emergency/non-emergency poster is a low-resolution recovery.** The
+6. **The emergency/non-emergency poster is a low-resolution recovery.** The
    only copy available to this build was extracted from a screenshot, so it is
    offered as a secondary view and labelled as such. The two triage lists
    themselves are rendered as bilingual text, which is better than the image in
@@ -270,12 +290,12 @@ another third-party credential.
    Replacing `public/posters/emergency-or-not-lowres.jpg` with the original
    artwork needs no code change.
 
-6. **The Main Building photograph shows the pre-rebrand "Hospital Kajang"
+7. **The Main Building photograph shows the pre-rebrand "Hospital Kajang"
    signage.** That is what is actually on the gate, so it is arguably the more
    useful landmark — but it is worth a deliberate decision rather than an
    accident.
 
-7. **The triage and exclusion pictograms are drawn, not photographed.** A
+8. **The triage and exclusion pictograms are drawn, not photographed.** A
    picture of "a stroke" or "a snake bite" is a picture of one person having
    one event, and on a triage screen a patient matches themselves against what
    they see. A symbol names the category and claims nothing about how it looks.

@@ -56,6 +56,12 @@ export const T = {
   needsInternet: L('Requires an internet connection', 'Memerlukan sambungan internet'),
   settings: L('Privacy & settings', 'Privasi & Tetapan'),
   example: L('Example', 'Contoh'),
+  ann_open: L('What this means for you', 'Apa maksudnya bagi anda'),
+  ann_source: L('Source', 'Sumber'),
+  ann_headline_note: L(
+    'Headline as given in the link; not quoted word for word.',
+    'Tajuk seperti yang terdapat dalam pautan; bukan petikan kata demi kata.'
+  ),
 
   /* --- tabs ---------------------------------------------------------- */
   tab_dashboard: L('My Journey', 'Perjalanan Saya'),

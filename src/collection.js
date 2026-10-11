@@ -124,6 +124,7 @@ export const ACTIONS = [
   'poster_downloaded',
   'activity_logged',
   'hashtag_opened',
+  'article_opened',
   'share_opened',
   'data_exported',
   'data_cleared',
