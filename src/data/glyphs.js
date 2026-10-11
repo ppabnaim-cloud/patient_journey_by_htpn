@@ -48,8 +48,62 @@ export const GLYPH = {
   counsel:    ['M4 5.5h11a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 15 13.5H8L4.5 16.5V7A1.5 1.5 0 0 1 6 5.5z', 'M19 9.5h1a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-1l-2 2v-2'],
   empty:      ['M5 8.5h14l-1 11a2 2 0 0 1-2 1.8H8a2 2 0 0 1-2-1.8z', 'M9 8.5V6a3 3 0 0 1 6 0v2.5', 'M9.5 15.5l5 0'],
 
+  /* --- section and tile marks ------------------------------------------
+     Decorative only: they name the subject of a card, never encode a value.
+     Data colour stays on the marks inside the charts. */
+  pill:       ['M4.6 13.4l8.8-8.8a4.6 4.6 0 0 1 6.6 6.6l-8.8 8.8a4.6 4.6 0 0 1-6.6-6.6z', 'M8.2 9.8l6 6'],
+  problem:    ['M5 4.5h11l3 3v12H5z', 'M12 9.5v4', 'M12 16.5h.01'],
+  droplet:    ['M12 3.5s5.5 6.1 5.5 9.6a5.5 5.5 0 0 1-11 0C6.5 9.6 12 3.5 12 3.5z'],
+  heartbeat:  ['M3.5 12.5h3.2l1.8-4 3 8.5 2.4-6 1.6 3h5', 'M12 20.3S4.5 15.6 4.5 10.2'],
+  scale:      ['M4 19.5h16', 'M6 19.5V9.5h12v10', 'M12 9.5V6', 'M9.5 13h5'],
+  ruler:      ['M3 9h18v6H3z', 'M7 9v3M11 9v4M15 9v3M19 9v4'],
+  walker:     ['M14.2 5.4a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z',
+               'M10.4 21.5l2.2-6-2.8-2.7.9-4.9 3.4 2.7 3.2 1.1',
+               'M9.6 8.4L6 10l-1.1 3.8', 'M12.8 15.5L9 21.5'],
+
   /* fallback */
   dot:        ['M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z']
+}
+
+/* ---------------------------------------------------------------------------
+   Illustrations for empty states.
+
+   An empty screen that says only "no data" reads as broken. These are line
+   drawings, not photographs and not generated images: a generated picture of
+   a patient is a picture of a person who does not exist, which has no place in
+   a hospital's own app, and a stock photograph is a picture of someone else's
+   hospital. A drawing illustrates the idea and claims to be nothing more.
+
+   Each is a complete <svg> body sized to its own viewBox.
+   ------------------------------------------------------------------------ */
+export const ART = {
+  /* A trend waiting to be drawn: two points placed, the rest dotted. */
+  trend: {
+    viewBox: '0 0 160 56',
+    paths: [
+      { d: 'M6 46h148', cls: 'art-base' },
+      { d: 'M14 38 L54 30', cls: 'art-line' },
+      { d: 'M54 30 L98 20 L146 12', cls: 'art-ghost' },
+      { d: 'M14 38m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0', cls: 'art-dot' },
+      { d: 'M54 30m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0', cls: 'art-dot' },
+      { d: 'M98 20m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0', cls: 'art-ghostdot' },
+      { d: 'M146 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0', cls: 'art-ghostdot' }
+    ]
+  },
+  /* A week of walking, mostly still to come. */
+  week: {
+    viewBox: '0 0 160 56',
+    paths: [
+      { d: 'M6 48h148', cls: 'art-base' },
+      { d: 'M18 48v-10', cls: 'art-bar' },
+      { d: 'M38 48v-18', cls: 'art-bar' },
+      { d: 'M58 48v-7', cls: 'art-bar' },
+      { d: 'M78 48v-14', cls: 'art-ghostbar' },
+      { d: 'M98 48v-9', cls: 'art-ghostbar' },
+      { d: 'M118 48v-20', cls: 'art-ghostbar' },
+      { d: 'M138 48v-12', cls: 'art-ghostbar' }
+    ]
+  }
 }
 
 /* The two triage lists, in the published order, mapped to a glyph each. Kept

@@ -93,6 +93,9 @@ export const MYUBAT = {
     ...p,
     id: 'myubat_' + p.file.slice(7, 9),
     src: 'posters/myubat/' + p.file,
+    /* A 320px copy for the preview strip. Eight full-size posters would be
+       1.5 MB to show thumbnails with; these are about 16 KB each. */
+    thumb: 'posters/myubat/thumb/' + p.file,
     creditLabel: { en: 'Program Perkhidmatan Farmasi, Ministry of Health Malaysia',
                    ms: 'Program Perkhidmatan Farmasi, Kementerian Kesihatan Malaysia' }
   })),

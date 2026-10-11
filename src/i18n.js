@@ -323,6 +323,7 @@ export const T = {
   ubat_not_for: L('Not suitable for', 'Tidak Sesuai Untuk'),
   ubat_cold: L('Cold chain', 'Rantaian Sejuk'),
   ubat_posters: L('Official posters', 'Poster Rasmi'),
+  ubat_preview: L('Official posters — tap to read', 'Poster rasmi — ketik untuk membaca'),
   ubat_charge: L('What it costs', 'Kosnya'),
   ubat_confirm: L('Confirm before ordering', 'Sahkan sebelum memesan'),
 

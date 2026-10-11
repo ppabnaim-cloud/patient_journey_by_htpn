@@ -23,6 +23,19 @@
    ========================================================================= */
 
 import React, { useId, useState } from 'react'
+import { ART } from './data/glyphs.js'
+
+/* A line drawing for an empty state. Decorative: it carries no value, and the
+   sentence beside it is what actually tells the patient anything. */
+export function Art ({ name }) {
+  const a = ART[name]
+  if (!a) return null
+  return (
+    <svg className="art" viewBox={a.viewBox} aria-hidden="true" focusable="false">
+      {a.paths.map((p, i) => <path key={i} d={p.d} className={p.cls} />)}
+    </svg>
+  )
+}
 
 /* Validated with the dataviz palette validator against this app's own card
    surfaces (#FFFFFF light, #1E182E dark): both modes pass the lightness band,
@@ -39,10 +52,10 @@ const fmt = (n, dp = 1) => {
 
 /* --- stat tile ----------------------------------------------------------
    A single current value is a stat tile, never a one-bar bar chart. */
-export function Stat ({ label, value, unit, sub, tone }) {
+export function Stat ({ label, value, unit, sub, tone, icon }) {
   return (
     <div className={'stat' + (tone ? ' ' + tone : '')}>
-      <div className="stat-l">{label}</div>
+      <div className="stat-l">{icon ? <span className="stat-ic">{icon}</span> : null}{label}</div>
       <div className="stat-v">
         {value}
         {unit ? <span className="stat-u">{unit}</span> : null}
@@ -64,7 +77,7 @@ export function Stat ({ label, value, unit, sub, tone }) {
    permanent red tile and a short pulse that runs a few times when the screen
    opens and then stops, and it does not run at all for a viewer who has asked
    for reduced motion. The red and the names stay either way. */
-export function AllergyTile ({ label, substances, severe, emptyText, severeLabel, moreLabel }) {
+export function AllergyTile ({ label, substances, severe, emptyText, severeLabel, moreLabel, icon }) {
   const has = substances.length > 0
   /* Three names, then a count. A tile that grows with the list would push the
      charts under it down the screen, and the full list is one tap away in
@@ -74,7 +87,7 @@ export function AllergyTile ({ label, substances, severe, emptyText, severeLabel
   const extra = substances.length - shown.length
   return (
     <div className={'stat allergy' + (has ? ' has' : '') + (severe ? ' severe' : '')}>
-      <div className="stat-l">{label}</div>
+      <div className="stat-l">{icon ? <span className="stat-ic">{icon}</span> : null}{label}</div>
       {has ? (
         <>
           <ul className="allergy-list">
@@ -145,7 +158,9 @@ export function LineChart ({ points, unit, cutoff, emptyText, tableLabels }) {
   const [showTable, setShowTable] = useState(false)
   const rows = (points || []).filter(p => Number.isFinite(Number(p.value)))
 
-  if (rows.length < 2) return <p className="chart-empty">{emptyText}</p>
+  if (rows.length < 2) {
+    return <div className="chart-blank"><Art name="trend" /><p className="chart-empty">{emptyText}</p></div>
+  }
 
   const W = 700, H = 130, PL = 50, PR = 26, PT = 12, PB = 26
   const vals = rows.map(r => Number(r.value))
@@ -227,7 +242,9 @@ export function LineChart ({ points, unit, cutoff, emptyText, tableLabels }) {
 export function MultiLineChart ({ series, unit, refLines, emptyText, tableLabels }) {
   const [showTable, setShowTable] = useState(false)
   const clean = (series || []).filter(s => s.points.length >= 2)
-  if (!clean.length) return <p className="chart-empty">{emptyText}</p>
+  if (!clean.length) {
+    return <div className="chart-blank"><Art name="trend" /><p className="chart-empty">{emptyText}</p></div>
+  }
 
   const labels = clean[0].points.map(p => p.label)
 

@@ -416,7 +416,11 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   background: var(--card); border: 1px solid var(--line); border-radius: 12px;
   padding: 9px 10px; display: flex; flex-direction: column; gap: 1px; min-width: 0;
 }
-.stat-l { font-size: 10px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: var(--ink-faint); }
+.stat-l { font-size: 10px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase;
+  color: var(--ink-faint); display: flex; align-items: center; gap: 5px; }
+.stat-ic { display: inline-flex; color: var(--brand); flex: 0 0 auto; }
+.stat-ic svg { width: 13px; height: 13px; }
+.stat.allergy.has .stat-ic { color: var(--warning); }
 .stat-v { font-size: 26px; font-weight: 700; line-height: 1.1; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
 .stat-u { font-size: 12px; font-weight: 600; color: var(--ink-faint); margin-left: 3px; }
 .stat-s { font-size: 10.5px; color: var(--ink-soft); }
@@ -459,7 +463,24 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .cite .cutkey { display: inline-block; width: 14px; height: 0; vertical-align: middle;
   border-top: 2px dashed var(--attention); margin-right: 3px; }
 .chart-empty { font-size: 12px; color: var(--ink-faint); margin: 5px 0; }
-.chart-t { font-size: 12px; font-weight: 700; margin: 0 0 5px; }
+.chart-t { font-size: 12px; font-weight: 700; margin: 0 0 5px;
+  display: flex; align-items: center; gap: 6px; }
+.ct-ic { display: inline-flex; color: var(--brand); flex: 0 0 auto; }
+.ct-ic svg { width: 14px; height: 14px; }
+
+/* An empty chart shows a drawing of the chart it is waiting for. The solid
+   part is what exists, the faint part is what is still to come. */
+.chart-blank { display: flex; align-items: center; gap: 12px; padding: 2px 0; }
+.art { width: 124px; height: auto; flex: 0 0 auto; fill: none;
+  stroke-linecap: round; stroke-linejoin: round; }
+.art .art-base { stroke: var(--line); stroke-width: 1.5; }
+.art .art-line { stroke: var(--brand); stroke-width: 2.5; }
+.art .art-ghost { stroke: var(--brand); stroke-width: 2.5; opacity: .3; stroke-dasharray: 5 6; }
+.art .art-dot { fill: var(--brand); stroke: none; }
+.art .art-ghostdot { fill: var(--brand); stroke: none; opacity: .3; }
+.art .art-bar { stroke: var(--brand); stroke-width: 9; }
+.art .art-ghostbar { stroke: var(--brand); stroke-width: 9; opacity: .22; }
+@media (max-width: 560px) { .art { width: 98px; } }
 
 .legend { display: flex; flex-wrap: wrap; gap: 4px 11px; margin-top: 7px; }
 .legend .lg { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-soft); }
@@ -609,6 +630,21 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   border-radius: 4px 4px 0 0; }
 .daybar.now { background: var(--brand); }
 .dayl { font-size: 9.5px; color: var(--ink-faint); white-space: nowrap; }
+
+.posterstrip {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px;
+  scrollbar-width: thin; overscroll-behavior-x: contain;
+}
+.pstrip-item {
+  flex: 1 1 0; min-width: 84px; max-width: 150px; padding: 0;
+  border: 1px solid var(--line); border-radius: 9px; overflow: hidden;
+  background: var(--card); line-height: 0;
+}
+.pstrip-item img { width: 100%; aspect-ratio: 1.41; object-fit: cover; object-position: top center; display: block; }
+.pstrip-item:hover, .pstrip-item:focus-visible { border-color: var(--brand); }
+@media (max-width: 560px) {
+  .pstrip-item { flex: 0 0 auto; width: 104px; min-width: 104px; }
+}
 
 .platgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 7px; }
 .platbtn {

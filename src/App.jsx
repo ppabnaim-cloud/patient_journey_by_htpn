@@ -31,7 +31,7 @@ import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
 import { CAMPAIGN, HASHTAG } from './data/campaign.js'
 import { THEME, ARTICLE, ANNOUNCEMENT } from './data/announcement.js'
 import { GLYPH, TRIAGE_GLYPHS } from './data/glyphs.js'
-import { Stat, AllergyTile, LineChart, MultiLineChart, StackedBar, Meter, DayBars } from './charts.jsx'
+import { Stat, AllergyTile, LineChart, MultiLineChart, StackedBar, Meter, DayBars, Art } from './charts.jsx'
 
 /* --- language ----------------------------------------------------------- */
 const LangCtx = createContext(DEFAULT_LANG)
@@ -240,7 +240,7 @@ function Overview ({ record }) {
       id: 'hba1c', plottable: hba1c.length >= 2,
       node: (
         <div className="card tight">
-          <p className="chart-t">{t(T.chart_hba1c)} (%)</p>
+          <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.droplet} /></span>{t(T.chart_hba1c)} (%)</p>
           <LineChart points={hba1c} unit="%" cutoff={6.5}
                      emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
           <p className="cite" style={{ marginTop: 4 }}>
@@ -253,7 +253,7 @@ function Overview ({ record }) {
       id: 'fpg', plottable: fpg.length >= 2,
       node: (
         <div className="card tight">
-          <p className="chart-t">{t(T.chart_fpg)} (mmol/L)</p>
+          <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.droplet} /></span>{t(T.chart_fpg)} (mmol/L)</p>
           {/* Both cited lines, not just one: 6.1 opens the raised band and 7.0
               is the diagnostic threshold. Showing one would misstate WHO. */}
           <LineChart points={fpg} unit="mmol/L" cutoff={[6.1, 7.0]}
@@ -268,7 +268,7 @@ function Overview ({ record }) {
       id: 'bp', plottable: bpRows.length >= 2,
       node: (
         <div className="card tight">
-          <p className="chart-t">{t(T.chart_bp)} (mmHg)</p>
+          <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.heartbeat} /></span>{t(T.chart_bp)} (mmHg)</p>
           <MultiLineChart series={bpSeries} unit="mmHg"
                           refLines={[{ value: BP_THRESHOLD.raisedSystolic }, { value: BP_THRESHOLD.raisedDiastolic }]}
                           emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
@@ -282,7 +282,7 @@ function Overview ({ record }) {
       id: 'weight', plottable: weights.length >= 2,
       node: (
         <div className="card tight">
-          <p className="chart-t">{t(T.chart_weight)} (kg)</p>
+          <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.scale} /></span>{t(T.chart_weight)} (kg)</p>
           <LineChart points={weights} unit="kg"
                      emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
         </div>
@@ -292,7 +292,7 @@ function Overview ({ record }) {
       id: 'bmi', plottable: bmis.length >= 2,
       node: (
         <div className="card tight">
-          <p className="chart-t">{t(T.chart_bmi)} (kg/m²)</p>
+          <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.ruler} /></span>{t(T.chart_bmi)} (kg/m²)</p>
           <LineChart points={bmis} unit="kg/m²" cutoff={23.0}
                      emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
           <p className="cite" style={{ marginTop: 4 }}>
@@ -305,7 +305,7 @@ function Overview ({ record }) {
       id: 'meds', plottable: false,
       node: (
         <div className="card tight">
-          <p className="chart-t">{t(T.chart_meds_by)}</p>
+          <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.pill} /></span>{t(T.chart_meds_by)}</p>
           {byIndication.length
             ? <StackedBar parts={byIndication} total={onMeds.length} tableLabels={tableLabels} />
             : <p className="chart-empty">{t(T.none)}</p>}
@@ -321,18 +321,22 @@ function Overview ({ record }) {
   return (
     <>
       <div className="kpirow">
-        <Stat label={t(T.kpi_meds)} value={onMeds.length} sub={t(T.kpi_meds_sub)} />
-        <Stat label={t(T.kpi_issues)} value={issues.length} sub={t(T.kpi_issues_sub)} />
+        <Stat label={t(T.kpi_meds)} value={onMeds.length} sub={t(T.kpi_meds_sub)}
+              icon={<Icon d={GLYPH.pill} />} />
+        <Stat label={t(T.kpi_issues)} value={issues.length} sub={t(T.kpi_issues_sub)}
+              icon={<Icon d={GLYPH.problem} />} />
         <AllergyTile
           label={t(T.kpi_allergy)}
           substances={allergies.map(a => String(a.substance || '').trim()).filter(Boolean)}
           severe={severe > 0}
           severeLabel={t(T.sev_severe)}
           moreLabel={t(T.kpi_allergy_more)}
+          icon={<Icon d={GLYPH.rash} />}
           emptyText={t(T.kpi_allergy_none)} />
         <Stat label={t(T.kpi_lastlab)}
               value={daysSince === null ? '—' : daysSince}
-              sub={daysSince === null ? t(T.kpi_never) : t(T.kpi_days_ago)} />
+              sub={daysSince === null ? t(T.kpi_never) : t(T.kpi_days_ago)}
+              icon={<Icon d={GLYPH.droplet} />} />
       </div>
 
       {/* A card that cannot plot anything yet should not hold a full row open,
@@ -1281,6 +1285,28 @@ function TabIqms ({ onEvent, onLightbox }) {
 /* =========================================================================
    TAB 6 — Medicine delivery (MyUbat)
    ====================================================================== */
+/* The poster set, previewed in place rather than hidden behind a sub-tab.
+   Thumbnails are 320px copies, so showing all eight costs about 130 KB rather
+   than the 1.5 MB the full-size posters would. Tapping one opens it full
+   screen. The strip scrolls sideways on a narrow screen; that is a strip
+   scrolling, not the page. */
+function PosterStrip ({ posters, label, onOpen }) {
+  const [t] = useT()
+  return (
+    <div className="card tight">
+      <p className="chart-t">{label}</p>
+      <div className="posterstrip">
+        {posters.map(p => (
+          <button key={p.id} className="pstrip-item" onClick={() => onOpen(p)}
+                  title={t(p.title)} aria-label={t(p.title)}>
+            <img src={p.thumb} alt={t(p.title)} loading="lazy" />
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function TabMyUbat ({ onEvent, onLightbox }) {
   const [t] = useT()
   const [view, setView] = useState('for')
@@ -1353,6 +1379,8 @@ function TabMyUbat ({ onEvent, onLightbox }) {
                   </>
                 )}
             </div>
+            <PosterStrip posters={MYUBAT.posters} label={t(T.ubat_preview)}
+                         onOpen={(p) => { onLightbox(p); onEvent('poster_opened', 'none') }} />
             <span style={{ flex: 1 }} />
             <div className="btnrow">
               <a className="btn" style={{ flex: '1 1 60%' }} href={MYUBAT.url} target="_blank" rel="noreferrer"
@@ -1575,9 +1603,9 @@ function WalkingLog ({ record, update, onEvent }) {
       </div>
 
       <div className="card tight">
-        <p className="chart-t">{t(T.gh_last7)} — {t(T.gh_minutes).toLowerCase()}</p>
+        <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.walker} /></span>{t(T.gh_last7)} — {t(T.gh_minutes).toLowerCase()}</p>
         {weekMinutes === 0 && days.every(d => d.value === 0)
-          ? <p className="chart-empty">{t(T.gh_nolog)}</p>
+          ? <div className="chart-blank"><Art name="week" /><p className="chart-empty">{t(T.gh_nolog)}</p></div>
           : <DayBars days={days} unit="min" todayLabel={t(T.gh_today)} />}
       </div>
 
