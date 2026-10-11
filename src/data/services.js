@@ -1,6 +1,19 @@
 /* ===========================================================================
    services.js — the outside services the app links to. Links only; this app
    never posts anything to them and never reads anything back from them.
+
+   PROVENANCE OF EVERY LINK IN THIS FILE
+   A link is a factual claim about where something lives, so it gets the same
+   treatment as a clinical number: it is either sourced or it does not ship.
+   An earlier version of this file carried an invented MyUbat web address that
+   nobody had supplied. It is gone.
+
+     IQMS.url     supplied by HTPN (Dr Naim).
+     MYUBAT.url   supplied by HTPN (Dr Naim) — the Google Play listing.
+     EMERGENCY    999 is the Malaysian emergency number. No link.
+
+   Do not add a link here that was not given to you. If you need one and do not
+   have it, leave it out and say so on screen.
    ========================================================================= */
 
 export const IQMS = {
@@ -22,8 +35,28 @@ export const IQMS = {
 
 export const MYUBAT = {
   id: 'myubat',
-  url: 'https://myubat.moh.gov.my/',
+  /* MyUbat is a phone app, not a website. This is its Google Play listing,
+     supplied by HTPN. It is NOT opened inside this app — it is installed on
+     the patient's own phone, which matters on a shared clinic tablet where
+     nothing can be installed. */
+  url: 'https://play.google.com/store/apps/details?id=my.gov.onegovappstore.myubat&hl=en',
+  isApp: true,
   name: { en: 'MyUbat — medicine delivered home', ms: 'MyUbat — ubat dihantar ke rumah' },
+  howToGet: {
+    en: 'MyUbat is an app you install on your own phone, not a website. Download it from Google Play, then sign in there.',
+    ms: 'MyUbat ialah aplikasi yang anda pasang pada telefon anda sendiri, bukan laman web. Muat turunnya dari Google Play, kemudian log masuk di sana.'
+  },
+  /* We were given the Android listing only. Asserting that an iPhone version
+     exists, or that it does not, would be a guess either way — so the app
+     sends the patient to the one place that actually knows. */
+  otherPhones: {
+    en: 'This link is the Android version. If you use an iPhone, ask at the pharmacy counter which app to install — this app does not know.',
+    ms: 'Pautan ini ialah versi Android. Jika anda menggunakan iPhone, tanya di kaunter farmasi aplikasi mana untuk dipasang — aplikasi ini tidak mengetahuinya.'
+  },
+  onTablet: {
+    en: 'If you are reading this on a hospital tablet, do not install it here. Install it on your own phone when you get home.',
+    ms: 'Jika anda membaca ini pada tablet hospital, jangan pasang di sini. Pasangkannya pada telefon anda sendiri apabila pulang.'
+  },
   points: [
     { en: 'For repeat supplies of a medicine you already take, where the doctor has left refills on your prescription.',
       ms: 'Untuk bekalan ulangan ubat yang anda sudah ambil, apabila doktor meninggalkan ulangan pada preskripsi anda.' },

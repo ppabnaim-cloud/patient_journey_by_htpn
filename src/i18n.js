@@ -207,7 +207,9 @@ export const T = {
     'Repeat medicines delivered to your home, so you do not have to come in and queue for them.',
     'Ubat ulangan dihantar ke rumah anda, jadi anda tidak perlu datang dan beratur untuknya.'
   ),
-  ubat_open: L('Open MyUbat', 'Buka MyUbat'),
+  ubat_open: L('Get MyUbat on Google Play', 'Dapatkan MyUbat di Google Play'),
+  ubat_howget: L('How to get it', 'Cara mendapatkannya'),
+  ubat_otherphone: L('Using an iPhone?', 'Menggunakan iPhone?'),
   ubat_good_for: L('Use it for', 'Gunakan untuk'),
   ubat_not_for: L('Do not use it for', 'Jangan gunakan untuk'),
   ubat_cold: L('Cold chain', 'Rantaian sejuk'),

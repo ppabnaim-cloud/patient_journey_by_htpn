@@ -852,9 +852,14 @@ function TabMyUbat ({ onEvent }) {
             )}
         </div>
         <span style={{ flex: 1 }} />
+        <div className="card tight">
+          <p className="card-t">{t(T.ubat_howget)}</p>
+          <p className="card-s">{t(MYUBAT.howToGet)}</p>
+          <p className="note" style={{ marginTop: 6 }}>{t(MYUBAT.onTablet)}</p>
+        </div>
         <a className="btn wide" href={MYUBAT.url} target="_blank" rel="noreferrer"
            onClick={() => onEvent('myubat_opened', 'none')}>{t(T.ubat_open)} →</a>
-        <p className="note">{t(T.needsInternet)}</p>
+        <p className="note"><b>{t(T.ubat_otherphone)}</b> {t(MYUBAT.otherPhones)} · {t(T.needsInternet)}</p>
       </div>
     </div>
   )
