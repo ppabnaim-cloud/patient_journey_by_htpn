@@ -142,13 +142,20 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .pane-title { font-size: 19px; font-weight: 700; margin: 0 0 2px; letter-spacing: -0.3px; }
 .pane-lead { margin: 0; color: var(--ink-soft); font-size: 13px; }
 
-.pane-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.pane-body {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 10px;
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+}
+/* Without this a child squashes below its own content instead of scrolling,
+   and the text lands on top of the card beneath it. */
+.pane-body > * { flex-shrink: 0; }
 .pane-foot { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
 
 /* ---------- tab bar ---------- */
 .tabbar {
   height: var(--tabbar-h); flex: 0 0 auto;
-  display: grid; grid-template-columns: repeat(8, 1fr);
+  display: grid; grid-template-columns: repeat(9, 1fr);
   background: var(--card); border-top: 1px solid var(--line);
 }
 .tabbtn {
@@ -194,7 +201,7 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 /* A list card fills the space it is given on a tablet; inside the phone's
    scrolling pane it takes its own height instead (see the small-screen
    block below). */
-.listcard { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.listcard { flex: 1 1 auto; min-height: min-content; display: flex; flex-direction: column; }
 .card-t { font-weight: 700; font-size: 14px; margin: 0 0 4px; }
 .card-s { color: var(--ink-soft); font-size: 13px; margin: 0; }
 
@@ -659,18 +666,35 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   text-decoration: none;
 }
 .hashline { display: flex; align-items: center; gap: 8px; }
+/* ---------- appointments ---------- */
+.apptcard { border-left: 3px solid var(--line); }
+.apptcard.today { border-left-color: var(--attention); }
+.apptcard.tomorrow { border-left-color: var(--brand); }
+.apptcard.past { opacity: .62; }
+.apptrow { display: flex; align-items: center; gap: 8px; }
+.apptbadge { font-size: 10px; font-weight: 800; letter-spacing: .04em; padding: 2px 7px;
+  border-radius: 999px; background: var(--grid); color: var(--ink-soft); white-space: nowrap; }
+.apptbadge.today { background: var(--attention-bg); color: var(--attention); }
+.apptbadge.tomorrow { background: var(--brand-tint); color: var(--brand); }
+.apptwhen { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.apptname { margin: 6px 0 0; font-size: 14.5px; font-weight: 650; color: var(--ink); line-height: 1.35; }
+.apptfoot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+
+.sect { margin: 2px 0 -2px; font-size: 11px; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-faint); }
+.bullets.num { list-style: decimal; padding-left: 18px; }
 .hashtag.sm { font-size: 13px; }
 .taggrid { display: flex; flex-direction: column; gap: 5px; margin-top: 7px; }
 .tagchip { display: flex; align-items: center; gap: 8px; padding: 5px 9px;
-  border: 1px solid var(--line); border-radius: 8px; background: var(--card2); }
-.tagtheme { font-size: 12px; color: var(--ink2); flex: 1; }
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.tagtheme { font-size: 12px; color: var(--ink-soft); flex: 1; }
 .badge.warn { font-size: 10px; font-weight: 700; letter-spacing: .02em; padding: 2px 6px;
-  border-radius: 999px; background: var(--warnbg); color: var(--warnink); white-space: nowrap; }
-.tplbody { margin: 7px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--card2);
+  border-radius: 999px; background: var(--attention-bg); color: var(--attention); white-space: nowrap; }
+.tplbody { margin: 7px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--bg);
   border: 1px solid var(--line); font: 400 12.5px/1.5 inherit; white-space: pre-wrap;
   color: var(--ink); overflow-wrap: anywhere; }
 table.mini { width: 100%; border-collapse: collapse; margin-top: 5px; }
-table.mini td { font-size: 12px; color: var(--ink2); padding: 3px 0;
+table.mini td { font-size: 12px; color: var(--ink-soft); padding: 3px 0;
   border-top: 1px solid var(--line); white-space: nowrap; }
 table.mini td:first-child { color: var(--ink); font-weight: 600; }
 .hashtag { font-size: 17px; font-weight: 800; color: var(--brand); letter-spacing: -0.3px; }

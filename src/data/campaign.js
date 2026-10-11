@@ -38,36 +38,32 @@ export const HASHTAG = 'gayahidupsihatHTPN'
 export const CAMPAIGN = {
   title: { en: '#gayahidupsihatHTPN', ms: '#gayahidupsihatHTPN' },
   lead: {
-    en: 'Walked today? Post it under the hashtag and someone who has not started yet will see that a patient like them did.',
-    ms: 'Sudah berjalan hari ini? Kongsikan di bawah hashtag ini, dan seseorang yang belum bermula akan melihat bahawa seorang pesakit seperti mereka telah melakukannya.'
+    en: 'Say thank you where the team can see it. Post it on your own Facebook page or story, and tag the hospital so your words reach them.',
+    ms: 'Sampaikan penghargaan anda di tempat yang dapat dilihat oleh pasukan kami. Kongsikan di halaman atau story Facebook anda sendiri, dan tandakan hospital supaya kata-kata anda sampai kepada mereka.'
   },
+  /* Three steps. The third decides whether the thank-you reaches the team
+     at all, so it is stated as plainly as the other two. */
   how: [
-    { en: 'Record your walk here first, so you keep your own count. It stays on this device.',
-      ms: 'Rekodkan jalan kaki anda di sini dahulu, supaya anda menyimpan kiraan sendiri. Ia kekal pada peranti ini.' },
-    { en: 'Then post on your own account — a photograph, your step count, or a screenshot from whichever app you use.',
-      ms: 'Kemudian kongsikan di akaun anda sendiri — gambar, kiraan langkah, atau tangkapan skrin daripada aplikasi yang anda gunakan.' },
-    { en: 'Add the hashtag so others at HTPN can find it. Nothing you post passes through this app.',
-      ms: 'Tambah hashtag supaya orang lain di HTPN dapat menemuinya. Tiada apa-apa yang anda kongsikan melalui aplikasi ini.' },
-    /* Without this step the post exists but nobody at the hospital sees it. */
-    { en: 'Do not forget to tag the hospital\u2019s official Facebook page, @hospitalkajangofficial \u2014 otherwise nobody at HTPN sees your post.',
-      ms: 'Jangan lupa menandakan halaman Facebook rasmi hospital, @hospitalkajangofficial \u2014 jika tidak, tiada sesiapa di HTPN akan melihat hantaran anda.' }
+    { en: 'Post on your own Facebook page or story \u2014 a few words about the team, the ward or the clinic that looked after you.',
+      ms: 'Kongsikan di halaman atau story Facebook anda sendiri \u2014 beberapa patah kata tentang pasukan, wad atau klinik yang merawat anda.' },
+    { en: 'Add the hashtag, so the hospital can gather the messages in one place.',
+      ms: 'Tambahkan hashtag, supaya pihak hospital dapat mengumpulkan mesej-mesej ini di satu tempat.' },
+    { en: 'Tag the hospital\u2019s official page, @hospitalkajangofficial, so your words reach the team you are thanking.',
+      ms: 'Tandakan halaman rasmi hospital, @hospitalkajangofficial, supaya kata-kata anda sampai kepada pasukan yang anda hargai.' }
   ],
 
   /* What the share sheet pre-fills. The patient edits it before posting; it is
      a starting point, not a script, and it carries no figures of theirs. */
   shareText: {
-    en: 'Walked today. One step at a time. #gayahidupsihatHTPN #10ribulangkahHTPN @hospitalkajangofficial',
-    ms: 'Berjalan kaki hari ini. Selangkah demi selangkah. #gayahidupsihatHTPN #10ribulangkahHTPN @hospitalkajangofficial'
+    en: 'Thank you to the team at Hospital Tengku Permaisuri Norashikin. #terimakasihHTPN @hospitalkajangofficial',
+    ms: 'Terima kasih kepada pasukan Hospital Tengku Permaisuri Norashikin. #terimakasihHTPN @hospitalkajangofficial'
   },
 
-  /* Facebook only. HTPN confirmed the hospital has no Instagram, TikTok or
-     Threads account, and a hashtag page on a platform where the hospital is
-     not present sends a patient somewhere nobody at HTPN is reading. X is
-     still listed because it was not named either way — if HTPN has no X
-     account it should come out too. */
+  /* Facebook only. HTPN has no Instagram, TikTok, Threads or X account, and
+     a hashtag page on a platform where the hospital is not present sends a
+     patient somewhere nobody at HTPN is reading. */
   platforms: [
-    { id: 'facebook', name: 'Facebook', url: `https://www.facebook.com/hashtag/${HASHTAG.toLowerCase()}` },
-    { id: 'x', name: 'X', url: `https://x.com/hashtag/${HASHTAG}` }
+    { id: 'facebook', name: 'Facebook', url: `https://www.facebook.com/hashtag/${HASHTAG.toLowerCase()}` }
   ],
 
   /* Apps some patients already use to count what they walk. Both links were
@@ -131,7 +127,7 @@ export const CAMPAIGN = {
         ms: 'Butang di bawah membuka halaman hashtag platform tersebut, maka apa yang anda lihat di sana adalah apa yang platform itu pilih untuk paparkan.' }
     ],
     beforeYouPost: {
-      en: 'Before you post: a photograph can carry more than you meant — a face, a child, a ward, a name on a wristband, a prescription on a table.',
+      en: 'Before you post, take one more look at your photograph. Keep it to what you want the world to see — faces, children, wards, wristbands and prescriptions are easy to miss in the background.',
       ms: 'Sebelum anda berkongsi: sesebuah gambar boleh membawa lebih daripada yang anda maksudkan — wajah, kanak-kanak, wad, nama pada gelang tangan, atau preskripsi di atas meja.'
     }
   }

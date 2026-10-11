@@ -155,6 +155,15 @@ export const MYUBAT = {
     verified: false,
     startedOn: '2026-10-01',
     endedOn: null,
+    /* The one link HTPN supplied, shown on screen as a link and nothing
+       more. The headline is NOT rendered: this build could not open the page
+       to read it, and a headline reconstructed from a URL slug is our
+       sentence wearing a newspaper's name. The patient opens it and reads
+       the real one. */
+    article: {
+      publisher: 'Berita Harian',
+      url: 'https://www.bharian.com.my/berita/nasional/2026/09/1650296/mcmc-bantu-kkm-hantar-ubat-melalui-pos-secara-percuma-kepada-pesakit'
+    },
     sources: [
       {
         publisher: 'Berita Harian',

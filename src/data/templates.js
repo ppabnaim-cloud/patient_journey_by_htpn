@@ -50,11 +50,33 @@ export const HTPN_PAGE = {
 
 export const UMBRELLA = 'terimakasihHTPN'
 
+/* The tab has two aims, and the screen is organised by them rather than by
+   hashtag. A hashtag is a mechanism; neither of these is. */
+export const GROUPS = [
+  {
+    id: 'sihat',
+    title: { en: 'Healthy lifestyle', ms: 'Gaya Hidup Sihat' },
+    lead: {
+      en: 'Share what you are doing to stay well. Someone who has not started yet will see that a patient like them did.',
+      ms: 'Kongsikan usaha anda untuk kekal sihat. Seseorang yang belum bermula akan melihat bahawa seorang pesakit seperti mereka telah melakukannya.'
+    }
+  },
+  {
+    id: 'hargai',
+    title: { en: 'Appreciating our healthcare staff', ms: 'Penghargaan Kepada Warga Kesihatan' },
+    lead: {
+      en: 'The team works nights, weekends and public holidays. A few words from a patient or a family member reaches them in a way nothing else does.',
+      ms: 'Pasukan kami bertugas pada waktu malam, hujung minggu dan cuti umum. Beberapa patah kata daripada pesakit atau ahli keluarga amat bermakna kepada mereka.'
+    }
+  }
+]
+
 /* A hashtag made only of digits does not register on most platforms; mixed
    letters and digits does. #10ribulangkahHTPN is safe on that count. */
 export const TAGS = [
   {
     id: 'sihat',
+    group: 'sihat',
     tag: HASHTAG,                       // gayahidupsihatHTPN
     theme: { en: 'Healthy lifestyle', ms: 'Gaya hidup sihat' },
     forWho: { en: 'Patients and the public', ms: 'Pesakit dan orang awam' },
@@ -63,6 +85,7 @@ export const TAGS = [
   },
   {
     id: 'langkah',
+    group: 'sihat',
     tag: '10ribulangkahHTPN',
     theme: { en: '10,000 steps', ms: '10 ribu langkah' },
     forWho: { en: 'Anyone logging a walk', ms: 'Sesiapa yang merekod jalan kaki' },
@@ -71,6 +94,7 @@ export const TAGS = [
   },
   {
     id: 'terimakasih',
+    group: 'hargai',
     tag: UMBRELLA,
     theme: { en: 'Thank you, HTPN', ms: 'Terima kasih HTPN' },
     forWho: { en: 'Patients and families', ms: 'Pesakit dan keluarga' },
@@ -79,6 +103,7 @@ export const TAGS = [
   },
   {
     id: 'servis',
+    group: 'hargai',
     tag: 'perkhidmatancemerlangHTPN',
     theme: { en: 'Excellent service at HTPN', ms: 'Perkhidmatan cemerlang HTPN' },
     forWho: { en: 'Patients and families', ms: 'Pesakit dan keluarga' },
@@ -87,6 +112,7 @@ export const TAGS = [
   },
   {
     id: 'doktor',
+    group: 'hargai',
     tag: 'terimakasihdoktorHTPN',
     theme: { en: 'Thank you, doctor', ms: 'Terima kasih doktor' },
     forWho: { en: 'Patients and families', ms: 'Pesakit dan keluarga' },
@@ -95,6 +121,7 @@ export const TAGS = [
   },
   {
     id: 'jururawat',
+    group: 'hargai',
     tag: 'terimakasihjururawatHTPN',
     theme: { en: 'Thank you, nurses', ms: 'Terima kasih jururawat' },
     forWho: { en: 'Patients and families', ms: 'Pesakit dan keluarga' },
@@ -115,6 +142,7 @@ export const TAGS = [
 export const TEMPLATES = [
   {
     id: 'langkah',
+    group: 'sihat',
     tagId: 'langkah',
     title: { en: 'I walked today', ms: 'Saya berjalan kaki hari ini' },
     body: {
@@ -124,6 +152,7 @@ export const TEMPLATES = [
   },
   {
     id: 'sihat',
+    group: 'sihat',
     tagId: 'sihat',
     title: { en: 'A healthier habit', ms: 'Tabiat yang lebih sihat' },
     body: {
@@ -133,6 +162,7 @@ export const TEMPLATES = [
   },
   {
     id: 'terimakasih',
+    group: 'hargai',
     tagId: 'terimakasih',
     title: { en: 'Thank you, HTPN', ms: 'Terima kasih HTPN' },
     body: {
@@ -142,6 +172,7 @@ export const TEMPLATES = [
   },
   {
     id: 'servis',
+    group: 'hargai',
     tagId: 'servis',
     title: { en: 'The service was excellent', ms: 'Perkhidmatan yang cemerlang' },
     body: {
@@ -151,6 +182,7 @@ export const TEMPLATES = [
   },
   {
     id: 'doktor',
+    group: 'hargai',
     tagId: 'doktor',
     title: { en: 'Thank you, doctor', ms: 'Terima kasih doktor' },
     body: {
@@ -160,6 +192,7 @@ export const TEMPLATES = [
   },
   {
     id: 'jururawat',
+    group: 'hargai',
     tagId: 'jururawat',
     title: { en: 'Thank you, nurses', ms: 'Terima kasih jururawat' },
     body: {
@@ -185,6 +218,6 @@ export const UNCHECKED_NOTE = {
    never pre-fills one. The reminder belongs next to the template, where the
    person is about to type. */
 export const BEFORE_POSTING = {
-  en: 'Do not name a staff member, another patient, or a bed number in your post, and check the photograph for faces, wristbands and papers before you share it.',
-  ms: 'Jangan menyebut nama kakitangan, pesakit lain, atau nombor katil dalam hantaran anda, dan periksa gambar anda daripada wajah, gelang tangan dan dokumen sebelum dikongsikan.'
+  en: 'Thank the team, the ward or the clinic — the people who were with you will know exactly who you mean. Take one last look at your photograph first, so that faces, wristbands and papers stay private.',
+  ms: 'Hargailah pasukan, wad atau klinik berkenaan — mereka yang bersama anda pasti tahu siapa yang anda maksudkan. Lihat gambar anda sekali lagi sebelum dikongsikan, supaya wajah, gelang tangan dan dokumen kekal peribadi.'
 }

@@ -17,7 +17,7 @@ const DB_NAME = 'pjhtpn-photos'
 const DB_STORE = 'photos'
 
 export const EMPTY_RECORD = {
-  version: 2,
+  version: 3,
   gender: null,
   noKnownAllergy: false,
   medications: [],
@@ -27,6 +27,7 @@ export const EMPTY_RECORD = {
   labs: [],
   imaging: [],
   activity: [],
+  appointments: [],
   measurements: [],
   photos: []        // metadata only; the bytes live in IndexedDB
 }
@@ -55,6 +56,9 @@ export function loadRecord () {
    answer rather than being asked again. */
 function migrate (r) {
   if (!Array.isArray(r.activity)) r.activity = []
+  /* v3 adds appointments. Anyone already using the app keeps everything they
+     have entered and simply gains an empty list. */
+  if (!Array.isArray(r.appointments)) r.appointments = []
   if (r.version < 2 || (r.gender == null && r.sex != null)) {
     r.gender = r.gender ?? r.sex ?? null
     delete r.sex
@@ -62,6 +66,7 @@ function migrate (r) {
     r.activity = r.activity || []
     r.version = 2
   }
+  if (r.version < 3) r.version = 3
   return r
 }
 

@@ -29,7 +29,13 @@ import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
 import { CAMPAIGN, HASHTAG } from './data/campaign.js'
-import { TAGS, TEMPLATES, HTPN_PAGE, TEMPLATE_NOTE, UNCHECKED_NOTE, BEFORE_POSTING } from './data/templates.js'
+import { TAGS, TEMPLATES, GROUPS, HTPN_PAGE, TEMPLATE_NOTE, UNCHECKED_NOTE, BEFORE_POSTING } from './data/templates.js'
+import { DEPARTMENTS as CLINIC_DEPTS, CLINIC_INDEX } from './data/departments.js'
+import {
+  dueState, daysUntil, reminderDate, upcoming, pastAppointments,
+  REMIND_DAYS_BEFORE, APPT_SOURCE
+} from './engine/appointments.js'
+import { buildIcs } from './ics.js'
 import { THEME, ARTICLE, ANNOUNCEMENT } from './data/announcement.js'
 import { GLYPH, TRIAGE_GLYPHS } from './data/glyphs.js'
 import { Stat, AllergyTile, LineChart, MultiLineChart, StackedBar, Meter, DayBars, Art } from './charts.jsx'
@@ -65,6 +71,7 @@ const DEPT_ICONS = {
 }
 
 const ICONS = {
+  appointments: ['M4 6h16v15H4z', 'M8 3v5M16 3v5', 'M4 11h16', 'M9 15h2M13 15h2'],
   dashboard: ['M3 12h4l2.5 7 5-14L17 12h4'],
   records: ['M6 3h9l3 3v15H6z', 'M9 10h7', 'M9 14h7', 'M9 18h4'],
   measurements: ['M3 7h18v10H3z', 'M7 7v4', 'M11 7v6', 'M15 7v4', 'M19 7v6'],
@@ -398,6 +405,223 @@ function Overview ({ record }) {
       </div>
       <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
     </>
+  )
+}
+
+
+/* ===========================================================================
+   Appointments — the first tab, and the screen that stands in for the yellow
+   appointment book.
+
+   WHAT IT HONESTLY DOES
+   Phase 1 is a patient typing in what their card says. That has one
+   consequence the screen never hides: the app cannot confirm the date, and
+   it will not know if the clinic moves it. Until phase 2 reads SPP.AI, the
+   book remains the hospital's record and this is the patient's copy of it.
+
+   HOW THE REMINDER ACTUALLY ARRIVES
+   A web page cannot wake itself up tomorrow. The reminder that works on a
+   day the patient never opens the app is the one their own phone fires, from
+   a calendar entry this app writes and hands over. Nothing is sent anywhere
+   to make that happen. See the header of engine/appointments.js.
+   ========================================================================= */
+/* Three sentences, each one a thing the patient can rely on. The middle one
+   is the load-bearing claim: the phone fires the alarm, not this app, which
+   is why it works on a day the app is never opened. */
+const APPT_HOW = [
+  { en: 'This screen shows the appointment as soon as you open the app, with the day it falls on.',
+    ms: 'Skrin ini memaparkan temujanji anda sebaik sahaja anda membuka aplikasi, berserta harinya.' },
+  { en: 'Add it to your phone calendar and the phone itself will alert you one day before — even with the app closed and no internet.',
+    ms: 'Tambahkannya ke kalendar telefon anda dan telefon itu sendiri akan memberi amaran sehari sebelumnya — walaupun aplikasi ditutup dan tiada internet.' },
+  { en: 'Everything you type stays on this phone. Adding it to your calendar keeps it on the phone too.',
+    ms: 'Semua yang anda taip kekal dalam telefon ini. Menambahkannya ke kalendar juga mengekalkannya dalam telefon.' }
+]
+
+function apptTitle (appt, lang) {
+  const found = CLINIC_INDEX.get(appt.clinicId || appt.deptId)
+  if (!found) return pick({ en: 'Appointment', ms: 'Temujanji' }, lang)
+  const dept = pick(found.dept, lang)
+  return found.clinic ? `${dept} — ${pick(found.clinic, lang)}` : dept
+}
+
+function AppointmentCard ({ appt, today, lang, t, onCalendar, onRemove }) {
+  const state = dueState(appt, today)
+  const n = daysUntil(appt.date, today)
+  const badge = state === 'today' ? t(T.appt_today)
+    : state === 'tomorrow' ? t(T.appt_tomorrow)
+      : state === 'past' ? t(T.appt_days_ago).replace('{n}', String(Math.abs(n)))
+        : t(T.appt_in_days).replace('{n}', String(n))
+  const found = CLINIC_INDEX.get(appt.clinicId || appt.deptId)
+  return (
+    <div className={'card tight apptcard ' + state}>
+      <div className="apptrow">
+        <span className={'apptbadge ' + state}>{badge}</span>
+        <span className="apptwhen">
+          {appt.date}{appt.time ? ` · ${appt.time}` : ''}
+        </span>
+        <span style={{ flex: 1 }} />
+        <button className="pgbtn" onClick={onRemove} aria-label={t(T.appt_remove)}>✕</button>
+      </div>
+      <p className="apptname">{apptTitle(appt, lang)}</p>
+      {found?.clinic?.queried ? <p className="note">⚑ {t(T.appt_queried)}</p> : null}
+      {appt.note ? <p className="card-s">{appt.note}</p> : null}
+      {state !== 'past' ? (
+        <div className="apptfoot">
+          <span className="note">{t(T.appt_remind_on)} {reminderDate(appt)}</span>
+          <span style={{ flex: 1 }} />
+          <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
+                  onClick={onCalendar}>{t(T.appt_calendar)}</button>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function TabAppointments ({ record, update, onEvent }) {
+  const [t, lang] = useT()
+  const narrow = useNarrow()
+  const [view, setView] = useState('next')
+  const today = isoDay(new Date())
+  const list = record.appointments || []
+  const next = upcoming(list, today)
+  const past = pastAppointments(list, today)
+
+  const [draft, setDraft] = useState({ deptId: '', clinicId: '', date: '', time: '', note: '' })
+  const dept = CLINIC_DEPTS.find(d => d.id === draft.deptId) || null
+
+  /* The file is built here and handed to the phone. It is never uploaded:
+     a blob URL is a local address, revoked as soon as the handover is done. */
+  const toCalendar = (items, which) => {
+    const ics = buildIcs(items.map(a => ({
+      id: a.id, date: a.date, time: a.time, note: a.note,
+      summary: `${apptTitle(a, lang)} — HTPN`,
+      location: 'Hospital Tengku Permaisuri Norashikin'
+    })), {
+      daysBefore: REMIND_DAYS_BEFORE,
+      alarmText: pick({ en: 'Appointment at HTPN tomorrow', ms: 'Temujanji di HTPN esok' }, lang)
+    })
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'htpn-temujanji.ics'
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 2000)
+    onEvent('appointment_calendar_export', which)
+  }
+
+  const save = () => {
+    if (!draft.deptId || !draft.date) return
+    update(r => ({
+      ...r,
+      appointments: [...(r.appointments || []), {
+        id: store.newId(),
+        deptId: draft.deptId,
+        clinicId: draft.clinicId || null,
+        date: draft.date,
+        time: draft.time || null,
+        note: draft.note.trim() || null
+      }]
+    }))
+    setDraft({ deptId: '', clinicId: '', date: '', time: '', note: '' })
+    onEvent('appointment_added', 'appointment')
+    setView('next')
+  }
+
+  const remove = (id) => {
+    update(r => ({ ...r, appointments: (r.appointments || []).filter(a => a.id !== id) }))
+    onEvent('appointment_removed', 'appointment')
+  }
+
+  const shown = view === 'past' ? past : next
+  const paged = usePaged(shown, narrow ? Math.max(1, shown.length) : 3)
+
+  return (
+    <div className="pane">
+      <div className="pane-head">
+        <h1 className="pane-title">{t(T.tab_appt)}</h1>
+        <p className="pane-lead">{t(T.appt_lead)}</p>
+      </div>
+      <div className="subtabs">
+        <button className="subtab" aria-selected={view === 'next'} onClick={() => setView('next')}>
+          {t(T.appt_next)}{next.length ? ' · ' + next.length : ''}
+        </button>
+        <button className="subtab" aria-selected={view === 'past'} onClick={() => setView('past')}>{t(T.appt_past)}</button>
+        <button className="subtab" aria-selected={view === 'add'} onClick={() => setView('add')}>{t(T.appt_add)}</button>
+      </div>
+
+      <div className="pane-body">
+        {view === 'add' ? (
+          <>
+            <div className="card tight">
+              <div className="frm two">
+                <Field label={t(T.appt_dept)}>
+                  <select value={draft.deptId}
+                          onChange={e => setDraft({ ...draft, deptId: e.target.value, clinicId: '' })}>
+                    <option value="">{t(T.appt_pick_dept)}</option>
+                    {CLINIC_DEPTS.map(d => <option key={d.id} value={d.id}>{t(d)}</option>)}
+                  </select>
+                </Field>
+                <Field label={t(T.appt_clinic)}>
+                  <select value={draft.clinicId} disabled={!dept || !dept.clinics.length}
+                          onChange={e => setDraft({ ...draft, clinicId: e.target.value })}>
+                    <option value="">{dept && dept.clinics.length ? t(T.appt_pick_clinic) : '—'}</option>
+                    {(dept?.clinics || []).map(c => <option key={c.id} value={c.id}>{t(c)}</option>)}
+                  </select>
+                </Field>
+                <Field label={t(T.appt_date)}>
+                  <input type="date" value={draft.date}
+                         onChange={e => setDraft({ ...draft, date: e.target.value })} />
+                </Field>
+                <Field label={t(T.appt_time)}>
+                  <input type="time" value={draft.time}
+                         onChange={e => setDraft({ ...draft, time: e.target.value })} />
+                </Field>
+              </div>
+              <Field label={t(T.appt_note)} hint={t(T.appt_note_eg)}>
+                <input type="text" value={draft.note}
+                       onChange={e => setDraft({ ...draft, note: e.target.value })} />
+              </Field>
+              <button className="btn wide" style={{ marginTop: 8 }} onClick={save}
+                      disabled={!draft.deptId || !draft.date}>
+                {t(T.appt_save)}
+              </button>
+            </div>
+            <span style={{ flex: 1 }} />
+            <p className="cite"><b>{t(T.basedOn)}:</b> {t(APPT_SOURCE.full)}</p>
+          </>
+        ) : (
+          <>
+            {shown.length === 0 ? (
+              <div className="chart-blank">
+                <Art name="week" />
+                <p className="chart-empty">{t(view === 'past' ? T.appt_none_past : T.appt_none)}</p>
+              </div>
+            ) : paged.slice.map(a => (
+              <AppointmentCard key={a.id} appt={a} today={today} lang={lang} t={t}
+                               onCalendar={() => toCalendar([a], 'one')}
+                               onRemove={() => remove(a.id)} />
+            ))}
+
+            {view === 'next' && next.length > 0 ? (
+              <div className="card tight">
+                <p className="card-t">{t(T.appt_how_title)}</p>
+                <ul className="bullets">{APPT_HOW.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
+                <button className="btn wide" style={{ marginTop: 8 }}
+                        onClick={() => toCalendar(next, 'all')}>
+                  {t(T.appt_calendar_all)}
+                </button>
+              </div>
+            ) : null}
+
+            <span style={{ flex: 1 }} />
+            {!narrow && paged.pages > 1
+              ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
+              : null}
+            <p className="cite"><b>{t(T.basedOn)}:</b> {t(APPT_SOURCE.full)}</p>
+          </>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -1435,6 +1659,16 @@ function TabMyUbat ({ onEvent, onLightbox }) {
                     <div className="flagline" style={{ marginTop: 9 }}>
                       <b>{t(T.ubat_charge)} — {t(T.ubat_confirm)}.</b> {t(MYUBAT.deliveryCharge.text)}
                     </div>
+                    {/* The link HTPN supplied, kept so a patient who wants to
+                        read it for themselves can. One line, no headline of
+                        ours, no hedging paragraph around it. */}
+                    {MYUBAT.deliveryCharge.article ? (
+                      <a className="btn ghost" style={{ marginTop: 8 }}
+                         href={MYUBAT.deliveryCharge.article.url} target="_blank" rel="noreferrer"
+                         onClick={() => onEvent('article_opened', 'none')}>
+                        {t(T.ubat_read_news)} · {MYUBAT.deliveryCharge.article.publisher} ↗
+                      </a>
+                    ) : null}
                   </>
                 )
                 : (
@@ -1800,12 +2034,6 @@ function ShareIt ({ onEvent }) {
         <ul className="bullets">{CAMPAIGN.how.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
       </div>
 
-      <div className="card tight">
-        <p className="card-t">{t(CAMPAIGN.whoCanSee.title)}</p>
-        <ul className="bullets">{CAMPAIGN.whoCanSee.points.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
-        <div className="flagline" style={{ marginTop: 8 }}>⚠ {t(CAMPAIGN.whoCanSee.beforeYouPost)}</div>
-      </div>
-
       <button className="btn wide" onClick={share}>↗ {t(T.gh_share)}</button>
       {copied === 'share' ? <p className="note">{t(T.gh_share_unavailable)}</p> : null}
 
@@ -1817,7 +2045,6 @@ function ShareIt ({ onEvent }) {
                onClick={() => onEvent('hashtag_opened', pl.id)}>{pl.name} ↗</a>
           ))}
         </div>
-        <p className="note" style={{ marginTop: 8 }}>{t(CAMPAIGN.stravaNote)}</p>
       </div>
 
       <span style={{ flex: 1 }} />
@@ -1826,14 +2053,38 @@ function ShareIt ({ onEvent }) {
   )
 }
 
-function Templates ({ onEvent }) {
+function TagList ({ group, t }) {
+  const tags = TAGS.filter(x => x.group === group)
+  return (
+    <div className="card tight">
+      <p className="card-t">{t(T.gh_h_tags)}</p>
+      <div className="taggrid">
+        {tags.map(x => (
+          <div key={x.id} className="tagchip">
+            <span className="hashtag sm">#{x.tag}</span>
+            <span className="tagtheme">{t(x.theme)}</span>
+            {!x.verified ? <span className="badge warn">{t(T.gh_unchecked)}</span> : null}
+          </div>
+        ))}
+      </div>
+      {tags.some(x => !x.verified)
+        ? <div className="flagline" style={{ marginTop: 8 }}>⚠ {t(UNCHECKED_NOTE)}</div>
+        : null}
+    </div>
+  )
+}
+
+/* One of the two aims, with its hashtags and its posts under it. The screen
+   is organised by what the patient is trying to say, not by which hashtag
+   happens to carry it. */
+function SocialGroup ({ group, onEvent }) {
   const [t, lang] = useT()
   const narrow = useNarrow()
   const [copied, setCopied] = useState(null)
+  const meta = GROUPS.find(g => g.id === group)
+  const posts = TEMPLATES.filter(x => x.group === group)
   const tagOf = (id) => TAGS.find(x => x.id === id)
-  /* On a phone the pane scrolls, so everything can be listed; on a tablet it
-     does not, and two posts is what fits beside the hashtag list. */
-  const paged = usePaged(TEMPLATES, narrow ? TEMPLATES.length : 2)
+  const paged = usePaged(posts, narrow ? posts.length : 2)
 
   const copy = async (text, what) => {
     try { await navigator.clipboard.writeText(text) } catch { /* nothing to do */ }
@@ -1842,39 +2093,14 @@ function Templates ({ onEvent }) {
 
   return (
     <>
-      {/* Tagging the page is the step that decides whether HTPN ever sees the
-          post, so it sits above the templates rather than inside a footnote. */}
       <div className="card tight">
-        <p className="card-t">{t(T.gh_tag_htpn)}</p>
-        <div className="hashline">
-          <span className="hashtag">{HTPN_PAGE.handle}</span>
-          <span style={{ flex: 1 }} />
-          <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
-                  onClick={() => copy(HTPN_PAGE.handle, 'page')}>
-            {copied === 'page' ? '\u2713 ' + t(T.gh_copied) : t(T.gh_copy)}
-          </button>
-        </div>
-        <p className="card-s" style={{ marginTop: 7 }}>{t(HTPN_PAGE.howToTag)}</p>
-        <a className="btn ghost" style={{ marginTop: 8 }} href={HTPN_PAGE.url}
-           target="_blank" rel="noreferrer" onClick={() => onEvent('hashtag_opened', 'facebook')}>
-          {t(T.gh_open_page)} ↗
-        </a>
+        <p className="card-t">{t(meta.title)}</p>
+        <p className="card-s">{t(meta.lead)}</p>
       </div>
 
-      <div className="card tight">
-        <p className="card-t">{t(T.gh_tpl_title)}</p>
-        <div className="taggrid">
-          {TAGS.map(x => (
-            <div key={x.id} className="tagchip">
-              <span className="hashtag sm">#{x.tag}</span>
-              <span className="tagtheme">{t(x.theme)}</span>
-              {!x.verified ? <span className="badge warn">{t(T.gh_unchecked)}</span> : null}
-            </div>
-          ))}
-        </div>
-        <div className="flagline" style={{ marginTop: 8 }}>⚠ {t(UNCHECKED_NOTE)}</div>
-      </div>
+      <TagList group={group} t={t} />
 
+      <p className="sect">{t(T.gh_h_posts)}</p>
       {paged.slice.map(tpl => {
         const tag = tagOf(tpl.tagId)
         return (
@@ -1884,7 +2110,7 @@ function Templates ({ onEvent }) {
               <span style={{ flex: 1 }} />
               <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
                       onClick={() => { copy(pick(tpl.body, lang), tpl.id); onEvent('share_opened', 'none') }}>
-                {copied === tpl.id ? '\u2713 ' + t(T.gh_copied) : t(T.gh_copy_post)}
+                {copied === tpl.id ? '✓ ' + t(T.gh_copied) : t(T.gh_copy_post)}
               </button>
             </div>
             <pre className="tplbody">{t(tpl.body)}</pre>
@@ -1894,49 +2120,93 @@ function Templates ({ onEvent }) {
       })}
 
       <span style={{ flex: 1 }} />
-      {!narrow ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} /> : null}
+      {!narrow && paged.pages > 1
+        ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
+        : null}
+      <p className="note">{t(TEMPLATE_NOTE)}</p>
+    </>
+  )
+}
 
+function HowToPost ({ onEvent }) {
+  const [t, lang] = useT()
+  const [copied, setCopied] = useState(null)
+
+  const copy = async (text, what) => {
+    try { await navigator.clipboard.writeText(text) } catch { /* nothing to do */ }
+    setCopied(what); setTimeout(() => setCopied(null), 1800)
+  }
+
+  const share = async () => {
+    const text = pick(CAMPAIGN.shareText, lang)
+    onEvent('share_opened', 'none')
+    /* The device's own share sheet. The app never sees what is chosen or
+       posted — it hands the text over and stops there. */
+    if (navigator.share) {
+      try { await navigator.share({ text }); return } catch { /* dismissed */ return }
+    }
+    copy(text, 'share')
+  }
+
+  return (
+    <>
       <div className="card tight">
-        <p className="card-s">{t(TEMPLATE_NOTE)}</p>
-        <div className="flagline" style={{ marginTop: 7 }}>⚠ {t(BEFORE_POSTING)}</div>
+        <p className="card-t">{t(T.gh_h_steps)}</p>
+        <ol className="bullets num">{CAMPAIGN.how.map((x, i) => <li key={i}>{t(x)}</li>)}</ol>
       </div>
+
+      {/* Step three decides whether the hospital ever sees the post, so it
+          gets the page link and the one piece of Facebook mechanics that
+          catches people out. */}
+      <div className="card tight">
+        <p className="card-t">{t(T.gh_tag_htpn)}</p>
+        <div className="hashline">
+          <span className="hashtag">{HTPN_PAGE.handle}</span>
+          <span style={{ flex: 1 }} />
+          <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
+                  onClick={() => copy(HTPN_PAGE.handle, 'page')}>
+            {copied === 'page' ? '✓ ' + t(T.gh_copied) : t(T.gh_copy)}
+          </button>
+        </div>
+        <p className="card-s" style={{ marginTop: 7 }}>{t(HTPN_PAGE.howToTag)}</p>
+        <a className="btn ghost" style={{ marginTop: 8 }} href={HTPN_PAGE.url}
+           target="_blank" rel="noreferrer" onClick={() => onEvent('hashtag_opened', 'facebook')}>
+          {t(T.gh_open_page)} ↗
+        </a>
+      </div>
+
+      <button className="btn wide" onClick={share}>↗ {t(T.gh_share)}</button>
+      {copied === 'share' ? <p className="note">{t(T.gh_share_unavailable)}</p> : null}
+
+      <span style={{ flex: 1 }} />
+      <div className="flagline">⚠ {t(BEFORE_POSTING)}</div>
+      <p className="note">{t(CAMPAIGN.privacyNote)}</p>
     </>
   )
 }
 
 function TabGayaHidup ({ onEvent }) {
   const [t] = useT()
-  const [view, setView] = useState('share')
+  const [view, setView] = useState('sihat')
   return (
     <div className="pane">
       <div className="pane-head">
-        <h1 className="pane-title">{t(CAMPAIGN.title)}</h1>
-        <p className="pane-lead">{t(CAMPAIGN.lead)}</p>
+        <h1 className="pane-title">{t(T.gh_tab_title)}</h1>
+        <p className="pane-lead">{t(T.gh_tab_lead)}</p>
       </div>
       <div className="subtabs">
-        <button className="subtab" aria-selected={view === 'share'} onClick={() => setView('share')}>{t(T.gh_sub_share)}</button>
-        <button className="subtab" aria-selected={view === 'tpl'} onClick={() => setView('tpl')}>{t(T.gh_sub_tpl)}</button>
-        <button className="subtab" aria-selected={view === 'safe'} onClick={() => setView('safe')}>{t(T.gh_safety)}</button>
+        {GROUPS.map(g => (
+          <button key={g.id} className="subtab" aria-selected={view === g.id}
+                  onClick={() => setView(g.id)}>{t(g.title)}</button>
+        ))}
+        <button className="subtab" aria-selected={view === 'how'} onClick={() => setView('how')}>
+          {t(T.gh_sub_how)}
+        </button>
       </div>
       <div className="pane-body">
-        {view === 'share' ? <ShareIt onEvent={onEvent} /> : null}
-        {view === 'tpl' ? <Templates onEvent={onEvent} /> : null}
-        {view === 'safe' ? (
-          <>
-            <div className="emergency">
-              <div style={{ fontWeight: 800, marginBottom: 4 }}>⚠ {t(T.gh_safety)}</div>
-              {t(CAMPAIGN.safety)}
-            </div>
-            <div className="card tight">
-              <p className="card-s">{t(ACTIVITY_TARGET.note)}</p>
-              <p className="cite" style={{ marginTop: 6 }}>
-                <b>{t(T.basedOn)}:</b> {t(SRC.WHO_PA_2020.full)}
-              </p>
-            </div>
-            <span style={{ flex: 1 }} />
-            <p className="note">{t(EMERGENCY.text)}</p>
-          </>
-        ) : null}
+        {view === 'how'
+          ? <HowToPost onEvent={onEvent} />
+          : <SocialGroup key={view} group={view} onEvent={onEvent} />}
       </div>
     </div>
   )
@@ -2314,6 +2584,9 @@ function PrintDialog ({ identifiers, setIdentifiers, onPrint, onClose }) {
    The shell
    ====================================================================== */
 const TABS = [
+  /* First, deliberately. This is the screen that replaces the yellow book,
+     and it is the reason most patients will open the app at all. */
+  { id: 'appointments', label: T.tab_appt, short: T.short_appt },
   { id: 'dashboard', label: T.tab_dashboard, short: T.short_dashboard },
   { id: 'records', label: T.tab_records, short: T.short_records },
   { id: 'measurements', label: T.tab_measurements, short: T.short_measurements },
@@ -2327,7 +2600,7 @@ const TABS = [
 export default function App () {
   const [prefs, setPrefs] = useState(() => store.loadPrefs())
   const [record, setRecord] = useState(() => store.loadRecord())
-  const [tab, setTab] = useState('dashboard')
+  const [tab, setTab] = useState('appointments')
   const [lightbox, setLightbox] = useState(null)
   const [showPrivacy, setShowPrivacy] = useState(false)
   const [showPrint, setShowPrint] = useState(false)
@@ -2453,6 +2726,7 @@ export default function App () {
           <button className="hdr-btn" onClick={() => setShowPrivacy(true)} aria-label={pick(T.settings, lang)}>🔒</button>
         </header>
 
+        {tab === 'appointments' ? <TabAppointments record={record} update={update} onEvent={onEvent} /> : null}
         {tab === 'dashboard' ? <TabDashboard record={record} goTo={goTo} onPrint={() => setShowPrint(true)} /> : null}
         {tab === 'records' ? <TabRecords record={record} update={update} onEvent={onEvent} /> : null}
         {tab === 'measurements' ? <TabMeasurements record={record} update={update} onEvent={onEvent} /> : null}
