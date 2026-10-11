@@ -28,6 +28,7 @@ import { CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl
 import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
+import { GLYPH, TRIAGE_GLYPHS } from './data/glyphs.js'
 import { Stat, LineChart, StackedBar } from './charts.jsx'
 
 /* --- language ----------------------------------------------------------- */
@@ -70,47 +71,6 @@ const ICONS = {
   rakyat: ['M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.8a4.2 4.2 0 0 1 7.5 2.7c0 5.4-7.5 10-7.5 10z']
 }
 
-/* --- the worked example shown on an empty dashboard ----------------------
-   An empty screen teaches nothing, so the dashboard renders this instead. It
-   is labelled EXAMPLE in a band across the top and every figure is invented.
-   It is never written to storage, never mixed with a real record, and the
-   moment the patient enters anything of their own it disappears. Showing
-   fabricated numbers without saying so would be the worst thing this app
-   could do, which is why the band is not dismissible. */
-const DEMO_RECORD = {
-  gender: 'female',
-  medications: [
-    { id: 'd1', drug: 'Metformin', dose: '1 g BD', indication: 'Diabetes', status: 'on' },
-    { id: 'd2', drug: 'Gliclazide', dose: '80 mg OD', indication: 'Diabetes', status: 'on' },
-    { id: 'd3', drug: 'Perindopril', dose: '4 mg OD', indication: 'Hypertension', status: 'on' },
-    { id: 'd4', drug: 'Amlodipine', dose: '5 mg OD', indication: 'Hypertension', status: 'on' },
-    { id: 'd5', drug: 'Atorvastatin', dose: '20 mg ON', indication: 'Cholesterol', status: 'on' },
-    { id: 'd6', drug: 'Aspirin', dose: '100 mg OD', indication: 'Heart', status: 'on' },
-    { id: 'd7', drug: 'Omeprazole', dose: '20 mg OD', indication: 'Gastritis', status: 'off' }
-  ],
-  issues: [
-    { id: 'i1', text: 'Type 2 diabetes', since: '2019-03-01', status: 'active' },
-    { id: 'i2', text: 'Hypertension', since: '2021-07-14', status: 'active' }
-  ],
-  allergies: [{ id: 'a1', substance: 'Penicillin', reaction: 'Rash and swelling', severity: 'severe' }],
-  surgeries: [{ id: 's1', name: 'Caesarean section', date: '2016-04-02', where: 'HTPN' }],
-  imaging: [{ id: 'g1', modality: 'us', bodyPart: 'Abdomen', date: '2026-02-11', finding: 'Fatty liver. No focal lesion.' }],
-  labs: [
-    { id: 'l1', date: '2025-03-14', analyteId: 'hba1c', value: 9.4 },
-    { id: 'l2', date: '2025-09-10', analyteId: 'hba1c', value: 8.6 },
-    { id: 'l3', date: '2026-03-02', analyteId: 'hba1c', value: 7.9 },
-    { id: 'l4', date: '2026-09-01', analyteId: 'hba1c', value: 7.1 },
-    { id: 'l5', date: '2026-09-01', analyteId: 'fpg', value: 6.8 },
-    { id: 'l6', date: '2026-09-01', analyteId: 'ldl', value: 3.1, refLow: 0, refHigh: 3.4 }
-  ],
-  measurements: [
-    { id: 'm1', date: '2025-03-14', weightKg: 81.5, heightCm: 158, waistCm: 96 },
-    { id: 'm2', date: '2025-09-10', weightKg: 80.2, heightCm: 158, waistCm: 95 },
-    { id: 'm3', date: '2026-03-02', weightKg: 78.4, heightCm: 158, waistCm: 93 },
-    { id: 'm4', date: '2026-09-01', weightKg: 76.9, heightCm: 158, waistCm: 91 }
-  ]
-}
-
 const shortDate = (iso) => String(iso || '').slice(2).replace(/-/g, '/')
 
 /* --- generic bits -------------------------------------------------------- */
@@ -127,6 +87,23 @@ function Pager ({ page, pages, onPage, label }) {
       <button className="pgbtn" onClick={() => onPage(page + 1)} disabled={page >= pages - 1}>{t(T.next)} ›</button>
     </div>
   )
+}
+
+/* True on a phone-width screen. Used to decide how many chart cards fit a
+   page; the alternative is letting the fourth one spill, which the layout
+   rule does not allow. */
+function useNarrow () {
+  const [narrow, setNarrow] = useState(
+    () => typeof matchMedia === 'function' && matchMedia('(max-width: 560px)').matches
+  )
+  useEffect(() => {
+    if (typeof matchMedia !== 'function') return
+    const mq = matchMedia('(max-width: 560px)')
+    const on = e => setNarrow(e.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return narrow
 }
 
 /* Pages an array and keeps the page index in range when the array shrinks. */
@@ -198,8 +175,9 @@ function Finding ({ f }) {
      Reviewed  — the findings with nothing to act on, folded (never deleted)
    ====================================================================== */
 
-function Overview ({ record, isDemo }) {
+function Overview ({ record }) {
   const [t, lang] = useT()
+  const narrow = useNarrow()
 
   const meds = record.medications || []
   const onMeds = meds.filter(m => m.status !== 'off')
@@ -214,10 +192,17 @@ function Overview ({ record, isDemo }) {
     : null
 
   const hba1c = seriesFor(record.labs, 'hba1c').map(r => ({ label: shortDate(r.date), value: r.value }))
-  const weights = (record.measurements || [])
-    .filter(m => Number.isFinite(Number(m.weightKg)) && m.date)
+  const measures = (record.measurements || [])
+    .filter(m => m.date)
     .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+  const weights = measures
+    .filter(m => Number.isFinite(Number(m.weightKg)))
     .map(m => ({ label: shortDate(m.date), value: m.weightKg }))
+  /* BMI is computed by the engine, not recomputed here, so the chart and the
+     finding can never disagree about what the number is. */
+  const bmis = measures
+    .map(m => ({ label: shortDate(m.date), value: calcBMI(m.weightKg, m.heightCm) }))
+    .filter(p => p.value !== null)
 
   /* Medicines grouped by what they are for. Four named groups at most, the
      tail folded into "Other" — never a generated ninth colour. */
@@ -239,6 +224,58 @@ function Overview ({ record, isDemo }) {
     tableView: t(T.chart_table_view), chartView: t(T.chart_chart_view)
   }
 
+  const cards = [
+    {
+      id: 'hba1c', plottable: hba1c.length >= 2,
+      node: (
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_hba1c)} (%)</p>
+          <LineChart points={hba1c} unit="%" cutoff={6.5}
+                     emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+          <p className="cite" style={{ marginTop: 4 }}>
+            <span className="cutkey" /> {t(T.chart_cutoff)} 6.5% — <b>{t(T.basedOn)}:</b> {t(SRC.WHO_HBA1C_2011.short)}
+          </p>
+        </div>
+      )
+    },
+    {
+      id: 'weight', plottable: weights.length >= 2,
+      node: (
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_weight)} (kg)</p>
+          <LineChart points={weights} unit="kg"
+                     emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+        </div>
+      )
+    },
+    {
+      id: 'bmi', plottable: bmis.length >= 2,
+      node: (
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_bmi)} (kg/m²)</p>
+          <LineChart points={bmis} unit="kg/m²" cutoff={23.0}
+                     emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+          <p className="cite" style={{ marginTop: 4 }}>
+            <span className="cutkey" /> {t(T.chart_cutoff)} 23.0 — <b>{t(T.basedOn)}:</b> {t(SRC.WHO_ASIA_PACIFIC_2000.short)}
+          </p>
+        </div>
+      )
+    },
+    {
+      id: 'meds', plottable: false,
+      node: (
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_meds_by)}</p>
+          {byIndication.length
+            ? <StackedBar parts={byIndication} total={onMeds.length} tableLabels={tableLabels} />
+            : <p className="chart-empty">{t(T.none)}</p>}
+        </div>
+      )
+    }
+  ]
+
+  const paged = usePaged(cards, narrow ? 2 : 4)
+
   return (
     <>
       <div className="kpirow">
@@ -251,52 +288,35 @@ function Overview ({ record, isDemo }) {
               sub={daysSince === null ? t(T.kpi_never) : t(T.kpi_days_ago)} />
       </div>
 
-      {/* A card that cannot plot anything yet should not hold a full row open.
-          Rows are sized from whether each chart actually has a trend to draw. */}
+      {/* A card that cannot plot anything yet should not hold a full row open,
+          so each row is sized from whether that chart has a trend to draw. */}
       <div className="chartgrid" style={{
-        gridTemplateRows: [
-          hba1c.length >= 2 ? 'minmax(0, 1fr)' : 'min-content',
-          weights.length >= 2 ? 'minmax(0, 1fr)' : 'min-content',
-          'min-content'
-        ].join(' ')
+        gridTemplateRows: cards.map(c => (c.plottable ? 'minmax(0, 1fr)' : 'min-content')).join(' ')
       }}>
-        <div className="card tight">
-          <p className="chart-t">{t(T.chart_hba1c)} (%)</p>
-          <LineChart points={hba1c} unit="%" cutoff={6.5}
-                     emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
-          <p className="cite" style={{ marginTop: 4 }}>
-            <span className="cutkey" /> {t(T.chart_cutoff)} 6.5% — <b>{t(T.basedOn)}:</b> {t(SRC.WHO_HBA1C_2011.short)}
-          </p>
-        </div>
-
-        <div className="card tight">
-          <p className="chart-t">{t(T.chart_weight)} (kg)</p>
-          <LineChart points={weights} unit="kg"
-                     emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
-        </div>
-
-        <div className="card tight">
-          <p className="chart-t">{t(T.chart_meds_by)}</p>
-          {byIndication.length
-            ? <StackedBar parts={byIndication} total={onMeds.length} tableLabels={tableLabels} />
-            : <p className="chart-empty">{t(T.none)}</p>}
-        </div>
+        {paged.slice.map(c => <React.Fragment key={c.id}>{c.node}</React.Fragment>)}
       </div>
+      <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
     </>
   )
 }
 
 function TabDashboard ({ record, goTo, onPrint }) {
   const [t] = useT()
-  const isDemo = store.entryCount(record) === 0
-  const shown = isDemo ? DEMO_RECORD : record
+  /* The dashboard shows the patient's own record and nothing else. An earlier
+     version filled an empty dashboard with a worked example to avoid a blank
+     screen. That was wrong: invented numbers on a clinical screen are
+     dangerous even behind a label, because a label can be missed and a figure
+     cannot be unseen. An empty record now reads zero, which is the truth. */
+  const isEmpty = store.entryCount(record) === 0
+  const shown = record
 
   const findings = useMemo(() => reviewRecord(shown), [shown])
   const actionable = findings.filter(f => f.level !== 'none')
   const quiet = findings.filter(f => f.level === 'none')
   const [view, setView] = useState('overview')
+  const narrow = useNarrow()
   const list = view === 'actions' ? actionable : quiet
-  const paged = usePaged(list, 4)
+  const paged = usePaged(list, narrow ? 1 : 4)
 
   return (
     <div className="pane">
@@ -305,13 +325,12 @@ function TabDashboard ({ record, goTo, onPrint }) {
         <p className="pane-lead">{t(T.dash_lead)}</p>
       </div>
 
-      {isDemo ? (
-        <div className="demobar">
-          <b>{t(T.example)}</b>
-          <span>{t(T.dash_demo_body)}</span>
+      {isEmpty ? (
+        <div className="emptybar">
+          <span>{t(T.dash_empty_body)}</span>
           <span className="sp" />
           <button className="btn" style={{ padding: '6px 11px', fontSize: 12 }} onClick={() => goTo('records')}>
-            {t(T.dash_demo_cta)}
+            {t(T.dash_empty_cta)}
           </button>
         </div>
       ) : null}
@@ -330,7 +349,7 @@ function TabDashboard ({ record, goTo, onPrint }) {
 
       <div className="pane-body">
         {view === 'overview'
-          ? <Overview record={shown} isDemo={isDemo} />
+          ? <Overview record={shown} />
           : list.length === 0
             ? <div className="empty"><span className="big">{t(T.dash_nothing_to_act)}</span></div>
             : <div className="scroller">{paged.slice.map(f => <Finding key={f.id} f={f} />)}</div>}
@@ -338,7 +357,7 @@ function TabDashboard ({ record, goTo, onPrint }) {
 
       <div className="pane-foot" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
         {view !== 'overview' ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} /> : null}
-        <button className="btn ghost wide" onClick={onPrint} disabled={isDemo}>{t(T.dash_print)}</button>
+        <button className="btn ghost wide" onClick={onPrint} disabled={isEmpty}>{t(T.dash_print)}</button>
       </div>
     </div>
   )
@@ -444,14 +463,14 @@ function OcrPanel ({ onDraft, onEvent, kind }) {
 
 function MedsSection ({ record, update, onEvent }) {
   const [t] = useT()
-  const [draft, setDraft] = useState({ drug: '', dose: '', indication: '', status: 'on' })
+  const [draft, setDraft] = useState({ drug: '', dose: '', indication: '', status: 'on', startedOn: '', endsOn: '' })
   const meds = record.medications || []
   const paged = usePaged(meds, PAGE.meds)
 
   const add = () => {
     if (!draft.drug.trim()) return
     update(r => ({ ...r, medications: [...(r.medications || []), { ...draft, id: store.newId() }] }))
-    setDraft({ drug: '', dose: '', indication: '', status: 'on' })
+    setDraft({ drug: '', dose: '', indication: '', status: 'on', startedOn: '', endsOn: '' })
     onEvent('record_typed_entry', 'meds')
   }
   const toggle = id => update(r => ({
@@ -477,13 +496,21 @@ function MedsSection ({ record, update, onEvent }) {
               <tbody>
                 {paged.slice.map(m => (
                   <tr key={m.id}>
-                    <td><b>{m.drug}</b></td>
+                    <td>
+                      <b>{m.drug}</b>
+                      {m.startedOn ? <div className="hint">{t(T.med_since)} {m.startedOn}</div> : null}
+                    </td>
                     <td>{m.dose}</td>
                     <td>{m.indication || <span className="hint">—</span>}</td>
                     <td>
                       <button className={'pill ' + (m.status === 'on' ? 'on' : 'off')} onClick={() => toggle(m.id)}>
                         {t(m.status === 'on' ? T.status_on : T.status_off)}
                       </button>
+                      {m.endsOn ? (
+                        <div className="hint">
+                          {m.status === 'on' ? t(T.med_until) : t(T.status_off).toLowerCase()} {m.endsOn}
+                        </div>
+                      ) : null}
                     </td>
                     <td><button className="pgbtn" onClick={() => drop(m.id)} aria-label={t(T.remove)}>✕</button></td>
                   </tr>
@@ -504,6 +531,23 @@ function MedsSection ({ record, update, onEvent }) {
           </Field>
           <Field label={t(T.col_indication)}>
             <input value={draft.indication} onChange={e => setDraft({ ...draft, indication: e.target.value })} />
+          </Field>
+          <Field label={t(T.col_status)}>
+            <select value={draft.status} onChange={e => setDraft({ ...draft, status: e.target.value })}>
+              <option value="on">{t(T.status_on)}</option>
+              <option value="off">{t(T.status_off)}</option>
+            </select>
+          </Field>
+          <Field label={t(T.col_started)}>
+            <input type="date" value={draft.startedOn}
+                   onChange={e => setDraft({ ...draft, startedOn: e.target.value })} />
+          </Field>
+          {/* The same field means two different things, so it is labelled by
+              the status rather than carrying a label that is half wrong. */}
+          <Field label={draft.status === 'on' ? t(T.col_until) : t(T.col_stopped)}
+                 hint={draft.status === 'on' ? t(T.med_until_help) : t(T.med_stopped_help)}>
+            <input type="date" value={draft.endsOn}
+                   onChange={e => setDraft({ ...draft, endsOn: e.target.value })} />
           </Field>
         </div>
         <button className="btn wide" style={{ marginTop: 8 }} onClick={add} disabled={!draft.drug.trim()}>
@@ -1069,10 +1113,6 @@ function TabWayfinding ({ onEvent, online }) {
               <p className="card-t">{t(T.before_you_come)}</p>
               <ul className="bullets">{BEFORE_YOU_COME.points.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
             </div>
-            <div className="emergency">
-              <div style={{ fontWeight: 800, marginBottom: 3 }}>⚠ {t(T.emergencyHead)}</div>
-              {t(EMERGENCY.text)}
-            </div>
             <p className="note">{t(DIRECTIONS_NOTE)} {online ? '' : '· ⚠ '}{t(T.way_needs_net)}</p>
           </>
         ) : (
@@ -1141,9 +1181,11 @@ function TabIqms ({ onEvent, onLightbox }) {
 /* =========================================================================
    TAB 6 — Medicine delivery (MyUbat)
    ====================================================================== */
-function TabMyUbat ({ onEvent }) {
+function TabMyUbat ({ onEvent, onLightbox }) {
   const [t] = useT()
   const [view, setView] = useState('for')
+  const paged = usePaged(MYUBAT.posters, 4)
+
   return (
     <div className="pane">
       <div className="pane-head">
@@ -1153,31 +1195,61 @@ function TabMyUbat ({ onEvent }) {
       <div className="subtabs">
         <button className="subtab" aria-selected={view === 'for'} onClick={() => setView('for')}>{t(T.ubat_good_for)}</button>
         <button className="subtab" aria-selected={view === 'not'} onClick={() => setView('not')}>{t(T.ubat_not_for)}</button>
+        <button className="subtab" aria-selected={view === 'posters'} onClick={() => setView('posters')}>
+          {t(T.ubat_posters)} · {MYUBAT.posters.length}
+        </button>
       </div>
+
       <div className="pane-body">
-        <div className="card tight">
-          {view === 'for'
-            ? <ul className="bullets">{MYUBAT.points.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
-            : (
-              <>
-                <ul className="bullets">{MYUBAT.notFor.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
-                <div className="flagline" style={{ marginTop: 10 }}>❄ {t(T.ubat_cold)} — {t(MYUBAT.coldChainWarning)}</div>
-              </>
-            )}
-        </div>
-        <span style={{ flex: 1 }} />
-        <div className="card tight">
-          <p className="card-t">{t(T.ubat_howget)}</p>
-          <p className="card-s">{t(MYUBAT.howToGet)}</p>
-          <p className="note" style={{ marginTop: 6 }}>{t(MYUBAT.onTablet)}</p>
-        </div>
-        <div className="btnrow">
-          <a className="btn" style={{ flex: '1 1 60%' }} href={MYUBAT.url} target="_blank" rel="noreferrer"
-             onClick={() => onEvent('myubat_opened', 'none')}>{t(T.ubat_open)} →</a>
-          <a className="btn ghost" style={{ flex: '1 1 30%' }} href={MYUBAT.briefing} target="_blank" rel="noreferrer"
-             onClick={() => onEvent('myubat_opened', 'none')}>{t(T.ubat_brief)} →</a>
-        </div>
-        <p className="note"><b>{t(T.ubat_otherphone)}</b> {t(MYUBAT.otherPhones)} · {t(T.needsInternet)}</p>
+        {view === 'posters' ? (
+          <>
+            <div className="postergrid">
+              {paged.slice.map(p => (
+                <button key={p.id} className="postercard"
+                        onClick={() => { onLightbox(p); onEvent('poster_opened', 'none') }}>
+                  <img src={p.src} alt={t(p.title)} loading="lazy" />
+                  <span className="cap">
+                    {t(p.title)}
+                    <span className="credit">{t(p.creditLabel)}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+            <span style={{ flex: 1 }} />
+            <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
+          </>
+        ) : (
+          <>
+            <div className="card tight">
+              {view === 'for'
+                ? <ul className="bullets">{MYUBAT.points.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
+                : (
+                  <>
+                    {/* A glyph per exclusion: this is the list a patient skims
+                        rather than reads, and the cold-chain one in particular
+                        has to be noticed. */}
+                    <ul className="glyphlist roomy">
+                      {MYUBAT.notFor.map((p, i) => (
+                        <li key={i}>
+                          <span className="g"><Icon d={GLYPH[p.glyph] || GLYPH.dot} /></span>
+                          <span>{t(p)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flagline" style={{ marginTop: 10 }}>❄ {t(T.ubat_cold)} — {t(MYUBAT.coldChainWarning)}</div>
+                  </>
+                )}
+            </div>
+            <span style={{ flex: 1 }} />
+            <div className="btnrow">
+              <a className="btn" style={{ flex: '1 1 60%' }} href={MYUBAT.url} target="_blank" rel="noreferrer"
+                 onClick={() => onEvent('myubat_opened', 'none')}>{t(T.ubat_open)} →</a>
+              <a className="btn ghost" style={{ flex: '1 1 30%' }} href={MYUBAT.briefing} target="_blank" rel="noreferrer"
+                 onClick={() => onEvent('myubat_opened', 'none')}>{t(T.ubat_brief)} →</a>
+            </div>
+            <p className="note"><b>{t(T.ubat_otherphone)}</b> {t(MYUBAT.otherPhones)} · {t(T.needsInternet)}</p>
+          </>
+        )}
       </div>
     </div>
   )
@@ -1194,23 +1266,57 @@ function TabMyUbat ({ onEvent }) {
    poster available to this build was recovered from a screenshot. That
    recovered image is still offered, labelled for exactly what it is.
    ====================================================================== */
-function TriageView ({ onLightbox, onEvent }) {
+function TriageColumn ({ side, tone, glyphs }) {
   const [t] = useT()
   return (
+    <div className={'tcol ' + tone}>
+      <h3>{t(side.heading)}</h3>
+      <p className="where">{t(side.where)}</p>
+      <ul className="glyphlist">
+        {side.items.map((x, i) => (
+          <li key={i}>
+            <span className="g"><Icon d={GLYPH[glyphs[i]] || GLYPH.dot} /></span>
+            <span>{t(x)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function TriageView ({ onLightbox, onEvent }) {
+  const [t] = useT()
+  const narrow = useNarrow()
+  /* Side by side on a tablet. On a phone the two lists stacked did not fit and
+     spilled over one another, so the patient picks the one they need instead —
+     which is the question they are actually asking anyway. */
+  const [side, setSide] = useState('emergency')
+
+  return (
     <>
-      <p className="pane-lead" style={{ marginBottom: 2 }}>{t(TRIAGE.lead)}</p>
-      <div className="triage">
-        <div className="tcol ok">
-          <h3>{t(TRIAGE.notEmergency.heading)}</h3>
-          <p className="where">{t(TRIAGE.notEmergency.where)}</p>
-          <ul>{TRIAGE.notEmergency.items.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
+      {narrow ? null : <p className="pane-lead" style={{ marginBottom: 2 }}>{t(TRIAGE.lead)}</p>}
+
+      {narrow ? (
+        <>
+          <div className="subtabs">
+            <button className="subtab" aria-selected={side === 'not'} onClick={() => setSide('not')}>
+              {t(TRIAGE.notEmergency.heading)}
+            </button>
+            <button className="subtab" aria-selected={side === 'emergency'} onClick={() => setSide('emergency')}>
+              {t(TRIAGE.emergency.heading)}
+            </button>
+          </div>
+          {side === 'emergency'
+            ? <TriageColumn side={TRIAGE.emergency} tone="bad" glyphs={TRIAGE_GLYPHS.emergency} />
+            : <TriageColumn side={TRIAGE.notEmergency} tone="ok" glyphs={TRIAGE_GLYPHS.notEmergency} />}
+        </>
+      ) : (
+        <div className="triage">
+          <TriageColumn side={TRIAGE.notEmergency} tone="ok" glyphs={TRIAGE_GLYPHS.notEmergency} />
+          <TriageColumn side={TRIAGE.emergency} tone="bad" glyphs={TRIAGE_GLYPHS.emergency} />
         </div>
-        <div className="tcol bad">
-          <h3>{t(TRIAGE.emergency.heading)}</h3>
-          <p className="where">{t(TRIAGE.emergency.where)}</p>
-          <ul>{TRIAGE.emergency.items.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
-        </div>
-      </div>
+      )}
+
       <span style={{ flex: 1 }} />
       <div className="flagline">⚠ {t(TRIAGE.caveat)}</div>
       <div className="pane-foot" style={{ gap: 10 }}>
@@ -1734,7 +1840,7 @@ export default function App () {
         {tab === 'measurements' ? <TabMeasurements record={record} update={update} onEvent={onEvent} /> : null}
         {tab === 'wayfinding' ? <TabWayfinding onEvent={onEvent} online={online} /> : null}
         {tab === 'iqms' ? <TabIqms onEvent={onEvent} onLightbox={setLightbox} /> : null}
-        {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} /> : null}
+        {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'rakyat' ? <TabRakyat onEvent={onEvent} onLightbox={setLightbox} /> : null}
 
         <nav className="tabbar">

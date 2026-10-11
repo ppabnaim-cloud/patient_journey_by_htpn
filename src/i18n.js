@@ -74,12 +74,11 @@ export const T = {
   dash_sub_overview: L('Overview', 'Gambaran Keseluruhan'),
   dash_sub_actions: L('Needs attention', 'Perlu Perhatian'),
   dash_sub_checked: L('Reviewed', 'Telah Disemak'),
-  dash_demo_title: L('This is example data', 'Ini ialah data contoh'),
-  dash_demo_body: L(
-    'Your record is still empty, so this screen is showing a worked example to illustrate what it will look like. None of these figures are yours.',
-    'Rekod anda masih kosong, maka skrin ini memaparkan contoh bagi menunjukkan rupanya nanti. Tiada satu pun angka ini milik anda.'
+  dash_empty_body: L(
+    'Nothing has been entered yet, so every figure here is zero. This screen only ever shows what you have recorded.',
+    'Belum ada apa-apa dimasukkan, maka setiap angka di sini adalah sifar. Skrin ini hanya memaparkan apa yang telah anda rekodkan.'
   ),
-  dash_demo_cta: L('Start my own record', 'Mulakan rekod saya sendiri'),
+  dash_empty_cta: L('Start my record', 'Mulakan rekod saya'),
   dash_nothing_to_act: L('Nothing requires action', 'Tiada tindakan diperlukan'),
   dash_print: L('Print a summary for the clinic', 'Cetak ringkasan untuk klinik'),
 
@@ -95,6 +94,7 @@ export const T = {
 
   chart_hba1c: L('HbA1c over time', 'HbA1c mengikut masa'),
   chart_weight: L('Weight over time', 'Berat mengikut masa'),
+  chart_bmi: L('BMI over time', 'BMI mengikut masa'),
   chart_meds_by: L('Medicines by indication', 'Ubat mengikut indikasi'),
   chart_cutoff: L('Cut-off', 'Titik potong'),
   chart_other: L('Other', 'Lain-lain'),
@@ -134,6 +134,19 @@ export const T = {
   col_status: L('Status', 'Status'),
   status_on: L('Taking', 'Sedang Diambil'),
   status_off: L('Stopped', 'Dihentikan'),
+  col_started: L('Started on', 'Mula Pada'),
+  col_until: L('Supply until', 'Bekalan Hingga'),
+  col_stopped: L('Stopped on', 'Dihentikan Pada'),
+  med_since: L('since', 'sejak'),
+  med_until: L('until', 'hingga'),
+  med_until_help: L(
+    'The date your current supply runs out, or the date the doctor reviews it. Leave it blank if you do not know.',
+    'Tarikh bekalan semasa anda habis, atau tarikh doktor menyemaknya semula. Biarkan kosong jika anda tidak pasti.'
+  ),
+  med_stopped_help: L(
+    'The date you stopped taking it. This matters as much as what you are taking now.',
+    'Tarikh anda berhenti mengambilnya. Ini sama pentingnya dengan apa yang anda ambil sekarang.'
+  ),
 
   col_problem: L('Problem', 'Masalah'),
   col_since: L('Since', 'Sejak'),
@@ -265,6 +278,7 @@ export const T = {
   ubat_good_for: L('Suitable for', 'Sesuai Untuk'),
   ubat_not_for: L('Not suitable for', 'Tidak Sesuai Untuk'),
   ubat_cold: L('Cold chain', 'Rantaian Sejuk'),
+  ubat_posters: L('Official posters', 'Poster Rasmi'),
 
   /* --- rakyat / triage ----------------------------------------------- */
   rakyat_sub_posters: L('Posters', 'Poster'),
@@ -272,6 +286,7 @@ export const T = {
   poster_download: L('Download', 'Muat turun'),
   poster_credit: L('Poster by', 'Poster oleh'),
   triage_original: L('View the original poster', 'Lihat poster asal'),
+  triage_pick: L('Which list do you need?', 'Senarai mana yang anda perlukan?'),
   triage_lowres_note: L(
     'This copy of the poster was recovered from a screenshot and is lower in quality than the original. The two lists above are the same content, in both languages.',
     'Salinan poster ini diperoleh daripada tangkapan skrin dan kualitinya lebih rendah daripada yang asal. Kedua-dua senarai di atas mengandungi kandungan yang sama, dalam dua bahasa.'

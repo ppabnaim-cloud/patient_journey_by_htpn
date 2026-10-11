@@ -13,12 +13,12 @@ sites, and points them at iQMS and MyUbat.
 
 | | Tab | What it holds |
 |---|---|---|
-| 1 | **My Journey** | *Overview*: four stat tiles, HbA1c and weight trends, medicines by indication. *Needs attention*: the findings, warning signs first. *Reviewed*: findings with nothing to act on, folded but never deleted. Prints a clinic summary. |
-| 2 | **My Records** | Six numbered stations — medicines, active problems, allergies, operations, blood results, imaging reports — shown as a pipeline so progress is visible. Photograph a document, upload one, or type it in. |
+| 1 | **My Journey** | *Overview*: four stat tiles, HbA1c, weight and BMI trends, medicines by indication. *Needs attention*: the findings, warning signs first. *Reviewed*: findings with nothing to act on, folded but never deleted. Prints a clinic summary. |
+| 2 | **My Records** | Six numbered stations — medicines, active problems, allergies, operations, blood results, imaging reports — shown as a pipeline so progress is visible. Medicines carry a start date and either a supply-until date or a stopped-on date; a supply date that has passed is raised on the dashboard. Photograph a document, upload one, or type it in. |
 | 3 | **Measurements** | Weight, height, BMI, waist circumference, with the trend. |
 | 4 | **Finding Your Way** | The two sites with photographs, and 21 further points. Every location offers *Get directions* — which opens Google Maps routing from wherever the phone is, with no origin in the URL so this app never sees a coordinate — and *Exact location*, the precise link HTPN supplied. |
 | 5 | **Queue Number** | The iQMS poster and the live queue link for HTPN. |
-| 6 | **Medicine Delivery** | MyUbat, with a plain statement of what it must **not** be used for — anything on cold chain above all. |
+| 6 | **Medicine Delivery** | MyUbat's two services (Appointment System and Medicine By Post), the delivery charge stated plainly, a pictogram list of what it must **not** be used for — cold chain above all — and the official 8-page poster set from Program Perkhidmatan Farmasi. |
 | 7 | **The Public's Role** | All 12 posters designed by Dr Naim plus the Ministry's Langkah Sihat poster, grouped by the five roles; and *Emergency, or not?*, the two triage lists rendered bilingually from the HTPN patient-guidance poster. |
 
 Everything is in both languages, clinical text included. Every screen fits a
@@ -41,10 +41,12 @@ both light and dark mode — lightness band, chroma floor, adjacent-pair CVD
 separation and normal-vision floor all pass. Light mode raises a contrast
 warning on three slots, so every chart ships direct labels and a table view.
 
-An empty dashboard shows a **worked example** rather than a blank screen. It is
-labelled EXAMPLE in a band that cannot be dismissed, every figure in it is
-invented, it is never written to storage, and it disappears the moment the
-patient enters anything of their own.
+**An empty dashboard reads zero.** An earlier build filled it with a labelled
+worked example so the screen was not blank. That was wrong and has been
+removed: invented numbers on a clinical screen are dangerous even behind a
+label, because the label can be missed and a figure cannot be unseen. The
+dashboard now shows the patient's own record and nothing else, and the test
+suite asserts that no invented value appears on an empty one.
 
 ## The five rules this code is built to
 
@@ -248,3 +250,9 @@ another third-party credential.
    signage.** That is what is actually on the gate, so it is arguably the more
    useful landmark — but it is worth a deliberate decision rather than an
    accident.
+
+7. **The triage and exclusion pictograms are drawn, not photographed.** A
+   picture of "a stroke" or "a snake bite" is a picture of one person having
+   one event, and on a triage screen a patient matches themselves against what
+   they see. A symbol names the category and claims nothing about how it looks.
+   They are in `src/data/glyphs.js`, one array of SVG paths each.

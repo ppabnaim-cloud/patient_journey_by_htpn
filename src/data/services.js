@@ -11,6 +11,9 @@
      IQMS.url     supplied by HTPN (Dr Naim).
      MYUBAT.url      supplied by HTPN (Dr Naim) — the Google Play listing.
      MYUBAT.briefing supplied by HTPN (Dr Naim) — the official briefing site.
+     MYUBAT.posters  the official 8-page MyUBAT poster set, Program Perkhidmatan
+                     Farmasi, ref PPF/A&P/IF042021, supplied by HTPN as a PDF
+                     and bundled here as images so the tab works offline.
      EMERGENCY    999 is the Malaysian emergency number. No link.
 
    Do not add a link here that was not given to you. If you need one and do not
@@ -61,24 +64,52 @@ export const MYUBAT = {
     en: 'If you are reading this on a hospital tablet, do not install it here. Install it on your own phone when you get home.',
     ms: 'Jika anda membaca ini pada tablet hospital, jangan pasang di sini. Pasangkannya pada telefon anda sendiri apabila pulang.'
   },
+  /* Two services, not one. An earlier version of this file described only the
+     postal one and said nothing about the delivery charge — both corrected
+     here against the official poster set. */
   points: [
-    { en: 'For repeat supplies of a medicine you already take, where the doctor has left refills on your prescription.',
-      ms: 'Untuk bekalan ulangan ubat yang anda sudah ambil, apabila doktor meninggalkan ulangan pada preskripsi anda.' },
-    { en: 'You collect nothing and queue for nothing. It arrives at the address you give.',
-      ms: 'Anda tidak perlu mengambil atau beratur. Ia sampai ke alamat yang anda berikan.' },
-    { en: 'Keep taking your current supply until the new one arrives. Do not stop and wait.',
-      ms: 'Teruskan mengambil bekalan semasa anda sehingga yang baharu tiba. Jangan berhenti dan menunggu.' }
+    { en: 'Two services. Appointment System: your repeat supply is prepared in advance and you collect it at the facility on an agreed date, without the long wait.',
+      ms: 'Dua perkhidmatan. Sistem Temu Janji: bekalan ubat susulan anda disediakan lebih awal dan anda mengambilnya di fasiliti pada tarikh yang dipersetujui, tanpa menunggu lama.' },
+    { en: 'Medicine By Post (UMP): a courier delivers your repeat supply to an address you choose.',
+      ms: 'Ubat Melalui Pos (UMP): syarikat penghantaran menghantar bekalan ubat susulan anda ke lokasi pilihan anda.' },
+    { en: 'Delivery is NOT free. UMP carries a charge, paid in cash to the courier when your medicine is handed over.',
+      ms: 'Penghantaran BUKAN percuma. UMP dikenakan caj tertentu, dibayar secara tunai kepada syarikat penghantaran semasa menerima bekalan ubat.' },
+    { en: 'For repeat supplies of a medicine you already take. Keep taking your current supply until the new one arrives — do not stop and wait.',
+      ms: 'Untuk bekalan ulangan ubat yang anda sudah ambil. Teruskan bekalan semasa anda sehingga yang baharu tiba — jangan berhenti dan menunggu.' }
   ],
+
+  /* The official poster set, bundled as images rather than linked, so the tab
+     keeps working with no connection like the rest of the app. */
+  posters: [
+    { file: 'myubat-01.jpg', title: { en: 'What MyUBAT is', ms: 'Apakah itu MyUBAT?' } },
+    { file: 'myubat-02.jpg', title: { en: 'Appointment System', ms: 'Sistem Temu Janji' } },
+    { file: 'myubat-03.jpg', title: { en: 'Medicine By Post (UMP)', ms: 'Ubat Melalui Pos (UMP)' } },
+    { file: 'myubat-04.jpg', title: { en: 'Six benefits of using MyUBAT', ms: '6 faedah menggunakan MyUBAT' } },
+    { file: 'myubat-05.jpg', title: { en: 'Four simple steps', ms: '4 langkah mudah' } },
+    { file: 'myubat-06.jpg', title: { en: 'Registering as a new user', ms: 'Pendaftaran pengguna baharu' } },
+    { file: 'myubat-07.jpg', title: { en: 'Seven steps — Appointment System', ms: '7 langkah — Sistem Temu Janji' } },
+    { file: 'myubat-08.jpg', title: { en: 'Seven steps — Medicine By Post', ms: '7 langkah — Ubat Melalui Pos' } }
+  ].map(p => ({
+    ...p,
+    id: 'myubat_' + p.file.slice(7, 9),
+    src: 'posters/myubat/' + p.file,
+    creditLabel: { en: 'Program Perkhidmatan Farmasi, Ministry of Health Malaysia',
+                   ms: 'Program Perkhidmatan Farmasi, Kementerian Kesihatan Malaysia' }
+  })),
   /* The exclusion is the clinically important half of this tab, so it is held
      as its own list rather than buried in the points above. */
   notFor: [
-    { en: 'Anything that must stay cold. Insulin, some eye drops, some injections and all vaccines go by cold chain and are collected in person.',
+    { glyph: 'cold',
+      en: 'Anything that must stay cold. Insulin, some eye drops, some injections and all vaccines go by cold chain and are collected in person.',
       ms: 'Apa-apa yang mesti kekal sejuk. Insulin, sesetengah titisan mata, sesetengah suntikan dan semua vaksin menggunakan rantaian sejuk dan diambil sendiri.' },
-    { en: 'Controlled medicines such as strong painkillers, which must be handed over in person.',
+    { glyph: 'lock',
+      en: 'Controlled medicines such as strong painkillers, which must be handed over in person.',
       ms: 'Ubat terkawal seperti ubat tahan sakit kuat, yang mesti diserahkan sendiri.' },
-    { en: 'A medicine you have never taken before, or one whose dose has just been changed. The pharmacist needs to counsel you for those.',
+    { glyph: 'counsel',
+      en: 'A medicine you have never taken before, or one whose dose has just been changed. The pharmacist needs to counsel you for those.',
       ms: 'Ubat yang anda tidak pernah ambil sebelum ini, atau yang dosnya baru ditukar. Ahli farmasi perlu memberi kaunseling untuk itu.' },
-    { en: 'Anything you have run out of today. Delivery takes days — go to the pharmacy counter instead.',
+    { glyph: 'empty',
+      en: 'Anything you have run out of today. Delivery takes days — go to the pharmacy counter instead.',
       ms: 'Apa-apa yang anda kehabisan hari ini. Penghantaran mengambil masa berhari-hari — pergi ke kaunter farmasi sebaliknya.' }
   ],
   coldChainWarning: {

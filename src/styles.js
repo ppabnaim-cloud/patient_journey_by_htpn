@@ -403,14 +403,27 @@ input, select, textarea { font: inherit; color: inherit; }
 }
 .tbl.mini th, .tbl.mini td { padding: 3px 5px; font-size: 11.5px; }
 
-.demobar {
+.emptybar {
   flex: 0 0 auto; display: flex; align-items: center; gap: 9px;
-  border: 1px dashed var(--attention); background: var(--attention-bg); color: var(--attention);
+  border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
   border-radius: 11px; padding: 8px 11px; font-size: 12px; line-height: 1.35;
 }
-.demobar b { text-transform: uppercase; letter-spacing: .5px; font-size: 10px;
-  background: var(--attention); color: #fff; padding: 2px 7px; border-radius: 999px; flex: 0 0 auto; }
-.demobar .sp { flex: 1; }
+.emptybar .sp { flex: 1; }
+
+/* A list where each item carries a pictogram. */
+.glyphlist { list-style: none; margin: 0; padding: 0; }
+.glyphlist li { display: flex; align-items: center; gap: 9px; margin-bottom: 7px;
+  font-size: 12.5px; line-height: 1.35; }
+.glyphlist.roomy li { font-size: 13px; margin-bottom: 11px; align-items: center; }
+.glyphlist .g { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card); border: 1px solid var(--line); }
+.glyphlist.roomy .g { width: 30px; height: 30px; border-radius: 9px; }
+.glyphlist .g svg { width: 18px; height: 18px; }
+.glyphlist.roomy .g svg { width: 19px; height: 19px; }
+.tcol.ok .glyphlist .g { color: var(--calm); border-color: color-mix(in srgb, var(--calm) 40%, transparent); }
+.tcol.bad .glyphlist .g { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 40%, transparent); }
+.glyphlist.roomy .g { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 40%, transparent); }
 
 /* ---------- record stations (the pipeline) ---------- */
 .stations { display: flex; align-items: stretch; gap: 0; flex: 0 0 auto; overflow: hidden; }
@@ -444,7 +457,10 @@ input, select, textarea { font: inherit; color: inherit; }
   flex: 1 1 0; min-height: 0; display: flex; flex-direction: column;
   border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card);
 }
-.sitecard img { width: 100%; flex: 1 1 auto; min-height: 56px; object-fit: cover; display: block; background: var(--line); }
+ /* contain, not cover: a cropped photograph of a building loses the half a
+    patient would actually recognise from the road. */
+.sitecard img { width: 100%; flex: 1 1 auto; min-height: 56px; object-fit: contain;
+  display: block; background: var(--brand-tint); }
 .sitecard .body { flex: 0 0 auto; padding: 9px 11px 10px; display: flex; flex-direction: column; gap: 2px; }
 .sitecard .nm { font-size: 15px; font-weight: 700; line-height: 1.2; }
 .sitecard .sub { font-size: 11.5px; color: var(--ink-soft); line-height: 1.3; }
@@ -471,7 +487,6 @@ input, select, textarea { font: inherit; color: inherit; }
 /* ---------- triage: emergency or not ---------- */
 .triage { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; flex: 0 1 auto; min-height: 0;
   align-items: start; }
-@media (max-width: 560px) { .triage { grid-template-columns: 1fr; } }
 .tcol { border-radius: 12px; border: 1px solid var(--line); padding: 9px 11px; min-height: 0;
   display: flex; flex-direction: column; background: var(--card); }
 .tcol.ok { border-color: var(--calm); background: var(--calm-bg); }
@@ -500,7 +515,24 @@ input, select, textarea { font: inherit; color: inherit; }
   .printonly .warn { border: 1pt solid #000; padding: 2mm; font-weight: bold; margin: 3mm 0; }
 }
 
-/* ---------- small screens: the tab bar gets tighter, nothing scrolls ---------- */
+/* ---------- small screens ----------------------------------------------
+   A phone has roughly 440px of content height once the header, tab bar,
+   status line, title and footer are taken out. Everything below buys that
+   back: the type does not shrink, the padding does. */
+@media (max-width: 560px) {
+  .card, .card.tight { padding: 9px 10px; }
+  .empty { padding: 10px; gap: 6px; }
+  .cite { font-size: 10px; line-height: 1.32; margin-top: 5px; }
+  .chart-t { font-size: 11.5px; margin-bottom: 3px; }
+  .finding-head { padding: 7px 9px; }
+  .finding-body { padding: 0 9px 9px; font-size: 12px; }
+  .steps { padding-left: 15px; }
+  .fld input, .fld select { padding: 6px 9px; }
+  .frm { gap: 7px; }
+  .stat { padding: 7px 9px; }
+  .stat-v { font-size: 22px; }
+  .glyphlist li { margin-bottom: 5px; }
+}
 @media (max-width: 430px) {
   :root { --pad: 11px; --tabbar-h: 56px; }
   .tabbtn { font-size: 9px; }

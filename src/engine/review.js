@@ -117,6 +117,8 @@ function medicationFindings (record) {
       source: SRC.NO_GUIDELINE.id, flag: null
     }]
   }
+  const today = new Date().toISOString().slice(0, 10)
+  const ranOut = active.filter(m => m.endsOn && String(m.endsOn) < today)
   const missingIndication = active.filter(m => !m.indication || !String(m.indication).trim())
   const out = [{
     id: 'meds_count',
@@ -128,6 +130,23 @@ function medicationFindings (record) {
     },
     steps: [], source: SRC.NO_GUIDELINE.id, flag: null
   }]
+  if (ranOut.length) {
+    out.push({
+      id: 'meds_supply_ended',
+      level: 'attention',
+      title: { en: 'A supply date has passed', ms: 'Tarikh bekalan telah luput' },
+      detail: {
+        en: `${ranOut.map(m => `${m.drug} (${m.endsOn})`).join(', ')} — you recorded the supply as lasting until this date, and it has passed. The app is only reading back the date you entered.`,
+        ms: `${ranOut.map(m => `${m.drug} (${m.endsOn})`).join(', ')} — anda merekodkan bekalan sehingga tarikh ini, dan ia telah luput. Aplikasi hanya membaca semula tarikh yang anda masukkan.`
+      },
+      steps: [{
+        en: 'Arrange a refill before you run out. Do not stop a medicine because the supply ended — ask first.',
+        ms: 'Uruskan bekalan ulangan sebelum kehabisan. Jangan berhenti mengambil ubat kerana bekalan tamat — tanya dahulu.'
+      }],
+      source: SRC.NO_GUIDELINE.id, flag: null
+    })
+  }
+
   if (missingIndication.length) {
     out.push({
       id: 'meds_no_indication',
