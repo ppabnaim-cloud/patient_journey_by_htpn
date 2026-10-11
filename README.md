@@ -48,6 +48,16 @@ nothing paints over the tab bar, and that cards stack rather than overlap.
 
 ---
 
+### Who can see what a patient posts
+
+Asked directly, and answered on the screen rather than only here: not this app,
+and not HTPN through this app — there is no feed and no store of anyone's
+posts. Whether anyone else can see a post is decided by that patient's own
+account settings on that platform, not by the hashtag: a hashtag on a private
+account is still private, and on a public account it is public to everyone, not
+only to patients. The tab also warns, before they post, that a photograph can
+carry more than intended — a face, a child, a ward, a name on a wristband.
+
 ### The campaign tab hosts nothing, on purpose
 
 `#gayahidupsihatHTPN` encourages patients to post, but the app stores,
@@ -269,15 +279,18 @@ another third-party credential.
    this app (about 10 MB, fetched only when someone actually uses OCR) so it
    works with no connection.
 
-4. **The Health Minister is not quoted.** The brief asked for words from the
-   NST article behind the theme. The build environment could not open
-   nst.com.my, so `ARTICLE.quote` in `src/data/announcement.js` is `null` and
-   the UI omits the block entirely rather than filling it with something
-   approximate. A quotation attributed to a named minister, printed in a
-   hospital's own app, is the last thing that should be reconstructed from
-   memory. Paste the exact sentence into that field and it renders. The
-   publisher and date are read off the URL's own path; the headline is the
-   slug turned back into a sentence and is labelled as such, not quoted.
+4. **The Minister's photograph is a press agency image.** It is bundled and
+   credited on screen to Bernama via New Straits Times. Press photographs are
+   licensed: get formal permission from Bernama / NST before this goes beyond
+   a prototype.
+
+   The headline, byline and timestamp were supplied verbatim by HTPN and are
+   rendered as exact. No speech is quoted — nst.com.my could not be opened
+   from the build environment, so `ARTICLE.quote` is `null` and the UI omits
+   that block entirely. The headline already carries the Minister's phrase in
+   quotation marks and is presented as the headline it is, not dressed up as a
+   sentence he was heard to say. Paste a verified sentence into `ARTICLE.quote`
+   and it renders, styled and attributed.
 
 5. **No ethics submission describes this build.** Both flags are off by default
    and nothing is collected until that changes.

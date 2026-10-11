@@ -110,6 +110,12 @@ input, select, textarea { font: inherit; color: inherit; }
   color: var(--ink-soft); font-size: 11.5px;
 }
 
+.newsfig { margin: 0 0 8px; }
+.newsfig img { width: 100%; max-height: 180px; object-fit: cover; object-position: center 22%;
+  border-radius: 10px; display: block; background: var(--line); }
+.newsfig figcaption { margin-top: 4px; font-size: 10px; color: var(--ink-faint); }
+.newshead { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.3; }
+
 blockquote.quote {
   margin: 0 0 8px; padding: 9px 11px; border-left: 3px solid var(--brand);
   background: var(--brand-tint); border-radius: 0 9px 9px 0;
@@ -417,6 +423,31 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .stat.warning { border-color: var(--warning); background: var(--warning-bg); }
 .stat.warning .stat-v { color: var(--warning); }
 
+/* Allergy tile: the substances, not a count, and red whenever there are any. */
+.stat.allergy.has { border-color: var(--warning); background: var(--warning-bg); }
+.allergy-list { list-style: none; margin: 3px 0 0; padding: 0; display: flex;
+  flex-direction: column; gap: 1px; min-width: 0; }
+.allergy-list li {
+  font-size: 14px; font-weight: 800; line-height: 1.25; color: var(--warning);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.allergy-more { font-size: 10.5px; font-weight: 700; color: var(--warning); margin-top: 1px; }
+.allergy-badge {
+  align-self: flex-start; margin-top: 4px; font-size: 9.5px; font-weight: 800;
+  letter-spacing: .5px; text-transform: uppercase; padding: 2px 7px;
+  border-radius: 999px; background: var(--warning); color: #fff;
+}
+/* A short pulse on open, then still. Not a blink: content that flashes
+   indefinitely breaches WCAG 2.2.2 and stops being noticed within a week. */
+.stat.allergy.severe { animation: allergy-pulse 1.4s ease-in-out 3; }
+@keyframes allergy-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--warning) 0%, transparent); }
+  50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--warning) 32%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stat.allergy.severe { animation: none; }
+}
+
 .chart { width: 100%; height: auto; display: block; overflow: visible; }
 .chart .grid { stroke: var(--grid); stroke-width: 1; }
 .chart .cutoff { stroke: var(--attention); stroke-width: 1; stroke-dasharray: 3 3; }
@@ -438,6 +469,20 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   color: var(--brand); text-decoration: underline; text-underline-offset: 2px;
 }
 .tbl.mini th, .tbl.mini td { padding: 3px 5px; font-size: 11.5px; }
+
+.multibar {
+  flex: 0 0 auto; display: flex; align-items: flex-start; gap: 9px; width: 100%;
+  border: 1px solid var(--brand); background: var(--brand-tint); color: var(--ink);
+  border-radius: 11px; padding: 9px 11px; text-align: left;
+}
+.multibar .mb-i { flex: 0 0 auto; color: var(--brand); font-size: 15px; line-height: 1.2; }
+.multibar .mb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.multibar .mb-t b { font-size: 12.5px; line-height: 1.25; color: var(--brand-dark); }
+.multibar .mb-t span { font-size: 11.5px; line-height: 1.35; color: var(--ink-soft); }
+.multibar .mb-go { flex: 0 0 auto; color: var(--brand); font-size: 18px; font-weight: 700; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .multibar .mb-t b { color: var(--brand); }
+}
 
 .emptybar {
   flex: 0 0 auto; display: flex; align-items: center; gap: 9px;

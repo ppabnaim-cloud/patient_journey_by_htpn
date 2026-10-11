@@ -107,6 +107,8 @@ export const T = {
   kpi_issues_sub: L('on your record', 'dalam rekod anda'),
   kpi_allergy: L('Allergies', 'Alahan'),
   kpi_allergy_sub: L('recorded', 'direkodkan'),
+  kpi_allergy_none: L('None recorded — worth adding', 'Belum direkodkan — wajar ditambah'),
+  kpi_allergy_more: L('more', 'lagi'),
   kpi_lastlab: L('Last blood test', 'Ujian Darah Terakhir'),
   kpi_days_ago: L('days ago', 'hari lalu'),
   kpi_never: L('none recorded', 'belum direkodkan'),

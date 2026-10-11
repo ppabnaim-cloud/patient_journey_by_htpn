@@ -31,7 +31,7 @@ import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
 import { CAMPAIGN, HASHTAG } from './data/campaign.js'
 import { THEME, ARTICLE, ANNOUNCEMENT } from './data/announcement.js'
 import { GLYPH, TRIAGE_GLYPHS } from './data/glyphs.js'
-import { Stat, LineChart, MultiLineChart, StackedBar, Meter, DayBars } from './charts.jsx'
+import { Stat, AllergyTile, LineChart, MultiLineChart, StackedBar, Meter, DayBars } from './charts.jsx'
 
 /* --- language ----------------------------------------------------------- */
 const LangCtx = createContext(DEFAULT_LANG)
@@ -323,8 +323,13 @@ function Overview ({ record }) {
       <div className="kpirow">
         <Stat label={t(T.kpi_meds)} value={onMeds.length} sub={t(T.kpi_meds_sub)} />
         <Stat label={t(T.kpi_issues)} value={issues.length} sub={t(T.kpi_issues_sub)} />
-        <Stat label={t(T.kpi_allergy)} value={allergies.length} sub={t(T.kpi_allergy_sub)}
-              tone={severe ? 'warning' : null} />
+        <AllergyTile
+          label={t(T.kpi_allergy)}
+          substances={allergies.map(a => String(a.substance || '').trim()).filter(Boolean)}
+          severe={severe > 0}
+          severeLabel={t(T.sev_severe)}
+          moreLabel={t(T.kpi_allergy_more)}
+          emptyText={t(T.kpi_allergy_none)} />
         <Stat label={t(T.kpi_lastlab)}
               value={daysSince === null ? '—' : daysSince}
               sub={daysSince === null ? t(T.kpi_never) : t(T.kpi_days_ago)} />
@@ -371,6 +376,15 @@ function TabDashboard ({ record, goTo, onPrint }) {
         <h1 className="pane-title">{t(T.tab_dashboard)}</h1>
         <p className="pane-lead">{t(T.dash_lead)}</p>
       </div>
+
+      <button className="multibar" onClick={() => goTo('records')}>
+        <span className="mb-i">⌁</span>
+        <span className="mb-t">
+          <b>{t(ANNOUNCEMENT.title)}</b>
+          <span>{t(ANNOUNCEMENT.medsNote)}</span>
+        </span>
+        <span className="mb-go">›</span>
+      </button>
 
       {isEmpty ? (
         <div className="emptybar">
@@ -1632,6 +1646,12 @@ function ShareIt ({ onEvent }) {
         <ul className="bullets">{CAMPAIGN.how.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
       </div>
 
+      <div className="card tight">
+        <p className="card-t">{t(CAMPAIGN.whoCanSee.title)}</p>
+        <ul className="bullets">{CAMPAIGN.whoCanSee.points.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
+        <div className="flagline" style={{ marginTop: 8 }}>⚠ {t(CAMPAIGN.whoCanSee.beforeYouPost)}</div>
+      </div>
+
       <button className="btn wide" onClick={share}>↗ {t(T.gh_share)}</button>
       {copied === 'share' ? <p className="note">{t(T.gh_share_unavailable)}</p> : null}
 
@@ -1740,17 +1760,23 @@ function AnnouncementModal ({ onClose, onEvent }) {
             {t(ANNOUNCEMENT.notTheProgramme)}
           </div>
 
-          <div className="card tight" style={{ marginTop: 10 }}>
+          <div className="card tight newscard" style={{ marginTop: 10 }}>
             <p className="card-t">{t(T.ann_source)}</p>
+            {ARTICLE.photo ? (
+              <figure className="newsfig">
+                <img src={ARTICLE.photo.src} alt={t(ARTICLE.photo.alt)} />
+                <figcaption>{t(ARTICLE.photo.credit)}</figcaption>
+              </figure>
+            ) : null}
             {ARTICLE.quote ? (
               <blockquote className="quote">
                 “{t(ARTICLE.quote.text)}”
                 <cite>— {t(ARTICLE.quote.speaker)}</cite>
               </blockquote>
             ) : null}
-            <p className="card-s">{t(ARTICLE.headlineFromSlug)}</p>
+            <p className="newshead">{t(ARTICLE.headline)}</p>
             <p className="note" style={{ marginTop: 4 }}>
-              {ARTICLE.publisher}, {t(ARTICLE.published)}
+              {t(ARTICLE.byline)} · {ARTICLE.carriedBy} · {t(ARTICLE.published)}
               {ARTICLE.headlineIsExact ? '' : ' · ' + t(T.ann_headline_note)}
             </p>
             <a className="btn ghost wide" style={{ marginTop: 8 }} href={ARTICLE.url}

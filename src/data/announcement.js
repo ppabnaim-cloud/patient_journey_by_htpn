@@ -1,23 +1,20 @@
 /* ===========================================================================
    announcement.js — the theme, the notice, and the article behind it.
 
-   THE QUOTE SLOT IS DELIBERATELY EMPTY.
-   The brief asked for the Health Minister's words from the article below. The
-   build environment could not open nst.com.my, so the words are not here. A
-   quotation attributed to a named minister, printed in a hospital's own app,
-   is the last thing that should ever be reconstructed from memory: if a single
-   clause is wrong it is a government hospital misquoting a government
-   minister. ARTICLE.quote stays null until someone pastes the exact sentence
-   in, and the UI simply omits the block while it is null rather than filling
-   the space with something approximate.
-
    WHAT IS ASSERTED HERE AND ON WHAT BASIS
-   - The URL was supplied by HTPN.
-   - The publisher (New Straits Times) and the date (December 2025) are read
-     off that URL's own path.
-   - The headline is the URL's slug turned back into a sentence, which is how
-     NST builds its slugs; it is marked as such rather than quoted as exact.
-   - Nothing else about the article is claimed.
+   The headline, byline and timestamp below were supplied verbatim by HTPN
+   from the article itself, so they are rendered as exact. nst.com.my could
+   not be opened from the build environment, so NOTHING ELSE about the article
+   is claimed — in particular there is no quotation from the Minister's speech
+   here, because none was read. The headline carries his words in quotation
+   marks and is shown as a headline, which is what it is; it is not dressed up
+   as a sentence he was heard to say.
+
+   THE PHOTOGRAPH
+   It is a press photograph from the article, supplied by HTPN and bundled so
+   the panel works offline like the rest of the app. It is credited on screen.
+   Press agency photographs are licensed: formal permission from Bernama / New
+   Straits Times should be in hand before this goes beyond a prototype.
 
    WHAT THIS APP IS NOT
    One Citizen One Record is a Ministry of Health programme. This prototype is
@@ -33,15 +30,27 @@ export const THEME = {
 
 export const ARTICLE = {
   url: 'https://www.nst.com.my/news/nation/2025/12/1334315/one-citizen-one-record-transform-malaysias-healthcare-system-dzulkefly',
-  publisher: 'New Straits Times',
-  published: { en: 'December 2025', ms: 'Disember 2025' },
-  headlineFromSlug: {
-    en: 'One Citizen One Record to transform Malaysia’s healthcare system — Dzulkefly',
-    ms: 'One Citizen One Record untuk mentransformasi sistem penjagaan kesihatan Malaysia — Dzulkefly'
+  publisher: 'Bernama',
+  carriedBy: 'New Straits Times',
+  byline: { en: 'By Bernama', ms: 'Oleh Bernama' },
+  published: { en: '10 December 2025, 11:22pm', ms: '10 Disember 2025, 11:22 malam' },
+  /* Supplied verbatim by HTPN from the article itself, so rendered as exact. */
+  headline: {
+    en: '\u201cOne Citizen, One Record\u201d says Health Minister Datuk Seri Dr Dzulkefly Ahmad',
+    ms: '\u201cOne Citizen, One Record\u201d kata Menteri Kesihatan Datuk Seri Dr Dzulkefly Ahmad'
   },
-  headlineIsExact: false,
-  /* Paste the exact sentence here, with the speaker, and it will render.
-     { text: { en, ms }, speaker: { en, ms } } */
+  headlineIsExact: true,
+  photo: {
+    src: 'brand/minister-dzulkefly.jpg',
+    alt: { en: 'Health Minister Datuk Seri Dr Dzulkefly Ahmad',
+           ms: 'Menteri Kesihatan Datuk Seri Dr Dzulkefly Ahmad' },
+    credit: { en: 'Photograph: Bernama, via New Straits Times',
+              ms: 'Gambar: Bernama, melalui New Straits Times' }
+  },
+  /* No speech is quoted. The article itself was not read from this build, and
+     the headline above already carries the Minister's phrase in quotation
+     marks, presented as the headline it is rather than dressed up as a
+     sentence he was heard to say. */
   quote: null,
   readMore: { en: 'Read the article', ms: 'Baca artikel penuh' },
   needsInternet: true

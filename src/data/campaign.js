@@ -82,5 +82,24 @@ export const CAMPAIGN = {
   privacyNote: {
     en: 'This app uploads nothing and reads nothing back. Opening a platform below leaves the app; what you post there is between you and that platform.',
     ms: 'Aplikasi ini tidak memuat naik apa-apa dan tidak membaca apa-apa kembali. Membuka mana-mana platform di bawah akan meninggalkan aplikasi ini; apa yang anda kongsikan di sana adalah antara anda dan platform tersebut.'
+  },
+
+  /* Asked directly: can everyone see what other people share? The honest
+     answer has two halves, and both belong on the screen rather than in a
+     README, because a patient deciding whether to post is deciding it here. */
+  whoCanSee: {
+    title: { en: 'Who can see what you post?', ms: 'Siapa boleh melihat hantaran anda?' },
+    points: [
+      { en: 'Not this app, and not HTPN through this app. There is no feed here and no store of anyone\u2019s posts — nothing you or anyone else shares is kept by this app or sent to the hospital.',
+        ms: 'Bukan aplikasi ini, dan bukan HTPN melalui aplikasi ini. Tiada suapan di sini dan tiada simpanan hantaran sesiapa — tiada apa yang anda atau orang lain kongsikan disimpan oleh aplikasi ini atau dihantar kepada hospital.' },
+      { en: 'Whether anyone can see your post is decided by your own account settings on that platform, not by the hashtag. A hashtag on a private account is still private; on a public account it is public to anyone, not only to patients.',
+        ms: 'Sama ada sesiapa boleh melihat hantaran anda ditentukan oleh tetapan akaun anda sendiri pada platform tersebut, bukan oleh hashtag. Hashtag pada akaun persendirian tetap persendirian; pada akaun awam ia terbuka kepada sesiapa sahaja, bukan kepada pesakit sahaja.' },
+      { en: 'The buttons below open that platform\u2019s own hashtag page, so what you see there is whatever that platform chooses to show you.',
+        ms: 'Butang di bawah membuka halaman hashtag platform tersebut, maka apa yang anda lihat di sana adalah apa yang platform itu pilih untuk paparkan.' }
+    ],
+    beforeYouPost: {
+      en: 'Before you post: a photograph can carry more than you meant — a face, a child, a ward, a name on a wristband, a prescription on a table.',
+      ms: 'Sebelum anda berkongsi: sesebuah gambar boleh membawa lebih daripada yang anda maksudkan — wajah, kanak-kanak, wad, nama pada gelang tangan, atau preskripsi di atas meja.'
+    }
   }
 }

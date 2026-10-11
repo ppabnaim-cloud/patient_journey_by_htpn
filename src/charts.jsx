@@ -52,6 +52,44 @@ export function Stat ({ label, value, unit, sub, tone }) {
   )
 }
 
+/* --- allergy tile --------------------------------------------------------
+   A count is the wrong thing to show for an allergy: "2" tells a clinician
+   nothing, and the whole point of the tile is that the substances can be read
+   at a glance. So it lists them.
+
+   On the attention treatment: a true blink is an accessibility fault — WCAG
+   2.2.2 requires moving content to be pausable and 2.3.1 limits flashing, and
+   anything that blinks forever is tuned out within a week, which is the
+   opposite of what a severe allergy needs. Instead a severe allergy gets a
+   permanent red tile and a short pulse that runs a few times when the screen
+   opens and then stops, and it does not run at all for a viewer who has asked
+   for reduced motion. The red and the names stay either way. */
+export function AllergyTile ({ label, substances, severe, emptyText, severeLabel, moreLabel }) {
+  const has = substances.length > 0
+  /* Three names, then a count. A tile that grows with the list would push the
+     charts under it down the screen, and the full list is one tap away in
+     My Records — this is the glance, not the record. */
+  const SHOWN = 3
+  const shown = substances.slice(0, SHOWN)
+  const extra = substances.length - shown.length
+  return (
+    <div className={'stat allergy' + (has ? ' has' : '') + (severe ? ' severe' : '')}>
+      <div className="stat-l">{label}</div>
+      {has ? (
+        <>
+          <ul className="allergy-list">
+            {shown.map((sub, i) => <li key={i}>{sub}</li>)}
+          </ul>
+          {extra > 0 ? <span className="allergy-more">+{extra} {moreLabel}</span> : null}
+          {severe ? <span className="allergy-badge">{severeLabel}</span> : null}
+        </>
+      ) : (
+        <div className="stat-s" style={{ marginTop: 4 }}>{emptyText}</div>
+      )}
+    </div>
+  )
+}
+
 /* --- meter ---------------------------------------------------------------
    A single ratio against a limit is a meter, never a pie of two slices. The
    track and the fill are the same hue, two steps apart, so it reads as "how
