@@ -23,13 +23,13 @@ are not yet joined up.
 
 | | Tab | What it holds |
 |---|---|---|
-| 1 | **My Journey** | *Overview*: four stat tiles, then HbA1c, fasting glucose, blood pressure, weight and BMI trends, and medicines by indication. *Needs attention*: the findings, warning signs first. *Reviewed*: findings with nothing to act on, folded but never deleted. Prints a clinic summary. |
-| 2 | **My Records** | Six numbered stations — medicines, active problems, allergies, operations, blood results, imaging reports — shown as a pipeline so progress is visible. Medicines carry a start date and either a supply-until date or a stopped-on date; a supply date that has passed is raised on the dashboard. Photograph a document, upload one, or type it in. |
+| 1 | **My Journey** | *Overview*: four stat tiles, then HbA1c, fasting glucose, blood pressure, steps, energy burned, weight and BMI trends, and medicines by indication. *Needs attention*: the findings, warning signs first. *Reviewed*: findings with nothing to act on, folded but never deleted. Prints a clinic summary. |
+| 2 | **My Records** | Seven numbered stations — medicines, active problems, allergies, operations, blood results, imaging reports, walking and activity — shown as a pipeline so progress is visible. Medicines carry a start date and either a supply-until date or a stopped-on date; a supply date that has passed is raised on the dashboard. Photograph a document, upload one, or type it in. |
 | 3 | **Monitoring** | The readings a patient takes themselves: weight, height, BMI, waist, blood pressure and home fasting blood sugar, each followed over time. A blood pressure at or above 180/110 is ranked a warning and sorts to the top. Fasting sugar is written to the same store as a laboratory result, so home and lab readings share one chart. |
 | 4 | **Finding Your Way** | The two sites with photographs, and 21 further points. Every location offers *Get directions* — which opens Google Maps routing from wherever the phone is, with no origin in the URL so this app never sees a coordinate — and *Exact location*, the precise link HTPN supplied. |
 | 5 | **Queue Number** | The iQMS poster and the live queue link for HTPN. |
 | 6 | **Medicine Delivery** | MyUbat's two services (Appointment System and Medicine By Post), the delivery charge stated plainly, a pictogram list of what it must **not** be used for — cold chain above all — and the official 8-page poster set from Program Perkhidmatan Farmasi. |
-| 8 | **#gayahidupsihatHTPN** | An on-device walking log against the WHO weekly target, links to Strava and BookDoc for patients who prefer a counter, and a share panel that opens the hashtag on the patient's own platform. It hosts nothing. |
+| 8 | **#gayahidupsihatHTPN** | Sharing only: it opens the hashtag on the patient's own platform and hands them their device's share sheet. The walking log itself lives in My Records, where the rest of the record is. It hosts nothing. |
 | 7 | **The Public's Role** | All 12 posters designed by Dr Naim plus the Ministry's Langkah Sihat poster, grouped by the five roles; and *Emergency, or not?*, the two triage lists rendered bilingually from the HTPN patient-guidance poster. |
 
 Everything is in both languages, clinical text included.
@@ -80,6 +80,24 @@ the ones for whom that is unsafe. So the tab sends them outward — to the
 hashtag on their own platform, through their own device's share sheet — and
 keeps the walking log entirely on-device like the rest of the record. The
 reasoning is written out at the top of `src/data/campaign.js`.
+
+### Why there is no correlation between steps, energy and weight
+
+Asked for, and deliberately not built. The three series are shown on a shared
+date axis so a patient can read them together — but the app computes no
+relationship between them, and here is why it would be wrong to:
+
+- A month from one person is about thirty points, and consecutive weights are
+  not independent of each other. That is not enough to separate a signal.
+- Weight moves with food, fluid, illness and medicines at least as much as
+  with walking, and none of those are recorded here to adjust for.
+- A watch's energy figure is an **estimate** the device computes from movement,
+  heart rate and assumptions about the wearer's body. Two watches worn on the
+  same day routinely disagree. Correlating an estimate of that quality with
+  weight and printing a number would dress a guess as a finding.
+
+So the app shows the three trends, says plainly that it does not calculate a
+relationship, and leaves the reading to the patient and their clinician.
 
 ### What the dashboard plots, and what it refuses to
 

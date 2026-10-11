@@ -209,6 +209,20 @@ function Overview ({ record }) {
     .filter(p => p.value !== null)
   /* Both series come from the same rows, so the two lines always line up on
      the same dates rather than being interleaved from separate lists. */
+  /* Activity, summed per day: a patient may log a morning and an evening walk
+     and should see one day, not two points stacked on the same date. */
+  const byDay = new Map()
+  for (const a of (record.activity || [])) {
+    if (!a?.date) continue
+    const d = byDay.get(a.date) || { steps: 0, kcal: 0, hasSteps: false, hasKcal: false }
+    if (Number.isFinite(Number(a.steps))) { d.steps += Number(a.steps); d.hasSteps = true }
+    if (Number.isFinite(Number(a.kcal))) { d.kcal += Number(a.kcal); d.hasKcal = true }
+    byDay.set(a.date, d)
+  }
+  const actDays = [...byDay.entries()].sort((x, y) => x[0].localeCompare(y[0]))
+  const steps = actDays.filter(([, d]) => d.hasSteps).map(([date, d]) => ({ label: shortDate(date), value: d.steps }))
+  const kcal = actDays.filter(([, d]) => d.hasKcal).map(([date, d]) => ({ label: shortDate(date), value: d.kcal }))
+
   const bpRows = measures.filter(m => m.systolic != null && m.diastolic != null)
   const bpSeries = [
     { key: 'sys', label: t(T.m_sys), points: bpRows.map(m => ({ label: shortDate(m.date), value: m.systolic })) },
@@ -279,12 +293,42 @@ function Overview ({ record }) {
       )
     },
     {
+      id: 'steps', plottable: steps.length >= 2,
+      node: (
+        <div className="card tight">
+          <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.walker} /></span>{t(T.chart_steps)}</p>
+          <LineChart points={steps} unit="" emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+          <p className="cite" style={{ marginTop: 4 }}>
+            <b>{t(T.basedOn)}:</b> {t(SRC.OWN_DEVICE.short)}
+          </p>
+        </div>
+      )
+    },
+    {
+      id: 'kcal', plottable: kcal.length >= 2,
+      node: (
+        <div className="card tight">
+          <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.burn} /></span>{t(T.chart_kcal)} (kcal)</p>
+          <LineChart points={kcal} unit="kcal" emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+          <p className="cite" style={{ marginTop: 4 }}>
+            <b>{t(T.basedOn)}:</b> {t(SRC.OWN_DEVICE.full)}
+          </p>
+        </div>
+      )
+    },
+    {
       id: 'weight', plottable: weights.length >= 2,
       node: (
         <div className="card tight">
           <p className="chart-t"><span className="ct-ic"><Icon d={GLYPH.scale} /></span>{t(T.chart_weight)} (kg)</p>
           <LineChart points={weights} unit="kg"
                      emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+          {/* Why there is no correlation here: see the note. The charts share
+              a date axis so they can be read together; the app does not claim
+              a relationship it cannot establish from one person's month. */}
+          {steps.length >= 2 || kcal.length >= 2
+            ? <p className="cite" style={{ marginTop: 4 }}>{t(T.chart_compare_note)}</p>
+            : null}
         </div>
       )
     },
@@ -443,7 +487,8 @@ const REC_SECTIONS = [
   { id: 'allergies', label: T.sec_allergies, short: T.short_allergies, detail: 'allergies', field: 'allergies' },
   { id: 'surgery', label: T.sec_surgery, short: T.short_surgery, detail: 'surgery', field: 'surgeries' },
   { id: 'bloods', label: T.sec_bloods, short: T.short_bloods, detail: 'bloods', field: 'labs' },
-  { id: 'imaging', label: T.sec_imaging, short: T.short_imaging, detail: 'bloods', field: 'imaging' }
+  { id: 'imaging', label: T.sec_imaging, short: T.short_imaging, detail: 'bloods', field: 'imaging' },
+  { id: 'activity', label: T.sec_activity, short: T.short_activity, detail: 'manual', field: 'activity' }
 ]
 
 /* The pipeline. Numbered, connected, and filled in as each station gets its
@@ -966,6 +1011,7 @@ function TabRecords ({ record, update, onEvent }) {
 
         {section === 'bloods' ? <BloodsSection record={record} update={update} onEvent={onEvent} /> : null}
         {section === 'imaging' ? <ImagingSection record={record} update={update} onEvent={onEvent} /> : null}
+        {section === 'activity' ? <ActivitySection record={record} update={update} onEvent={onEvent} /> : null}
       </div>
     </div>
   )
@@ -1574,11 +1620,19 @@ const startOfWeek = () => {
 }
 const isoDay = (d) => d.toISOString().slice(0, 10)
 
-function WalkingLog ({ record, update, onEvent }) {
+/* Walking lives in My Records with the rest of the record, not in the
+   campaign tab: it is something the patient keeps, and its trends belong on
+   the dashboard beside weight and blood pressure. The campaign tab is for
+   sharing, which is a different job. */
+function ActivitySection ({ record, update, onEvent }) {
   const [t, lang] = useT()
   const today = isoDay(new Date())
   const rows = record.activity || []
-  const [draft, setDraft] = useState({ minutes: '', km: '', steps: '' })
+  /* The date is editable and defaults to today. Without it a patient who
+     forgets to log on the day can never enter that walk at all, and three
+     entries made in one sitting all land on the same date — which is also
+     exactly how a trend quietly fails to appear. */
+  const [draft, setDraft] = useState({ date: today, minutes: '', km: '', steps: '', kcal: '' })
 
   const weekStart = isoDay(startOfWeek())
   const weekMinutes = rows
@@ -1599,17 +1653,19 @@ function WalkingLog ({ record, update, onEvent }) {
   }
 
   const save = () => {
-    if (!draft.minutes && !draft.km && !draft.steps) return
+    if (!draft.minutes && !draft.km && !draft.steps && !draft.kcal) return
     update(r => ({
       ...r,
       activity: [...(r.activity || []), {
-        id: store.newId(), date: today,
+        id: store.newId(), date: draft.date || today,
         minutes: draft.minutes === '' ? null : parseFloat(draft.minutes),
         km: draft.km === '' ? null : parseFloat(draft.km),
-        steps: draft.steps === '' ? null : parseInt(draft.steps, 10)
+        steps: draft.steps === '' ? null : parseInt(draft.steps, 10),
+        /* The watch's own estimate, recorded as the estimate it is. */
+        kcal: draft.kcal === '' ? null : parseInt(draft.kcal, 10)
       }]
     }))
-    setDraft({ minutes: '', km: '', steps: '' })
+    setDraft({ date: draft.date || today, minutes: '', km: '', steps: '', kcal: '' })
     onEvent('activity_logged', 'manual')
   }
 
@@ -1648,6 +1704,10 @@ function WalkingLog ({ record, update, onEvent }) {
 
       <div className="card tight">
         <div className="frm three">
+          <Field label={t(T.col_date)}>
+            <input type="date" max={today} value={draft.date}
+                   onChange={e => setDraft({ ...draft, date: e.target.value })} />
+          </Field>
           <Field label={t(T.gh_minutes)}>
             <input type="number" inputMode="numeric" value={draft.minutes}
                    onChange={e => setDraft({ ...draft, minutes: e.target.value })} />
@@ -1660,9 +1720,13 @@ function WalkingLog ({ record, update, onEvent }) {
             <input type="number" inputMode="numeric" value={draft.steps}
                    onChange={e => setDraft({ ...draft, steps: e.target.value })} />
           </Field>
+          <Field label={t(T.gh_kcal)} hint={t(T.gh_kcal_help)}>
+            <input type="number" inputMode="numeric" value={draft.kcal}
+                   onChange={e => setDraft({ ...draft, kcal: e.target.value })} />
+          </Field>
         </div>
         <button className="btn wide" style={{ marginTop: 8 }} onClick={save}
-                disabled={!draft.minutes && !draft.km && !draft.steps}>
+                disabled={!draft.minutes && !draft.km && !draft.steps && !draft.kcal}>
           + {t(T.gh_log)}
         </button>
       </div>
@@ -1735,9 +1799,9 @@ function ShareIt ({ onEvent }) {
   )
 }
 
-function TabGayaHidup ({ record, update, onEvent }) {
+function TabGayaHidup ({ onEvent }) {
   const [t] = useT()
-  const [view, setView] = useState('log')
+  const [view, setView] = useState('share')
   return (
     <div className="pane">
       <div className="pane-head">
@@ -1745,12 +1809,10 @@ function TabGayaHidup ({ record, update, onEvent }) {
         <p className="pane-lead">{t(CAMPAIGN.lead)}</p>
       </div>
       <div className="subtabs">
-        <button className="subtab" aria-selected={view === 'log'} onClick={() => setView('log')}>{t(T.gh_sub_log)}</button>
         <button className="subtab" aria-selected={view === 'share'} onClick={() => setView('share')}>{t(T.gh_sub_share)}</button>
         <button className="subtab" aria-selected={view === 'safe'} onClick={() => setView('safe')}>{t(T.gh_safety)}</button>
       </div>
       <div className="pane-body">
-        {view === 'log' ? <WalkingLog record={record} update={update} onEvent={onEvent} /> : null}
         {view === 'share' ? <ShareIt onEvent={onEvent} /> : null}
         {view === 'safe' ? (
           <>
@@ -2291,7 +2353,7 @@ export default function App () {
         {tab === 'iqms' ? <TabIqms onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'rakyat' ? <TabRakyat onEvent={onEvent} onLightbox={setLightbox} /> : null}
-        {tab === 'gayahidup' ? <TabGayaHidup record={record} update={update} onEvent={onEvent} /> : null}
+        {tab === 'gayahidup' ? <TabGayaHidup onEvent={onEvent} /> : null}
 
         <nav className="tabbar">
           {TABS.map(x => (

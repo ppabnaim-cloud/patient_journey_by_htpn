@@ -118,6 +118,13 @@ export const T = {
   chart_bmi: L('BMI over time', 'BMI mengikut masa'),
   chart_bp: L('Blood pressure over time', 'Tekanan darah mengikut masa'),
   chart_fpg: L('Fasting glucose over time', 'Glukosa puasa mengikut masa'),
+  chart_steps: L('Steps over time', 'Langkah mengikut masa'),
+  chart_kcal: L('Energy burned over time', 'Tenaga dibakar mengikut masa'),
+  chart_compare_note: L(
+    'Steps, energy and weight are shown on the same dates so you can look at them together. The app does not calculate a relationship between them: weight is moved by food, fluid, illness and medicines as much as by walking, and a month of readings from one person cannot separate those.',
+    'Langkah, tenaga dan berat dipaparkan pada tarikh yang sama supaya anda boleh melihatnya bersama. Aplikasi ini tidak mengira hubungan antara ketiga-tiganya: berat dipengaruhi oleh makanan, cecair, penyakit dan ubat sama banyak dengan berjalan, dan sebulan bacaan daripada seorang individu tidak dapat memisahkan faktor-faktor itu.'
+  ),
+  m_activity: L('From your watch', 'Daripada jam anda'),
   chart_meds_by: L('Medicines by indication', 'Ubat mengikut indikasi'),
   chart_cutoff: L('Cut-off', 'Titik potong'),
   chart_other: L('Other', 'Lain-lain'),
@@ -150,6 +157,7 @@ export const T = {
   sec_surgery: L('Operations', 'Pembedahan'),
   sec_bloods: L('Blood results', 'Keputusan Darah'),
   sec_imaging: L('Imaging reports', 'Laporan Pengimejan'),
+  sec_activity: L('Walking & activity', 'Jalan Kaki & Aktiviti'),
 
   /* Short names for the station pipeline; six across a phone leaves little
      room, and a truncated station name tells a patient nothing. */
@@ -159,6 +167,7 @@ export const T = {
   short_surgery: L('Surgery', 'Bedah'),
   short_bloods: L('Bloods', 'Darah'),
   short_imaging: L('Scans', 'Imbasan'),
+  short_activity: L('Activity', 'Aktiviti'),
 
   col_drug: L('Medicine', 'Ubat'),
   col_dose: L('Dose', 'Dos'),
@@ -348,6 +357,11 @@ export const T = {
   gh_minutes: L('Minutes walked', 'Minit Berjalan'),
   gh_km: L('Distance (km)', 'Jarak (km)'),
   gh_steps: L('Steps', 'Langkah'),
+  gh_kcal: L('Energy (kcal)', 'Tenaga (kcal)'),
+  gh_kcal_help: L(
+    'Only if your watch shows one. It is the device\u2019s estimate, not a measurement.',
+    'Hanya jika jam anda memaparkannya. Ia anggaran peranti, bukan ukuran.'
+  ),
   gh_log: L('Record today', 'Rekod hari ini'),
   gh_today: L('Today', 'Hari ini'),
   gh_last7: L('Last 7 days', '7 Hari Lepas'),

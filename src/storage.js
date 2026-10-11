@@ -91,7 +91,8 @@ export function entryCount (record) {
   const r = record || EMPTY_RECORD
   return (r.medications?.length || 0) + (r.issues?.length || 0) +
          (r.allergies?.length || 0) + (r.surgeries?.length || 0) +
-         (r.labs?.length || 0) + (r.imaging?.length || 0) + (r.measurements?.length || 0)
+         (r.labs?.length || 0) + (r.imaging?.length || 0) + (r.measurements?.length || 0) +
+         (r.activity?.length || 0)
 }
 
 /* --- photographs: IndexedDB --------------------------------------------- */

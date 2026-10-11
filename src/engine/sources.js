@@ -131,6 +131,15 @@ export const SRC = {
     },
     kind: 'international'
   },
+  OWN_DEVICE: {
+    id: 'OWN_DEVICE',
+    short: { en: 'your own watch or phone', ms: 'jam atau telefon anda sendiri' },
+    full: {
+      en: 'The figure your own watch or phone reported. Step counts and especially energy estimates are produced by the device from movement, heart rate and assumptions about your body; they are estimates, not measurements, and two devices worn on the same day routinely disagree. This app records what your device told you and does not check it.',
+      ms: 'Angka yang dilaporkan oleh jam atau telefon anda sendiri. Kiraan langkah dan terutamanya anggaran tenaga dihasilkan oleh peranti daripada pergerakan, kadar denyutan jantung dan andaian tentang badan anda; ia anggaran, bukan ukuran, dan dua peranti yang dipakai pada hari yang sama lazimnya berbeza. Aplikasi ini merekodkan apa yang dinyatakan oleh peranti anda dan tidak menyemaknya.'
+    },
+    kind: 'device'
+  },
   OWN_LAB_REPORT: {
     id: 'OWN_LAB_REPORT',
     short: { en: "the reference range on your own report", ms: 'julat rujukan pada laporan anda sendiri' },
