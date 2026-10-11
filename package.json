@@ -1,0 +1,23 @@
+{
+  "name": "patient-journey-by-htpn",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Patient Journey by HTPN - bilingual on-device patient record companion. Prototype design by Dr Naim, HTPN.",
+  "scripts": {
+    "dev": "vite",
+    "build": "node scripts/vendor-ocr.mjs && vite build",
+    "preview": "vite preview",
+    "check": "node scripts/engine-check.mjs && node scripts/server-check.mjs"
+  },
+  "dependencies": {
+    "@tesseract.js-data/eng": "^1.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tesseract.js": "5.1.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.3.4",
+    "vite": "5.4.11"
+  }
+}
