@@ -162,6 +162,26 @@ function issueFindings (record) {
   }]
 }
 
+function imagingFindings (record) {
+  const rows = record.imaging || []
+  if (!rows.length) return []
+  const latest = [...rows].sort((a, b) => String(a.date).localeCompare(String(b.date))).slice(-1)[0]
+  return [{
+    id: 'imaging_count',
+    level: 'none',
+    title: { en: 'Imaging reports on file', ms: 'Laporan pengimejan dalam fail' },
+    detail: {
+      en: `${rows.length} recorded. Most recent: ${latest.finding || 'conclusion not entered'} (${latest.date || 'date not given'}).`,
+      ms: `${rows.length} direkodkan. Terkini: ${latest.finding || 'kesimpulan tidak dimasukkan'} (${latest.date || 'tarikh tidak diberikan'}).`
+    },
+    steps: [], source: SRC.NO_GUIDELINE.id,
+    flag: {
+      en: 'Your own transcription of a report, shown back to you. The app has not read the original and cannot check it.',
+      ms: 'Salinan laporan yang anda taip sendiri, dipaparkan semula. Aplikasi tidak membaca dokumen asal dan tidak dapat menyemaknya.'
+    }
+  }]
+}
+
 function surgeryFindings (record) {
   const ops = record.surgeries || []
   if (!ops.length) return []
@@ -187,6 +207,7 @@ export function reviewRecord (record) {
   findings.push(...medicationFindings(r))
   findings.push(...issueFindings(r))
   findings.push(...surgeryFindings(r))
+  findings.push(...imagingFindings(r))
 
   const latestMeasure = (r.measurements || [])
     .filter(m => m && m.date)
@@ -196,7 +217,7 @@ export function reviewRecord (record) {
   if (latestMeasure) {
     const bmi = calcBMI(latestMeasure.weightKg, latestMeasure.heightCm)
     findings.push(classifyBMI(bmi))
-    findings.push(classifyWaist(latestMeasure.waistCm, r.sex))
+    findings.push(classifyWaist(latestMeasure.waistCm, r.gender))
     const trend = weightTrend(r.measurements)
     if (trend) findings.push(trend)
   }

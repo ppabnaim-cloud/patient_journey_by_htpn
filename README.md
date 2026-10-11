@@ -13,19 +13,38 @@ sites, and points them at iQMS and MyUbat.
 
 | | Tab | What it holds |
 |---|---|---|
-| 1 | **My Journey** | Everything on file, sorted by what needs acting on. Warning signs first; items with nothing to act on are folded, never deleted. Prints a clinic summary. |
-| 2 | **My Records** | Medicines (drug / dose / indication / on–off), active problems, allergies, operations, serial blood results. Photograph a document, upload one, or type it in. |
+| 1 | **My Journey** | *Overview*: four stat tiles, HbA1c and weight trends, medicines by indication. *Needs attention*: the findings, warning signs first. *Reviewed*: findings with nothing to act on, folded but never deleted. Prints a clinic summary. |
+| 2 | **My Records** | Six numbered stations — medicines, active problems, allergies, operations, blood results, imaging reports — shown as a pipeline so progress is visible. Photograph a document, upload one, or type it in. |
 | 3 | **Measurements** | Weight, height, BMI, waist circumference, with the trend. |
-| 4 | **Finding Your Way** | The two sites and 21 further points, each opening in Google Maps. |
+| 4 | **Finding Your Way** | The two sites with photographs, and 21 further points. Every location offers *Get directions* — which opens Google Maps routing from wherever the phone is, with no origin in the URL so this app never sees a coordinate — and *Exact location*, the precise link HTPN supplied. |
 | 5 | **Queue Number** | The iQMS poster and the live queue link for HTPN. |
 | 6 | **Medicine Delivery** | MyUbat, with a plain statement of what it must **not** be used for — anything on cold chain above all. |
-| 7 | **The Public's Role** | The poster set, grouped by the five roles. |
+| 7 | **The Public's Role** | All 12 posters designed by Dr Naim plus the Ministry's Langkah Sihat poster, grouped by the five roles; and *Emergency, or not?*, the two triage lists rendered bilingually from the HTPN patient-guidance poster. |
 
 Everything is in both languages, clinical text included. Every screen fits a
 10-inch tablet in portrait with **no scrolling**: lists page, long sections split
 into steps.
 
 ---
+
+### What the dashboard plots, and what it refuses to
+
+A single patient's own record supports stat tiles, a line per measurement
+followed over time, and one part-to-whole split. It does **not** support a
+histogram, a scatter plot or a heatmap: those need a population, or two
+variables measured across many subjects. Eight blood tests from one person
+cannot make a distribution, and drawing one would invite a patient to read a
+pattern that is not in the data. So they are not there.
+
+The categorical palette was validated against this app's own card surfaces in
+both light and dark mode — lightness band, chroma floor, adjacent-pair CVD
+separation and normal-vision floor all pass. Light mode raises a contrast
+warning on three slots, so every chart ships direct labels and a table view.
+
+An empty dashboard shows a **worked example** rather than a blank screen. It is
+labelled EXAMPLE in a band that cannot be dismissed, every figure in it is
+invented, it is never written to storage, and it disappears the moment the
+patient enters anything of their own.
 
 ## The five rules this code is built to
 
@@ -185,15 +204,19 @@ another third-party credential.
 
 ## Known gaps — read before deploying
 
-1. **21 of the 23 map links are unnamed.** Two were supplied with their names
-   (WCC and the Main Building); the rest were supplied as bare links, and the
-   build environment could not reach `maps.app.goo.gl` to read what they point
-   to. Guessing would break rule 1 — labelling a link "Pharmacy" when it might
-   be the mortuary is exactly the failure that rule exists to prevent. They are
-   therefore shown as "Location 1 … 21" with an on-screen note, and each link
+1. **13 of the 21 department links are still unnamed.** Locations 1–8 were
+   named by HTPN and are live. The remaining 13 were supplied as bare links,
+   and the build environment could not reach `maps.app.goo.gl` to read what
+   they point to. Guessing would break rule 1 — labelling a link "Pharmacy"
+   when it might be the mortuary is exactly the failure that rule exists to
+   prevent. They show as "Location N" with an on-screen note, and each link
    still opens the right place in Google Maps. **To fix:** fill in
    `DEPARTMENT_NAMES` in `src/data/wayfinding.js` and set `confirmed: true`.
-   That array is the only thing that needs editing.
+
+   Department tiles carry **icons, not photographs**. A stock or generated
+   picture of "a radiology department" is a picture of some other hospital, and
+   on a way-finding screen a patient would read it as a landmark to look for.
+   Real photographs of these departments would be better and drop straight in.
 
 2. **No Malaysian CPG was read in this build.** The sandbox had no route to
    `moh.gov.my`. The BMI, waist, fasting glucose and HbA1c bands are quoted
@@ -212,3 +235,16 @@ another third-party credential.
 
 4. **No ethics submission describes this build.** Both flags are off by default
    and nothing is collected until that changes.
+
+5. **The emergency/non-emergency poster is a low-resolution recovery.** The
+   only copy available to this build was extracted from a screenshot, so it is
+   offered as a secondary view and labelled as such. The two triage lists
+   themselves are rendered as bilingual text, which is better than the image in
+   any case: the poster is Malay only, and text scales and can be read aloud.
+   Replacing `public/posters/emergency-or-not-lowres.jpg` with the original
+   artwork needs no code change.
+
+6. **The Main Building photograph shows the pre-rebrand "Hospital Kajang"
+   signage.** That is what is actually on the gate, so it is arguably the more
+   useful landmark — but it is worth a deliberate decision rather than an
+   accident.

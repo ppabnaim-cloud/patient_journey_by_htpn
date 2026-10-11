@@ -36,8 +36,13 @@ export const ROLES = [
   { role: 0, detailKey: 'role_other', title: { en: 'Other', ms: 'Lain-lain' } }
 ]
 
+/* Every rakyat-*.jpg poster was designed by Dr Naim, HTPN, and is credited to
+   him on the card and in the full-screen view. The Langkah Sihat poster is a
+   Ministry of Health poster and is credited to the Ministry — crediting that
+   one to Dr Naim would be wrong, so the credit stays per-poster rather than
+   being applied to the whole set. */
 const CREDITS = {
-  naim: { en: 'Dr Naim, HTPN', ms: 'Dr Naim, HTPN' },
+  naim: { en: 'Designed by Dr Naim, HTPN', ms: 'Reka bentuk oleh Dr Naim, HTPN' },
   kkm: { en: 'Ministry of Health Malaysia', ms: 'Kementerian Kesihatan Malaysia' }
 }
 

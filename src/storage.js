@@ -17,14 +17,15 @@ const DB_NAME = 'pjhtpn-photos'
 const DB_STORE = 'photos'
 
 export const EMPTY_RECORD = {
-  version: 1,
-  sex: null,
+  version: 2,
+  gender: null,
   noKnownAllergy: false,
   medications: [],
   issues: [],
   allergies: [],
   surgeries: [],
   labs: [],
+  imaging: [],
   measurements: [],
   photos: []        // metadata only; the bytes live in IndexedDB
 }
@@ -45,7 +46,20 @@ export function loadRecord () {
   if (!store) return { ...EMPTY_RECORD }
   const r = safeParse(store.getItem(RECORD_KEY), null)
   if (!r || typeof r !== 'object') return { ...EMPTY_RECORD }
-  return { ...EMPTY_RECORD, ...r }
+  return migrate({ ...EMPTY_RECORD, ...r })
+}
+
+/* v1 called the field `sex`; v2 calls it `gender`, which is the word the
+   hospital uses with patients. Anyone who used the v1 build keeps their
+   answer rather than being asked again. */
+function migrate (r) {
+  if (r.version < 2 || (r.gender == null && r.sex != null)) {
+    r.gender = r.gender ?? r.sex ?? null
+    delete r.sex
+    r.imaging = r.imaging || []
+    r.version = 2
+  }
+  return r
 }
 
 export function saveRecord (record) {
@@ -74,7 +88,7 @@ export function entryCount (record) {
   const r = record || EMPTY_RECORD
   return (r.medications?.length || 0) + (r.issues?.length || 0) +
          (r.allergies?.length || 0) + (r.surgeries?.length || 0) +
-         (r.labs?.length || 0) + (r.measurements?.length || 0)
+         (r.labs?.length || 0) + (r.imaging?.length || 0) + (r.measurements?.length || 0)
 }
 
 /* --- photographs: IndexedDB --------------------------------------------- */

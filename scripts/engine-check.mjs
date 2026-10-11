@@ -59,7 +59,7 @@ check('classify 28.4', classifyBMI(28.4).level, 'attention')
 check('waist m 90', classifyWaist(90, 'male').level, 'attention')
 check('waist m 89', classifyWaist(89, 'male').level, 'none')
 check('waist f 80', classifyWaist(80, 'female').level, 'attention')
-check('waist no sex', classifyWaist(95, null).level, 'none')
+check('waist no gender', classifyWaist(95, null).level, 'none')
 check('fpg 3.2 is warning', classifyResult('fpg', 3.2).level, 'warning')
 check('fpg 5.5 normal', classifyResult('fpg', 5.5).level, 'none')
 check('fpg 6.5 watch', classifyResult('fpg', 6.5).level, 'watch')
@@ -69,7 +69,7 @@ check('ldl no range = none', classifyResult('ldl', 4.9).level, 'none')
 check('ldl with range', classifyResult('ldl', 4.9, { low: 0, high: 3.4 }).level, 'watch')
 
 const record = {
-  sex: 'female',
+  gender: 'female',
   allergies: [
     { substance: 'Penicillin', severity: 'severe' },
     { substance: 'Seafood', severity: 'mild' }
@@ -84,6 +84,9 @@ const record = {
   measurements: [
     { date: '2026-01-10', weightKg: 78, heightCm: 158, waistCm: 92 },
     { date: '2026-09-01', weightKg: 82, heightCm: 158, waistCm: 94 }
+  ],
+  imaging: [
+    { date: '2026-08-20', modality: 'ct', bodyPart: 'Abdomen', finding: 'Fatty liver. No focal lesion.' }
   ],
   labs: [
     { date: '2026-09-01', analyteId: 'hba1c', value: 8.1 },
@@ -105,6 +108,9 @@ let monotonic = true
 for (let i = 1; i < order.length; i++) if (rank[order[i]] > rank[order[i-1]]) monotonic = false
 check('sorted descending by urgency', monotonic, true)
 check('first finding is the severe allergy', findings[0].id, 'allergy_severe')
+check('waist is interpreted when gender is recorded',
+  findings.find(f => f.id === 'waist')?.level, 'attention')
+check('imaging findings appear', !!findings.find(f => f.id === 'imaging_count'), true)
 check('severe allergy is never folded', findings[0].folded, false)
 check('every finding carries a source', findings.every(f => !!f.source), true)
 

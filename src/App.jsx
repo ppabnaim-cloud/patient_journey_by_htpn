@@ -19,14 +19,16 @@ import { T, pick, LANGS, DEFAULT_LANG } from './i18n.js'
 import { APP, CONTROLLER, ETHICS, PRIVACY, COLLECTION_UI_ENABLED, collectionStatement } from './governance.js'
 import { SRC, LAB_PANEL, BMI_BANDS, WAIST_THRESHOLD } from './engine/sources.js'
 import { calcBMI, classifyBMI, classifyWaist } from './engine/anthro.js'
-import { classifyResult, seriesFor, changeSince } from './engine/labs.js'
+import { classifyResult, seriesFor } from './engine/labs.js'
 import { reviewRecord, summarise } from './engine/review.js'
 import * as store from './storage.js'
 import { readText, draftMedicationsFrom, draftLabsFrom, draftDateFrom, ocrAvailable } from './ocr.js'
 import { sendUsage, onUsageStatus, newDeviceCode, LAST_RECORD_FOR_DISPLAY } from './usage.js'
-import { CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, confirmedCount } from './data/wayfinding.js'
+import { CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl, confirmedCount } from './data/wayfinding.js'
 import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
+import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
+import { Stat, LineChart, StackedBar } from './charts.jsx'
 
 /* --- language ----------------------------------------------------------- */
 const LangCtx = createContext(DEFAULT_LANG)
@@ -42,6 +44,22 @@ const Icon = ({ d, filled }) => (
     {d.map((p, i) => <path key={i} d={p} />)}
   </svg>
 )
+/* Department glyphs. Deliberately icons rather than photographs: a stock or
+   generated picture of "a radiology department" is a picture of somewhere
+   else, and on a way-finding screen a patient would take it for a landmark to
+   look for. An icon says what the department does and claims nothing more. */
+const DEPT_ICONS = {
+  clinic: ['M12 3v6M9 6h6', 'M5 9h14v11H5z', 'M9 20v-5h6v5'],
+  office: ['M4 20V6l8-3 8 3v14', 'M9 20v-5h6v5', 'M8 10h.01M12 10h.01M16 10h.01'],
+  radiology: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 3v18', 'M4.5 8h15M4.5 16h15'],
+  emergency: ['M12 3l9 16H3z', 'M12 9v5', 'M12 17h.01'],
+  rehab: ['M5 20l4-7 3 2 3-5 4 10', 'M8 6a1.6 1.6 0 1 0 0-3.2A1.6 1.6 0 0 0 8 6z'],
+  dental: ['M7 3c2 0 2 1.4 5 1.4S15 3 17 3c2.4 0 3 2.4 2.4 5.6-.6 3.2-1.4 4-2 7.4-.5 3-1 5-2.4 5-1.6 0-1.4-4-3-4s-1.4 4-3 4c-1.4 0-1.9-2-2.4-5-.6-3.4-1.4-4.2-2-7.4C4 5.4 4.6 3 7 3z'],
+  pharmacy: ['M5 8h14l-1.4 11.2A2 2 0 0 1 15.6 21H8.4a2 2 0 0 1-2-1.8z', 'M9 8V5h6v3', 'M12 11v6M9 14h6'],
+  it: ['M3 5h18v11H3z', 'M8 20h8M12 16v4'],
+  pin: ['M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z', 'M12 10.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z']
+}
+
 const ICONS = {
   dashboard: ['M3 12h4l2.5 7 5-14L17 12h4'],
   records: ['M6 3h9l3 3v15H6z', 'M9 10h7', 'M9 14h7', 'M9 18h4'],
@@ -51,6 +69,49 @@ const ICONS = {
   myubat: ['M4.5 13.5l9-9a4.6 4.6 0 0 1 6.5 6.5l-9 9a4.6 4.6 0 0 1-6.5-6.5z', 'M9 9l6 6'],
   rakyat: ['M12 20.5s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.8a4.2 4.2 0 0 1 7.5 2.7c0 5.4-7.5 10-7.5 10z']
 }
+
+/* --- the worked example shown on an empty dashboard ----------------------
+   An empty screen teaches nothing, so the dashboard renders this instead. It
+   is labelled EXAMPLE in a band across the top and every figure is invented.
+   It is never written to storage, never mixed with a real record, and the
+   moment the patient enters anything of their own it disappears. Showing
+   fabricated numbers without saying so would be the worst thing this app
+   could do, which is why the band is not dismissible. */
+const DEMO_RECORD = {
+  gender: 'female',
+  medications: [
+    { id: 'd1', drug: 'Metformin', dose: '1 g BD', indication: 'Diabetes', status: 'on' },
+    { id: 'd2', drug: 'Gliclazide', dose: '80 mg OD', indication: 'Diabetes', status: 'on' },
+    { id: 'd3', drug: 'Perindopril', dose: '4 mg OD', indication: 'Hypertension', status: 'on' },
+    { id: 'd4', drug: 'Amlodipine', dose: '5 mg OD', indication: 'Hypertension', status: 'on' },
+    { id: 'd5', drug: 'Atorvastatin', dose: '20 mg ON', indication: 'Cholesterol', status: 'on' },
+    { id: 'd6', drug: 'Aspirin', dose: '100 mg OD', indication: 'Heart', status: 'on' },
+    { id: 'd7', drug: 'Omeprazole', dose: '20 mg OD', indication: 'Gastritis', status: 'off' }
+  ],
+  issues: [
+    { id: 'i1', text: 'Type 2 diabetes', since: '2019-03-01', status: 'active' },
+    { id: 'i2', text: 'Hypertension', since: '2021-07-14', status: 'active' }
+  ],
+  allergies: [{ id: 'a1', substance: 'Penicillin', reaction: 'Rash and swelling', severity: 'severe' }],
+  surgeries: [{ id: 's1', name: 'Caesarean section', date: '2016-04-02', where: 'HTPN' }],
+  imaging: [{ id: 'g1', modality: 'us', bodyPart: 'Abdomen', date: '2026-02-11', finding: 'Fatty liver. No focal lesion.' }],
+  labs: [
+    { id: 'l1', date: '2025-03-14', analyteId: 'hba1c', value: 9.4 },
+    { id: 'l2', date: '2025-09-10', analyteId: 'hba1c', value: 8.6 },
+    { id: 'l3', date: '2026-03-02', analyteId: 'hba1c', value: 7.9 },
+    { id: 'l4', date: '2026-09-01', analyteId: 'hba1c', value: 7.1 },
+    { id: 'l5', date: '2026-09-01', analyteId: 'fpg', value: 6.8 },
+    { id: 'l6', date: '2026-09-01', analyteId: 'ldl', value: 3.1, refLow: 0, refHigh: 3.4 }
+  ],
+  measurements: [
+    { id: 'm1', date: '2025-03-14', weightKg: 81.5, heightCm: 158, waistCm: 96 },
+    { id: 'm2', date: '2025-09-10', weightKg: 80.2, heightCm: 158, waistCm: 95 },
+    { id: 'm3', date: '2026-03-02', weightKg: 78.4, heightCm: 158, waistCm: 93 },
+    { id: 'm4', date: '2026-09-01', weightKg: 76.9, heightCm: 158, waistCm: 91 }
+  ]
+}
+
+const shortDate = (iso) => String(iso || '').slice(2).replace(/-/g, '/')
 
 /* --- generic bits -------------------------------------------------------- */
 
@@ -130,32 +191,112 @@ function Finding ({ f }) {
 
 /* =========================================================================
    TAB 1 — My Journey (the dashboard)
-   ====================================================================== */
-function TabDashboard ({ record, goTo, onPrint }) {
-  const [t] = useT()
-  const findings = useMemo(() => reviewRecord(record), [record])
-  const counts = useMemo(() => summarise(findings), [findings])
-  const actionable = findings.filter(f => f.level !== 'none')
-  const quiet = findings.filter(f => f.level === 'none')
-  const [showQuiet, setShowQuiet] = useState(false)
-  const list = showQuiet ? quiet : actionable
-  const paged = usePaged(list, 4)
 
-  if (store.entryCount(record) === 0) {
-    return (
-      <div className="pane">
-        <div className="pane-head">
-          <h1 className="pane-title">{t(T.tab_dashboard)}</h1>
-          <p className="pane-lead">{t(T.dash_lead)}</p>
+   Three sub-tabs so that each fits one screen without scrolling:
+     Overview  — the figures and the trends
+     Needs attention — the findings the engine ranked as actionable
+     Reviewed  — the findings with nothing to act on, folded (never deleted)
+   ====================================================================== */
+
+function Overview ({ record, isDemo }) {
+  const [t, lang] = useT()
+
+  const meds = record.medications || []
+  const onMeds = meds.filter(m => m.status !== 'off')
+  const issues = (record.issues || []).filter(i => i.status !== 'resolved')
+  const allergies = record.allergies || []
+  const severe = allergies.filter(a => a.severity === 'severe').length
+
+  const labDates = (record.labs || []).map(l => l.date).filter(Boolean).sort()
+  const lastLab = labDates[labDates.length - 1]
+  const daysSince = lastLab
+    ? Math.max(0, Math.round((Date.now() - new Date(lastLab + 'T00:00:00').getTime()) / 86400000))
+    : null
+
+  const hba1c = seriesFor(record.labs, 'hba1c').map(r => ({ label: shortDate(r.date), value: r.value }))
+  const weights = (record.measurements || [])
+    .filter(m => Number.isFinite(Number(m.weightKg)) && m.date)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .map(m => ({ label: shortDate(m.date), value: m.weightKg }))
+
+  /* Medicines grouped by what they are for. Four named groups at most, the
+     tail folded into "Other" — never a generated ninth colour. */
+  const byIndication = useMemo(() => {
+    const counts = new Map()
+    for (const m of onMeds) {
+      const key = (m.indication || '').trim() || pick(T.chart_not_recorded, lang)
+      counts.set(key, (counts.get(key) || 0) + 1)
+    }
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1])
+    const head = sorted.slice(0, 3).map(([label, value]) => ({ label, value }))
+    const tail = sorted.slice(3).reduce((n, [, v]) => n + v, 0)
+    if (tail) head.push({ label: pick(T.chart_other, lang), value: tail })
+    return head
+  }, [onMeds, lang])
+
+  const tableLabels = {
+    date: t(T.col_date), value: t(T.col_value), name: t(T.col_indication),
+    tableView: t(T.chart_table_view), chartView: t(T.chart_chart_view)
+  }
+
+  return (
+    <>
+      <div className="kpirow">
+        <Stat label={t(T.kpi_meds)} value={onMeds.length} sub={t(T.kpi_meds_sub)} />
+        <Stat label={t(T.kpi_issues)} value={issues.length} sub={t(T.kpi_issues_sub)} />
+        <Stat label={t(T.kpi_allergy)} value={allergies.length} sub={t(T.kpi_allergy_sub)}
+              tone={severe ? 'warning' : null} />
+        <Stat label={t(T.kpi_lastlab)}
+              value={daysSince === null ? '—' : daysSince}
+              sub={daysSince === null ? t(T.kpi_never) : t(T.kpi_days_ago)} />
+      </div>
+
+      {/* A card that cannot plot anything yet should not hold a full row open.
+          Rows are sized from whether each chart actually has a trend to draw. */}
+      <div className="chartgrid" style={{
+        gridTemplateRows: [
+          hba1c.length >= 2 ? 'minmax(0, 1fr)' : 'min-content',
+          weights.length >= 2 ? 'minmax(0, 1fr)' : 'min-content',
+          'min-content'
+        ].join(' ')
+      }}>
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_hba1c)} (%)</p>
+          <LineChart points={hba1c} unit="%" cutoff={6.5}
+                     emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+          <p className="cite" style={{ marginTop: 4 }}>
+            <span className="cutkey" /> {t(T.chart_cutoff)} 6.5% — <b>{t(T.basedOn)}:</b> {t(SRC.WHO_HBA1C_2011.short)}
+          </p>
         </div>
-        <div className="empty">
-          <span className="big">{t(T.dash_empty_title)}</span>
-          <span>{t(T.dash_empty_body)}</span>
-          <button className="btn" onClick={() => goTo('records')}>{t(T.dash_goto_records)}</button>
+
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_weight)} (kg)</p>
+          <LineChart points={weights} unit="kg"
+                     emptyText={t(T.chart_need_two)} tableLabels={tableLabels} />
+        </div>
+
+        <div className="card tight">
+          <p className="chart-t">{t(T.chart_meds_by)}</p>
+          {byIndication.length
+            ? <StackedBar parts={byIndication} total={onMeds.length} tableLabels={tableLabels} />
+            : <p className="chart-empty">{t(T.none)}</p>}
         </div>
       </div>
-    )
-  }
+    </>
+  )
+}
+
+function TabDashboard ({ record, goTo, onPrint }) {
+  const [t] = useT()
+  const isDemo = store.entryCount(record) === 0
+  const shown = isDemo ? DEMO_RECORD : record
+
+  const findings = useMemo(() => reviewRecord(shown), [shown])
+  const actionable = findings.filter(f => f.level !== 'none')
+  const quiet = findings.filter(f => f.level === 'none')
+  const [view, setView] = useState('overview')
+  const list = view === 'actions' ? actionable : quiet
+  const paged = usePaged(list, 4)
 
   return (
     <div className="pane">
@@ -163,22 +304,41 @@ function TabDashboard ({ record, goTo, onPrint }) {
         <h1 className="pane-title">{t(T.tab_dashboard)}</h1>
         <p className="pane-lead">{t(T.dash_lead)}</p>
       </div>
+
+      {isDemo ? (
+        <div className="demobar">
+          <b>{t(T.example)}</b>
+          <span>{t(T.dash_demo_body)}</span>
+          <span className="sp" />
+          <button className="btn" style={{ padding: '6px 11px', fontSize: 12 }} onClick={() => goTo('records')}>
+            {t(T.dash_demo_cta)}
+          </button>
+        </div>
+      ) : null}
+
       <div className="subtabs">
-        <button className="subtab" aria-selected={!showQuiet} onClick={() => setShowQuiet(false)}>
-          {t(T.whatToDo)} · {counts.warning + counts.attention + counts.watch}
+        <button className="subtab" aria-selected={view === 'overview'} onClick={() => setView('overview')}>
+          {t(T.dash_sub_overview)}
         </button>
-        <button className="subtab" aria-selected={showQuiet} onClick={() => setShowQuiet(true)}>
-          {t(T.dash_show_all)} · {counts.none}
+        <button className="subtab" aria-selected={view === 'actions'} onClick={() => setView('actions')}>
+          {t(T.dash_sub_actions)} · {actionable.length}
+        </button>
+        <button className="subtab" aria-selected={view === 'checked'} onClick={() => setView('checked')}>
+          {t(T.dash_sub_checked)} · {quiet.length}
         </button>
       </div>
+
       <div className="pane-body">
-        {list.length === 0
-          ? <div className="empty"><span className="big">{t(T.dash_nothing_to_act)}</span></div>
-          : <div className="scroller">{paged.slice.map(f => <Finding key={f.id} f={f} />)}</div>}
+        {view === 'overview'
+          ? <Overview record={shown} isDemo={isDemo} />
+          : list.length === 0
+            ? <div className="empty"><span className="big">{t(T.dash_nothing_to_act)}</span></div>
+            : <div className="scroller">{paged.slice.map(f => <Finding key={f.id} f={f} />)}</div>}
       </div>
+
       <div className="pane-foot" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
-        <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
-        <button className="btn ghost wide" onClick={onPrint}>{t(T.dash_print)}</button>
+        {view !== 'overview' ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} /> : null}
+        <button className="btn ghost wide" onClick={onPrint} disabled={isDemo}>{t(T.dash_print)}</button>
       </div>
     </div>
   )
@@ -190,13 +350,40 @@ function TabDashboard ({ record, goTo, onPrint }) {
    upload, or type.
    ====================================================================== */
 
+/* The six stations of the record, in the order a patient is asked for them at
+   a clinic desk. `field` is what makes a station count as done, which is what
+   drives the progress state on the pipeline. */
 const REC_SECTIONS = [
-  { id: 'meds', label: T.sec_meds, detail: 'meds' },
-  { id: 'issues', label: T.sec_issues, detail: 'issues' },
-  { id: 'allergies', label: T.sec_allergies, detail: 'allergies' },
-  { id: 'surgery', label: T.sec_surgery, detail: 'surgery' },
-  { id: 'bloods', label: T.sec_bloods, detail: 'bloods' }
+  { id: 'meds', label: T.sec_meds, detail: 'meds', field: 'medications' },
+  { id: 'issues', label: T.sec_issues, detail: 'issues', field: 'issues' },
+  { id: 'allergies', label: T.sec_allergies, detail: 'allergies', field: 'allergies' },
+  { id: 'surgery', label: T.sec_surgery, detail: 'surgery', field: 'surgeries' },
+  { id: 'bloods', label: T.sec_bloods, detail: 'bloods', field: 'labs' },
+  { id: 'imaging', label: T.sec_imaging, detail: 'bloods', field: 'imaging' }
 ]
+
+/* The pipeline. Numbered, connected, and filled in as each station gets its
+   first entry — so "where am I up to" is answerable at a glance, which is the
+   thing the plain row of pills did not say. */
+function Stations ({ record, current, onPick }) {
+  const [t] = useT()
+  return (
+    <div className="stationwrap">
+      <div className="stations" role="tablist">
+        {REC_SECTIONS.map((sec, i) => {
+          const done = (record[sec.field] || []).length > 0
+          return (
+            <button key={sec.id} role="tab" className={'station' + (done ? ' done' : '')}
+                    aria-selected={current === sec.id} onClick={() => onPick(sec.id)}>
+              <span className="num">{done ? '✓' : i + 1}</span>
+              <span className="nm">{t(sec.label)}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 function OcrPanel ({ onDraft, onEvent, kind }) {
   const [t] = useT()
@@ -495,6 +682,110 @@ function BloodsSection ({ record, update, onEvent }) {
   )
 }
 
+const MODALITIES = [
+  { value: 'ct', label: T.modality_ct },
+  { value: 'mri', label: T.modality_mri },
+  { value: 'us', label: T.modality_us },
+  { value: 'xray', label: T.modality_xray },
+  { value: 'other', label: T.modality_other }
+]
+
+/* Imaging reports. The app stores the CONCLUSION the patient copies from the
+   report, not the whole report, and never interprets it — an imaging finding
+   has no threshold to compare against and no guideline in this app behind it.
+   It is kept so the patient can say what the last scan showed. */
+function ImagingSection ({ record, update, onEvent }) {
+  const [t] = useT()
+  const rows = useMemo(
+    () => [...(record.imaging || [])].sort((a, b) => String(b.date).localeCompare(String(a.date))),
+    [record.imaging]
+  )
+  const paged = usePaged(rows, PAGE.simple)
+  const [draft, setDraft] = useState({ modality: 'ct', bodyPart: '', date: '', finding: '' })
+  const [view, setView] = useState('list')
+
+  const add = () => {
+    if (!draft.finding.trim()) return
+    update(r => ({ ...r, imaging: [...(r.imaging || []), { ...draft, id: store.newId() }] }))
+    setDraft({ modality: draft.modality, bodyPart: '', date: '', finding: '' })
+    onEvent('record_typed_entry', 'bloods')
+    setView('list')
+  }
+  const drop = id => update(r => ({ ...r, imaging: r.imaging.filter(x => x.id !== id) }))
+
+  return (
+    <>
+      <div className="subtabs">
+        <button className="subtab" aria-selected={view === 'list'} onClick={() => setView('list')}>{t(T.col_value)}</button>
+        <button className="subtab" aria-selected={view === 'add'} onClick={() => setView('add')}>{t(T.add)}</button>
+        <button className="subtab" aria-selected={view === 'photo'} onClick={() => setView('photo')}>{t(T.entry_camera)}</button>
+      </div>
+
+      {view === 'photo' ? (
+        <OcrPanel kind="imaging" onEvent={onEvent} onDraft={(_, text) => {
+          setDraft(d => ({ ...d, finding: String(text || '').slice(0, 300), date: draftDateFrom(text) || d.date }))
+          setView('add')
+        }} />
+      ) : null}
+
+      {view === 'add' ? (
+        <div className="card tight">
+          <div className="frm two">
+            <Field label={t(T.col_modality)}>
+              <select value={draft.modality} onChange={e => setDraft({ ...draft, modality: e.target.value })}>
+                {MODALITIES.map(m => <option key={m.value} value={m.value}>{t(m.label)}</option>)}
+              </select>
+            </Field>
+            <Field label={t(T.col_date)}>
+              <input type="date" value={draft.date} onChange={e => setDraft({ ...draft, date: e.target.value })} />
+            </Field>
+            <Field label={t(T.col_bodypart)}>
+              <input value={draft.bodyPart} onChange={e => setDraft({ ...draft, bodyPart: e.target.value })} />
+            </Field>
+            <Field label={t(T.col_finding)} hint={t(T.img_help)}>
+              <input value={draft.finding} onChange={e => setDraft({ ...draft, finding: e.target.value })} />
+            </Field>
+          </div>
+          <button className="btn wide" style={{ marginTop: 8 }} onClick={add}
+                  disabled={!draft.finding.trim()}>+ {t(T.add)}</button>
+        </div>
+      ) : null}
+
+      {view === 'list' ? (
+        <div className="card tight" style={{ flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <p className="hint" style={{ marginBottom: 6 }}>{t(T.img_lead)}</p>
+          {rows.length === 0
+            ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
+            : (
+              <table className="tbl">
+                <thead><tr>
+                  <th>{t(T.col_date)}</th><th>{t(T.col_modality)}</th>
+                  <th>{t(T.col_bodypart)}</th><th>{t(T.col_finding)}</th><th />
+                </tr></thead>
+                <tbody>
+                  {paged.slice.map(r => {
+                    const m = MODALITIES.find(x => x.value === r.modality)
+                    return (
+                      <tr key={r.id}>
+                        <td style={{ whiteSpace: 'nowrap' }}>{r.date || '—'}</td>
+                        <td>{m ? t(m.label) : r.modality}</td>
+                        <td>{r.bodyPart || <span className="hint">—</span>}</td>
+                        <td>{r.finding}</td>
+                        <td><button className="pgbtn" onClick={() => drop(r.id)} aria-label={t(T.remove)}>✕</button></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          <span style={{ flex: 1 }} />
+          <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
+        </div>
+      ) : null}
+    </>
+  )
+}
+
 function TabRecords ({ record, update, onEvent }) {
   const [t] = useT()
   const [section, setSection] = useState('meds')
@@ -506,13 +797,7 @@ function TabRecords ({ record, update, onEvent }) {
         <h1 className="pane-title">{t(T.tab_records)}</h1>
         <p className="pane-lead">{t(T.rec_lead)}</p>
       </div>
-      <div className="subtabs">
-        {REC_SECTIONS.map(s => (
-          <button key={s.id} className="subtab" aria-selected={section === s.id} onClick={() => setSection(s.id)}>
-            {t(s.label)}
-          </button>
-        ))}
-      </div>
+      <Stations record={record} current={section} onPick={setSection} />
       <div className="pane-body">
         {section === 'meds' ? <MedsSection record={record} update={update} onEvent={onEvent} /> : null}
 
@@ -570,6 +855,7 @@ function TabRecords ({ record, update, onEvent }) {
         ) : null}
 
         {section === 'bloods' ? <BloodsSection record={record} update={update} onEvent={onEvent} /> : null}
+        {section === 'imaging' ? <ImagingSection record={record} update={update} onEvent={onEvent} /> : null}
       </div>
     </div>
   )
@@ -594,7 +880,7 @@ function TabMeasurements ({ record, update, onEvent }) {
 
   const liveBmi = calcBMI(draft.weightKg, draft.heightCm)
   const bmiF = latest ? classifyBMI(calcBMI(latest.weightKg, latest.heightCm)) : null
-  const waistF = latest ? classifyWaist(latest.waistCm, record.sex) : null
+  const waistF = latest ? classifyWaist(latest.waistCm, record.gender) : null
 
   const save = () => {
     if (!draft.weightKg && !draft.waistCm) return
@@ -683,8 +969,8 @@ function TabMeasurements ({ record, update, onEvent }) {
               {liveBmi ? <p className="hint" style={{ marginTop: 7 }}>{t(T.m_bmi)}: <b>{liveBmi}</b> kg/m²</p> : null}
             </div>
             <div className="card tight">
-              <Field label={t(T.m_sex)} hint={t(T.m_sex_why)}>
-                <select value={record.sex || ''} onChange={e => update(r => ({ ...r, sex: e.target.value || null }))}>
+              <Field label={t(T.m_gender)} hint={t(T.m_gender_why)}>
+                <select value={record.gender || ''} onChange={e => update(r => ({ ...r, gender: e.target.value || null }))}>
                   <option value="">—</option>
                   <option value="female">{t(T.m_female)}</option>
                   <option value="male">{t(T.m_male)}</option>
@@ -730,12 +1016,19 @@ function TabMeasurements ({ record, update, onEvent }) {
 
 /* =========================================================================
    TAB 4 — Finding Your Way
+
+   Every location offers two actions, and the reason for both is in
+   src/data/wayfinding.js: "Get directions" opens Google Maps with no origin in
+   the URL, so Maps starts from the device's own current position without this
+   app ever requesting, seeing or storing a coordinate; "Exact location" opens
+   the precise link HTPN supplied, which is always right because it points at a
+   saved place rather than a search.
    ====================================================================== */
 function TabWayfinding ({ onEvent, online }) {
   const [t] = useT()
   const [view, setView] = useState('sites')
   const paged = usePaged(DEPARTMENTS, PAGE.depts)
-  const open = (item) => { onEvent('wayfinding_map_opened', item.detailKey) }
+  const go = (item) => onEvent('wayfinding_map_opened', item.detailKey)
 
   return (
     <div className="pane">
@@ -744,7 +1037,9 @@ function TabWayfinding ({ onEvent, online }) {
         <p className="pane-lead">{t(T.way_lead)}</p>
       </div>
       <div className="subtabs">
-        <button className="subtab" aria-selected={view === 'sites'} onClick={() => setView('sites')}>{t(T.way_campuses)}</button>
+        <button className="subtab" aria-selected={view === 'sites'} onClick={() => setView('sites')}>
+          {t(T.way_campuses)}
+        </button>
         <button className="subtab" aria-selected={view === 'depts'} onClick={() => setView('depts')}>
           {t(T.way_departments)} · {DEPARTMENTS.length}
         </button>
@@ -754,35 +1049,54 @@ function TabWayfinding ({ onEvent, online }) {
         {view === 'sites' ? (
           <>
             {CAMPUSES.map(c => (
-              <a key={c.id} className="linkcard big" href={c.map} target="_blank" rel="noreferrer" onClick={() => open(c)}>
-                <span className="nm">{t(c.name)}</span>
-                <span className="sub">{t(c.blurb)}</span>
-                <span className="go">{t(T.way_open_maps)} →</span>
-              </a>
+              <div key={c.id} className="sitecard">
+                <img src={c.image} alt={t(c.name)} />
+                <div className="body">
+                  <span className="nm">{t(c.name)}</span>
+                  <span className="sub">{t(c.blurb)}</span>
+                  <div className="acts">
+                    <a className="btn" href={directionsUrl(c.destination)} target="_blank" rel="noreferrer"
+                       onClick={() => go(c)}>➤ {t(T.way_directions)}</a>
+                    <a className="pin" href={c.map} target="_blank" rel="noreferrer"
+                       onClick={() => go(c)} style={{ fontSize: 12, color: 'var(--brand)', fontWeight: 700 }}>
+                      {t(T.way_exact)}
+                    </a>
+                  </div>
+                </div>
+              </div>
             ))}
             <div className="card tight">
-              <p className="card-t">{t(BEFORE_YOU_COME.title)}</p>
+              <p className="card-t">{t(T.before_you_come)}</p>
               <ul className="bullets">{BEFORE_YOU_COME.points.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
             </div>
-            <span style={{ flex: 1 }} />
             <div className="emergency">
               <div style={{ fontWeight: 800, marginBottom: 3 }}>⚠ {t(T.emergencyHead)}</div>
               {t(EMERGENCY.text)}
             </div>
-            <p className="note">{online ? t(T.way_needs_net) : '⚠ ' + t(T.way_needs_net)}</p>
+            <p className="note">{t(DIRECTIONS_NOTE)} {online ? '' : '· ⚠ '}{t(T.way_needs_net)}</p>
           </>
         ) : (
           <>
             {confirmedCount() < DEPARTMENTS.length ? (
-              <div className="flagline">⚠ {t(T.way_unconfirmed_banner)}</div>
+              <p className="note">{t(T.way_unconfirmed_banner)}</p>
             ) : null}
             <div className="linkgrid">
               {paged.slice.map(d => (
-                <a key={d.id} className={'linkcard' + (d.confirmed ? '' : ' unconfirmed')}
-                   href={d.map} target="_blank" rel="noreferrer" onClick={() => open(d)}>
-                  <span className="nm">{t(d.name)}</span>
-                  <span className="sub">{d.confirmed ? t(T.way_open_maps) : t(UNCONFIRMED_NOTE)}</span>
-                </a>
+                <div key={d.id} className={'deptcard' + (d.confirmed ? '' : ' unconfirmed')}>
+                  <span className="ic"><Icon d={DEPT_ICONS[d.icon] || DEPT_ICONS.pin} /></span>
+                  <span className="tx">
+                    <a className="nm" href={directionsUrl(d.destination)} target="_blank" rel="noreferrer"
+                       onClick={() => go(d)} style={{ color: 'inherit', textDecoration: 'none', display: 'block' }}>
+                      {d.index}. {t(d.name)}
+                    </a>
+                    <span className="sub">
+                      ➤ {t(T.way_directions)}{d.building ? ' · ' + t(d.building) : ''}
+                    </span>
+                  </span>
+                  <a className="pin" href={d.map} target="_blank" rel="noreferrer" onClick={() => go(d)}>
+                    {t(T.way_exact)}
+                  </a>
+                </div>
               ))}
             </div>
             <span style={{ flex: 1 }} />
@@ -857,8 +1171,12 @@ function TabMyUbat ({ onEvent }) {
           <p className="card-s">{t(MYUBAT.howToGet)}</p>
           <p className="note" style={{ marginTop: 6 }}>{t(MYUBAT.onTablet)}</p>
         </div>
-        <a className="btn wide" href={MYUBAT.url} target="_blank" rel="noreferrer"
-           onClick={() => onEvent('myubat_opened', 'none')}>{t(T.ubat_open)} →</a>
+        <div className="btnrow">
+          <a className="btn" style={{ flex: '1 1 60%' }} href={MYUBAT.url} target="_blank" rel="noreferrer"
+             onClick={() => onEvent('myubat_opened', 'none')}>{t(T.ubat_open)} →</a>
+          <a className="btn ghost" style={{ flex: '1 1 30%' }} href={MYUBAT.briefing} target="_blank" rel="noreferrer"
+             onClick={() => onEvent('myubat_opened', 'none')}>{t(T.ubat_brief)} →</a>
+        </div>
         <p className="note"><b>{t(T.ubat_otherphone)}</b> {t(MYUBAT.otherPhones)} · {t(T.needsInternet)}</p>
       </div>
     </div>
@@ -867,9 +1185,50 @@ function TabMyUbat ({ onEvent }) {
 
 /* =========================================================================
    TAB 7 — The Public's Role
+
+   Two sub-tabs: the posters, and the triage lists.
+
+   The triage lists are rendered as text rather than as the poster image, for
+   three reasons: the poster is in Malay only and this app is bilingual; text
+   scales and can be read aloud by a screen reader; and the only copy of the
+   poster available to this build was recovered from a screenshot. That
+   recovered image is still offered, labelled for exactly what it is.
    ====================================================================== */
+function TriageView ({ onLightbox, onEvent }) {
+  const [t] = useT()
+  return (
+    <>
+      <p className="pane-lead" style={{ marginBottom: 2 }}>{t(TRIAGE.lead)}</p>
+      <div className="triage">
+        <div className="tcol ok">
+          <h3>{t(TRIAGE.notEmergency.heading)}</h3>
+          <p className="where">{t(TRIAGE.notEmergency.where)}</p>
+          <ul>{TRIAGE.notEmergency.items.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
+        </div>
+        <div className="tcol bad">
+          <h3>{t(TRIAGE.emergency.heading)}</h3>
+          <p className="where">{t(TRIAGE.emergency.where)}</p>
+          <ul>{TRIAGE.emergency.items.map((x, i) => <li key={i}>{t(x)}</li>)}</ul>
+        </div>
+      </div>
+      <span style={{ flex: 1 }} />
+      <div className="flagline">⚠ {t(TRIAGE.caveat)}</div>
+      <div className="pane-foot" style={{ gap: 10 }}>
+        <button className="btn quiet" onClick={() => {
+          onLightbox({ src: 'posters/emergency-or-not-lowres.jpg', title: TRIAGE.title, note: T.triage_lowres_note })
+          onEvent('poster_opened', 'none')
+        }}>{t(T.triage_original)}</button>
+        <span className="cite" style={{ flex: 1, marginTop: 0 }}>
+          <b>{t(T.basedOn)}:</b> {t(TRIAGE_SOURCE.full)}
+        </span>
+      </div>
+    </>
+  )
+}
+
 function TabRakyat ({ onEvent, onLightbox }) {
   const [t] = useT()
+  const [view, setView] = useState('posters')
   const [role, setRole] = useState(1)
   const items = useMemo(() => postersForRole(role), [role])
   const paged = usePaged(items, PAGE.posters)
@@ -879,27 +1238,44 @@ function TabRakyat ({ onEvent, onLightbox }) {
     <div className="pane">
       <div className="pane-head">
         <h1 className="pane-title">{t(POSTER_SECTION.title)}</h1>
-        <p className="pane-lead">{t(POSTER_SECTION.subtitle)} · {t(POSTER_SECTION.lead)}</p>
+        <p className="pane-lead">{t(POSTER_SECTION.subtitle)}</p>
       </div>
+
       <div className="subtabs">
-        {ROLES.map(r => (
-          <button key={r.role} className="subtab" aria-selected={role === r.role} onClick={() => setRole(r.role)}>
-            {r.role ? r.role + '. ' : ''}{t(r.title)}
-          </button>
-        ))}
+        <button className="subtab" aria-selected={view === 'posters'} onClick={() => setView('posters')}>
+          {t(T.rakyat_sub_posters)} · {POSTERS.length}
+        </button>
+        <button className="subtab" aria-selected={view === 'triage'} onClick={() => setView('triage')}>
+          {t(T.rakyat_sub_triage)}
+        </button>
       </div>
+
       <div className="pane-body">
-        <div className="postergrid">
-          {paged.slice.map(p => (
-            <button key={p.id} className="postercard"
-                    onClick={() => { onLightbox(p); onEvent('poster_opened', roleObj?.detailKey || 'role_other') }}>
-              <img src={p.src} alt={t(p.title)} loading="lazy" />
-              <span className="cap">{t(p.title)}</span>
-            </button>
-          ))}
-        </div>
-        <span style={{ flex: 1 }} />
-        <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
+        {view === 'triage' ? <TriageView onLightbox={onLightbox} onEvent={onEvent} /> : (
+          <>
+            <div className="subtabs">
+              {ROLES.map(r => (
+                <button key={r.role} className="subtab" aria-selected={role === r.role} onClick={() => setRole(r.role)}>
+                  {r.role ? r.role + '. ' : ''}{t(r.title)}
+                </button>
+              ))}
+            </div>
+            <div className="postergrid">
+              {paged.slice.map(p => (
+                <button key={p.id} className="postercard"
+                        onClick={() => { onLightbox(p); onEvent('poster_opened', roleObj?.detailKey || 'role_other') }}>
+                  <img src={p.src} alt={t(p.title)} loading="lazy" />
+                  <span className="cap">
+                    {t(p.title)}
+                    <span className="credit">{t(p.creditLabel)}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+            <span style={{ flex: 1 }} />
+            <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
+          </>
+        )}
       </div>
     </div>
   )
@@ -916,7 +1292,8 @@ function Lightbox ({ item, onClose, onEvent }) {
       <img src={item.src} alt={t(item.title)} />
       <div className="lbbar">
         <span>{t(item.title)}</span>
-        {item.creditLabel ? <span style={{ opacity: .7 }}>· {t(T.poster_credit)} {t(item.creditLabel)}</span> : null}
+        {item.creditLabel ? <span style={{ opacity: .7 }}>· {t(item.creditLabel)}</span> : null}
+        {item.note ? <span style={{ opacity: .7, fontSize: 11 }}>· {t(item.note)}</span> : null}
         <span className="sp" />
         <a className="btn ghost" href={item.src} download onClick={() => onEvent('poster_downloaded', 'none')}>
           {t(T.poster_download)}
@@ -1075,6 +1452,10 @@ function PrintSheet ({ record, identifiers, lang }) {
 
   return (
     <div className="printonly">
+      <div className="plogos">
+        <img src="brand/logo-kkm-htpn.jpg" alt="Kementerian Kesihatan Malaysia — HTPN" />
+        <img src="brand/logo-kajang.png" alt="Hospital Kajang" />
+      </div>
       <h1>{t(T.print_title)}</h1>
       <p className="meta">
         {t(APP.name)} — {t(APP.facility)}<br />
@@ -1152,6 +1533,22 @@ function PrintSheet ({ record, identifiers, lang }) {
         </>
       ) : null}
 
+      {(record.imaging || []).length ? (
+        <>
+          <h2>{t(T.sec_imaging)}</h2>
+          <table><tbody>
+            {record.imaging.map(g => (
+              <tr key={g.id}>
+                <td>{g.date}</td>
+                <td>{t(MODALITIES.find(m => m.value === g.modality)?.label || g.modality)}</td>
+                <td>{g.bodyPart}</td>
+                <td>{g.finding}</td>
+              </tr>
+            ))}
+          </tbody></table>
+        </>
+      ) : null}
+
       {findings.length ? (
         <>
           <h2>{t(T.whatToDo)}</h2>
@@ -1161,6 +1558,7 @@ function PrintSheet ({ record, identifiers, lang }) {
           </p>
         </>
       ) : null}
+      <p className="meta" style={{ marginTop: '6mm' }}>{t(T.credit)}</p>
     </div>
   )
 }
@@ -1311,6 +1709,10 @@ export default function App () {
     <LangCtx.Provider value={lang}>
       <div className="shell">
         <header className="hdr">
+          <div className="hdr-logos">
+            <img src="brand/logo-kkm-htpn.jpg" alt="Kementerian Kesihatan Malaysia — HTPN" className="wide-only" />
+            <img src="brand/logo-kajang.png" alt="Hospital Kajang" />
+          </div>
           <div>
             <div className="hdr-title">{pick(T.appName, lang)}</div>
             <div className="hdr-sub">{pick(T.appBy, lang)} · {pick(T.prototype, lang)}</div>
@@ -1347,9 +1749,10 @@ export default function App () {
 
         <div className="statusbar">
           <span className={'dot ' + (status === 'sent' ? '' : status === 'failed' || status === 'refused' ? 'bad' : 'off')} />
-          <span>{pick(statusText, lang)}</span>
+          <span className="st">{pick(statusText, lang)}</span>
+          <span className="net">· {online ? pick(T.offlineReady, lang) : '⚠ ' + pick(T.offlineReady, lang)}</span>
           <span className="sp" />
-          <span>{online ? pick(T.offlineReady, lang) : '⚠ ' + pick(T.offlineReady, lang)}</span>
+          <span className="credit">{pick(T.credit, lang)}</span>
         </div>
       </div>
 

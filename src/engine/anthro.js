@@ -85,9 +85,9 @@ export function classifyBMI (bmiValue) {
   }
 }
 
-/* Sex is needed because the cited threshold is sex-specific. When it is not
-   recorded the app refuses to pick one for the patient. */
-export function classifyWaist (waistCm, sex) {
+/* Gender is needed because the cited threshold is gender-specific. When it is
+   not recorded the app refuses to pick one on the patient's behalf. */
+export function classifyWaist (waistCm, gender) {
   const v = num(waistCm)
   if (v === null) {
     return {
@@ -97,19 +97,19 @@ export function classifyWaist (waistCm, sex) {
       steps: [], source: WAIST_THRESHOLD.anchoredTo, flag: null
     }
   }
-  if (sex !== 'male' && sex !== 'female') {
+  if (gender !== 'male' && gender !== 'female') {
     return {
       id: 'waist', level: 'none', value: v,
       title: { en: 'Waist circumference', ms: 'Lilit pinggang' },
       detail: {
-        en: `${v} cm recorded. The cited threshold is different for men and women, so this app will not interpret the number until that is recorded.`,
-        ms: `${v} cm direkodkan. Ambang yang dipetik berbeza bagi lelaki dan wanita, jadi aplikasi ini tidak akan mentafsir nombor ini sehingga ia direkodkan.`
+        en: `${v} cm recorded. The cited threshold differs between men and women, so this app will not interpret the figure until gender is recorded.`,
+        ms: `${v} cm direkodkan. Ambang yang dirujuk berbeza antara lelaki dan perempuan, maka aplikasi ini tidak akan mentafsirkan angka ini sehingga jantina direkodkan.`
       },
       steps: [], source: WAIST_THRESHOLD.anchoredTo,
-      flag: { en: 'Not interpreted: sex not recorded.', ms: 'Tidak ditafsir: jantina tidak direkodkan.' }
+      flag: { en: 'Not interpreted: gender not recorded.', ms: 'Tidak ditafsirkan: jantina belum direkodkan.' }
     }
   }
-  const cut = sex === 'male' ? WAIST_THRESHOLD.male : WAIST_THRESHOLD.female
+  const cut = gender === 'male' ? WAIST_THRESHOLD.male : WAIST_THRESHOLD.female
   const over = v >= cut
   return {
     id: 'waist',

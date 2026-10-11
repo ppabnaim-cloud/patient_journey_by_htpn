@@ -9,7 +9,8 @@
    nobody had supplied. It is gone.
 
      IQMS.url     supplied by HTPN (Dr Naim).
-     MYUBAT.url   supplied by HTPN (Dr Naim) — the Google Play listing.
+     MYUBAT.url      supplied by HTPN (Dr Naim) — the Google Play listing.
+     MYUBAT.briefing supplied by HTPN (Dr Naim) — the official briefing site.
      EMERGENCY    999 is the Malaysian emergency number. No link.
 
    Do not add a link here that was not given to you. If you need one and do not
@@ -41,6 +42,9 @@ export const MYUBAT = {
      nothing can be installed. */
   url: 'https://play.google.com/store/apps/details?id=my.gov.onegovappstore.myubat&hl=en',
   isApp: true,
+  /* The official briefing page, run by Bahagian Perkhidmatan Farmasi. It
+     explains the scheme; the app above is how a patient actually orders. */
+  briefing: 'https://myubat.pharmacy.gov.my/?lang=en',
   name: { en: 'MyUbat — medicine delivered home', ms: 'MyUbat — ubat dihantar ke rumah' },
   howToGet: {
     en: 'MyUbat is an app you install on your own phone, not a website. Download it from Google Play, then sign in there.',
