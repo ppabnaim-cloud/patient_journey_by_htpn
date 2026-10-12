@@ -38,6 +38,11 @@ import {
 import { ASK_FOR_IC, newTicket, downscaleImage, validateFeedback, ageFromIc } from './feedback.js'
 import { sendFeedback, feedbackConfigured } from './feedbackSend.js'
 import {
+  APPRECIATION_2026, TOTAL_2026, AS_AT, APPRECIATION_YEAR,
+  SOURCE_NOTE, QUERIED_NOTE, parseSummaryCsv
+} from './data/appreciation.js'
+import { OFFICIAL_FORM, ROUTE, buildPrefillUrl } from './data/officialForm.js'
+import {
   dueState, daysUntil, reminderDate, upcoming, pastAppointments,
   REMIND_DAYS_BEFORE, APPT_SOURCE
 } from './engine/appointments.js'
@@ -2156,6 +2161,103 @@ function ShareTemplate ({ group, onEvent }) {
   )
 }
 
+
+/* ===========================================================================
+   AppreciationBoard — how many appreciations each ward and clinic received
+   this year, shown on the Feedback tab to make the point that saying so is
+   a thing people here actually do.
+
+   It shows counts and places. It does not show who gave the appreciation,
+   what form it took, which staff member was named, or which bed the patient
+   was in — see the head of src/data/appreciation.js for why the last two
+   matter as much as the first two.
+
+   The figures ship with the app and are dated. If VITE_APPRECIATION_CSV
+   points at the published SUMMARY sheet, they are refreshed from it on
+   open; if that fetch fails, or the app is offline, the shipped figures
+   stay on screen with their own date rather than the panel going blank.
+   ========================================================================= */
+const APPRECIATION_CSV = String(import.meta.env?.VITE_APPRECIATION_CSV ?? '')
+
+function useAppreciation () {
+  const [rows, setRows] = useState(APPRECIATION_2026)
+  const [asAt, setAsAt] = useState(AS_AT)
+  const [live, setLive] = useState(false)
+
+  useEffect(() => {
+    if (!APPRECIATION_CSV) return
+    let cancelled = false
+    fetch(APPRECIATION_CSV, { cache: 'no-store' })
+      .then(r => (r.ok ? r.text() : Promise.reject(new Error('http ' + r.status))))
+      .then(text => {
+        const parsed = parseSummaryCsv(text)
+        /* An empty or unparseable file leaves the shipped figures alone. A
+           dashboard that silently drops to zero reads as "nobody said thank
+           you this year", which would be both wrong and dispiriting. */
+        if (!cancelled && parsed.length) {
+          setRows(parsed); setLive(true); setAsAt(isoDay(new Date()))
+        }
+      })
+      .catch(() => { /* keep what shipped */ })
+    return () => { cancelled = true }
+  }, [])
+
+  return { rows, asAt, live }
+}
+
+function AppreciationBoard () {
+  const [t, lang] = useT()
+  const { rows, asAt, live } = useAppreciation()
+  const total = rows.reduce((n, r) => n + r.n, 0)
+  const top = rows.filter(r => r.n > 1)
+  const singles = rows.filter(r => r.n <= 1)
+  const max = Math.max(1, ...rows.map(r => r.n))
+  const queried = rows.some(r => r.queried)
+
+  return (
+    <>
+      <div className="card tight">
+        <div className="statrow">
+          <div className="stat">
+            <div className="stat-v">{total}</div>
+            <div className="stat-l">{t(T.fb_board_total)}</div>
+          </div>
+          <div className="stat">
+            <div className="stat-v">{rows.length}</div>
+            <div className="stat-l">{t(T.fb_board_places)}</div>
+          </div>
+        </div>
+        <p className="card-s" style={{ marginTop: 8 }}>{t(T.fb_board_lead)}</p>
+      </div>
+
+      <div className="card tight listcard">
+        <p className="chart-t">{t(T.fb_board_top)} · {APPRECIATION_YEAR}</p>
+        <div className="appgrid">
+          {top.map(r => (
+            <div className="approw" key={r.loc}>
+              <span className="apploc">{r.loc}</span>
+              <span className="appbar"><i style={{ width: Math.round((r.n / max) * 100) + '%' }} /></span>
+              <span className="appn">{r.n}</span>
+            </div>
+          ))}
+        </div>
+        {singles.length ? (
+          <p className="note" style={{ marginTop: 8 }}>
+            {t(T.fb_board_rest).replace('{n}', String(singles.length))} — {singles.map(r => r.loc).join(' · ')}
+          </p>
+        ) : null}
+      </div>
+
+      <span style={{ flex: 1 }} />
+      <p className="cite">
+        <b>{t(T.basedOn)}:</b> {t(SOURCE_NOTE)} {t(T.fb_board_asat).replace('{d}', asAt)}
+        {live ? ' · ' + t(T.fb_board_live) : ''}
+      </p>
+      {queried ? <p className="note">{t(QUERIED_NOTE)}</p> : null}
+    </>
+  )
+}
+
 function TabFeedback ({ onEvent }) {
   const [t, lang] = useT()
   const [view, setView] = useState('what')
@@ -2262,15 +2364,52 @@ function TabFeedback ({ onEvent }) {
         <button className="subtab" aria-selected={view === 'what'} onClick={() => setView('what')}>{t(T.fb_step_what)}</button>
         <button className="subtab" aria-selected={view === 'detail'} onClick={() => setView('detail')}>{t(T.fb_step_detail)}</button>
         <button className="subtab" aria-selected={view === 'you'} onClick={() => setView('you')}>{t(T.fb_step_you)}</button>
+        <button className="subtab" aria-selected={view === 'board'} onClick={() => setView('board')}>{t(T.fb_board)}</button>
       </div>
 
       <div className="pane-body">
+        {view === 'board' ? <AppreciationBoard /> : null}
+
+        {view === 'official' ? (
+          <>
+            <div className="card tight">
+              <p className="card-t">{t(category || { en: 'Feedback', ms: 'Maklum balas' })}</p>
+              <p className="card-s">{t(OFFICIAL_FORM.lead)}</p>
+              <p className="note" style={{ marginTop: 7 }}>
+                <b>{t(T.fb_goes_to)}:</b> {t(OFFICIAL_FORM.goesTo)}
+              </p>
+            </div>
+            <div className="card tight">
+              <p className="card-s">{t(OFFICIAL_FORM.leaving)}</p>
+              <a className="btn wide" style={{ marginTop: 9 }}
+                 href={buildPrefillUrl({ category: form.category, areaId: form.areaId, message: form.message })}
+                 target="_blank" rel="noreferrer"
+                 onClick={() => onEvent('official_form_opened', form.category || 'none')}>
+                {t(OFFICIAL_FORM.open)} ↗
+              </a>
+            </div>
+            <span style={{ flex: 1 }} />
+            <div className="emergency">⚠ {t(URGENT)}</div>
+            <button className="btn quiet" onClick={() => { set({ category: '' }); setView('what') }}>
+              ‹ {t(T.fb_back)}
+            </button>
+          </>
+        ) : null}
+
         {view === 'what' ? (
           <>
+            {/* The reason to open the board, offered where the patient is
+                deciding whether to bother saying anything at all. */}
+            <button type="button" className="teaser" onClick={() => setView('board')}>
+              {t(T.fb_board_teaser).replace('{n}', String(TOTAL_2026))} ›
+            </button>
             {CATEGORIES.map(c => (
               <button key={c.id} type="button"
                       className={'card tight pickcard' + (form.category === c.id ? ' on' : '')}
-                      onClick={() => { set({ category: c.id, consentPublish: false }); setView('detail') }}>
+                      onClick={() => {
+                        set({ category: c.id, consentPublish: false })
+                        setView(ROUTE[c.id] === 'official' ? 'official' : 'detail')
+                      }}>
                 <p className="card-t">{t(c)}</p>
                 <p className="card-s">{t(c.lead)}</p>
               </button>

@@ -666,6 +666,19 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   text-decoration: none;
 }
 .hashline { display: flex; align-items: center; gap: 8px; }
+/* ---------- appreciation board ---------- */
+.teaser { flex: 0 0 auto; width: 100%; text-align: left; padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--brand); background: var(--brand-tint); color: var(--brand);
+  font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.appgrid { display: flex; flex-direction: column; gap: 5px; margin-top: 7px; }
+.approw { display: grid; grid-template-columns: 112px 1fr 30px; align-items: center; gap: 8px; }
+.apploc { font-size: 12px; font-weight: 650; color: var(--ink); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.appbar { display: block; height: 11px; border-radius: 999px; background: var(--grid); overflow: hidden; }
+.appbar i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
+.appn { font-size: 12px; font-weight: 700; color: var(--ink-soft); text-align: right;
+  font-variant-numeric: tabular-nums; }
+
 /* ---------- feedback ---------- */
 /* The one tab that transmits says so on every view, in a colour used
    nowhere else in the app. */

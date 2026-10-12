@@ -137,6 +137,7 @@ export const ACTIONS = [
   /* The count only. Not the rating, not the department, and nothing the
      patient wrote — that travels on the feedback channel, with consent. */
   'feedback_sent',
+  'official_form_opened',
   'consent_given',
   'consent_declined'
 ]
