@@ -6,22 +6,19 @@
    from another hospital's directory: a clinic that is not on this list does
    not appear in the app, and the patient types a free-text note instead.
 
-   TWO ENTRIES ARE TRANSCRIBED AS GIVEN AND QUERIED, NOT CORRECTED
-   `queried: true` marks a name that reads as though a word may have been
-   lost in the list that was handed over. They are rendered exactly as HTPN
-   wrote them, because a department's own name is HTPN's to state and not this
-   build's to improve, and they are flagged here so somebody answers rather
-   than the app quietly inventing an answer:
+   TWO NAMES WERE QUERIED RATHER THAN CORRECTED. BOTH ARE NOW ANSWERED.
+   Each had one reading that sends a patient to the right door and one that
+   does not, so neither was a spelling to tidy up silently:
 
-     - Psychiatry → "acute & emergency medicine". Reads like acute and
-       emergency PSYCHIATRY; acute and emergency medicine is its own
-       discipline and already has a department.
-     - Rehabilitation → "unit physiology". Reads like PHYSIOTHERAPY
-       (fisioterapi). Physiology is a basic science, not a clinic a patient
-       is given an appointment at.
+     - Psychiatry → "acute & emergency medicine" read like acute and
+       emergency PSYCHIATRY, while acute and emergency medicine is its own
+       discipline with its own department. HTPN's answer: no sub-clinics at
+       all, one "Psychiatry Clinic".
+     - Rehabilitation → "unit physiology" read like PHYSIOTHERAPY. HTPN
+       confirmed physiotherapy, and named four units in all.
 
-   Each has one meaning that sends a patient to the right door and one that
-   does not, so neither is a spelling to tidy up silently.
+   The `queried` field remains supported for the next name nobody is sure
+   of; nothing carries it today.
 
    NUMBERING
    None. These are chosen from a list, not walked to, so a number here would
@@ -65,12 +62,11 @@ export const DEPARTMENTS = [
     icon: 'clinic',
     en: 'Department of Psychiatry & Mental Health',
     ms: 'Jabatan Psikiatri dan Kesihatan Mental',
+    /* HTPN asked for psychiatry to stay general rather than break into
+       sub-clinics, which also settles the queried "acute & emergency
+       medicine" entry: it is gone rather than guessed at. */
     clinics: [
-      { id: 'psy_general', en: 'General', ms: 'Am' },
-      { id: 'psy_geri', en: 'Psychogeriatric', ms: 'Psikogeriatrik' },
-      { id: 'psy_addiction', en: 'Addiction', ms: 'Ketagihan' },
-      { id: 'psy_acute', en: 'Acute & Emergency Medicine', ms: 'Perubatan Akut & Kecemasan', queried: true },
-      { id: 'psy_cap', en: 'Child & Adolescent Psychiatry', ms: 'Psikiatri Kanak-kanak & Remaja' }
+      { id: 'psy_clinic', en: 'Psychiatry Clinic', ms: 'Klinik Psikiatri' }
     ]
   },
   {
@@ -150,9 +146,9 @@ export const DEPARTMENTS = [
     en: 'Department of Rehabilitation',
     ms: 'Jabatan Rehabilitasi',
     clinics: [
-      { id: 'rehab_clinic', en: 'Rehabilitation Clinic', ms: 'Klinik Rehabilitasi' },
-      { id: 'rehab_ot', en: 'Occupational Therapy Unit', ms: 'Unit Terapi Carakerja' },
-      { id: 'rehab_physio', en: 'Physiology Unit', ms: 'Unit Physiology', queried: true },
+      { id: 'rehab_general', en: 'General Rehabilitation', ms: 'Rehabilitasi Am' },
+      { id: 'rehab_physio', en: 'Physiotherapy', ms: 'Fisioterapi' },
+      { id: 'rehab_ot', en: 'Occupational Therapy', ms: 'Terapi Carakerja' },
       { id: 'rehab_speech', en: 'Speech Therapy', ms: 'Terapi Pertuturan' }
     ]
   }
