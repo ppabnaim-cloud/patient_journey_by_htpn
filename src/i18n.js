@@ -157,6 +157,61 @@ export const T = {
   appt_phase2: L('Coming later', 'Akan Datang'),
   appt_pick_dept: L('Choose a department', 'Pilih jabatan'),
   appt_pick_clinic: L('Choose a clinic or unit', 'Pilih klinik atau unit'),
+  /* --- feedback (tab 9) --- */
+  tab_fb: L('Feedback', 'Maklum Balas'),
+  short_fb: L('Say', 'Suara'),
+  fb_title: L('Tell us how we did', 'Beritahu Kami Pengalaman Anda'),
+  fb_lead: L(
+    'Rate the service and tell HTPN what happened. This is the one screen in the app that sends what you type to the hospital.',
+    'Nilaikan perkhidmatan kami dan beritahu HTPN apa yang berlaku. Ini satu-satunya skrin dalam aplikasi ini yang menghantar apa yang anda taip kepada pihak hospital.'
+  ),
+  fb_sent_banner: L('What you type here is sent to HTPN', 'Apa yang anda taip di sini akan dihantar kepada HTPN'),
+  fb_step_what: L('What for', 'Tujuan'),
+  fb_step_detail: L('Details', 'Butiran'),
+  fb_step_you: L('About you', 'Tentang Anda'),
+  fb_rating: L('How was the service?', 'Bagaimana perkhidmatan kami?'),
+  fb_area: L('Which department or service?', 'Jabatan atau perkhidmatan yang mana?'),
+  fb_area_pick: L('Choose one', 'Pilih satu'),
+  fb_visit: L('When did this happen?', 'Bilakah ia berlaku?'),
+  fb_message: L('In your own words', 'Dalam ayat anda sendiri'),
+  fb_message_eg: L('What happened, and who was involved if you remember', 'Apa yang berlaku, dan siapa yang terlibat jika anda ingat'),
+  fb_photo: L('Attach a photograph', 'Lampirkan gambar'),
+  fb_photo_note: L(
+    'Made smaller on this phone before it is sent, and the location stamp your camera adds is dropped.',
+    'Dikecilkan dalam telefon ini sebelum dihantar, dan cap lokasi daripada kamera anda akan digugurkan.'
+  ),
+  fb_photo_remove: L('Remove photograph', 'Buang gambar'),
+  fb_photo_toobig: L('That image is too large even after shrinking. Try another.', 'Gambar itu terlalu besar walaupun selepas dikecilkan. Sila cuba yang lain.'),
+  fb_anon: L('Send this anonymously', 'Hantar tanpa nama'),
+  fb_anon_note: L(
+    'No name, registration number or email is sent. HTPN reads it, and cannot reply.',
+    'Tiada nama, nombor pendaftaran atau e-mel akan dihantar. HTPN akan membacanya, tetapi tidak dapat membalas.'
+  ),
+  fb_name: L('Name', 'Nama'),
+  fb_rn: L('Hospital registration number (RN)', 'Nombor pendaftaran hospital (RN)'),
+  fb_rn_note: L('If you have it to hand. It helps HTPN find your case.', 'Jika ada pada anda. Ia membantu HTPN mengesan kes anda.'),
+  fb_email: L('Email', 'E-mel'),
+  fb_age: L('Age', 'Umur'),
+  fb_ic: L('IC number', 'Nombor kad pengenalan'),
+  fb_send: L('Send to HTPN', 'Hantar kepada HTPN'),
+  fb_sending: L('Sending…', 'Menghantar…'),
+  fb_sent: L('Sent. Thank you.', 'Telah dihantar. Terima kasih.'),
+  fb_ref: L('Your reference', 'Rujukan anda'),
+  fb_ref_note: L('Write this down if you would like to follow it up.', 'Catatkan nombor ini sekiranya anda ingin membuat susulan.'),
+  fb_another: L('Send another', 'Hantar satu lagi'),
+  fb_fail_off: L(
+    'The form is not accepting submissions yet. Nothing was sent, and what you wrote is still here.',
+    'Borang ini belum menerima penghantaran. Tiada apa-apa yang dihantar, dan apa yang anda tulis masih ada di sini.'
+  ),
+  fb_fail_net: L(
+    'That did not go through. What you wrote is still here — try again when you have a connection.',
+    'Penghantaran tidak berjaya. Apa yang anda tulis masih ada di sini — sila cuba semula apabila anda mempunyai sambungan.'
+  ),
+  fb_need: L('Please choose a department and write a few words.', 'Sila pilih jabatan dan tulis beberapa patah perkataan.'),
+  fb_need_email: L('An email address is needed if you would like a reply.', 'Alamat e-mel diperlukan sekiranya anda mahukan balasan.'),
+  fb_bad_email: L('That email address does not look right.', 'Alamat e-mel itu kelihatan tidak betul.'),
+  fb_also_share: L('Share it on Facebook yourself too', 'Kongsikan juga di Facebook anda sendiri'),
+  fb_who_reads: L('Who reads this', 'Siapa yang membacanya'),
   gh_sub_tpl: L('Templates', 'Templat'),
   ubat_read_news: L('Read the news report', 'Baca laporan berita'),
   gh_sub_how: L('How to post', 'Cara Berkongsi'),

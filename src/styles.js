@@ -666,6 +666,29 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   text-decoration: none;
 }
 .hashline { display: flex; align-items: center; gap: 8px; }
+/* ---------- feedback ---------- */
+/* The one tab that transmits says so on every view, in a colour used
+   nowhere else in the app. */
+.sendbar { flex: 0 0 auto; margin: 0 0 8px; padding: 6px 11px; border-radius: 8px;
+  font-size: 12px; font-weight: 700; background: var(--watch-bg); color: var(--watch);
+  border: 1px solid var(--watch); }
+.stars { display: flex; gap: 4px; margin-top: 8px; }
+.star { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 2px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); cursor: pointer; }
+.star.on { border-color: var(--brand); background: var(--brand-tint); }
+.star-g { font-size: 19px; line-height: 1; color: var(--ink-faint); }
+.star.on .star-g { color: var(--brand); }
+.star-l { font-size: 9.5px; font-weight: 700; letter-spacing: .02em; color: var(--ink-soft);
+  text-align: center; line-height: 1.2; }
+.star.on .star-l { color: var(--brand); }
+.pickcard { text-align: left; width: 100%; border: 1px solid var(--line); cursor: pointer; }
+.pickcard.on { border-color: var(--brand); }
+.chk { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; line-height: 1.45; }
+.chk input { margin-top: 2px; flex: 0 0 auto; width: 17px; height: 17px; accent-color: var(--brand); }
+textarea { width: 100%; font: inherit; font-size: 13.5px; padding: 8px 10px; resize: vertical;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); }
+
 /* ---------- appointments ---------- */
 .apptcard { border-left: 3px solid var(--line); }
 .apptcard.today { border-left-color: var(--attention); }

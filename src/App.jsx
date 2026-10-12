@@ -32,6 +32,12 @@ import { CAMPAIGN, HASHTAG } from './data/campaign.js'
 import { TAGS, TEMPLATES, GROUPS, HTPN_PAGE, TEMPLATE_NOTE, UNCHECKED_NOTE, BEFORE_POSTING } from './data/templates.js'
 import { DEPARTMENTS as CLINIC_DEPTS, CLINIC_INDEX } from './data/departments.js'
 import {
+  RATING_LABELS, RATING_MAX, CATEGORIES, FEEDBACK_AREAS, CONSENT,
+  HANDLING, URGENT, OFFICIAL_CHANNEL, IMAGE_LIMITS
+} from './data/feedback.js'
+import { ASK_FOR_IC, newTicket, downscaleImage, validateFeedback, ageFromIc } from './feedback.js'
+import { sendFeedback, feedbackConfigured } from './feedbackSend.js'
+import {
   dueState, daysUntil, reminderDate, upcoming, pastAppointments,
   REMIND_DAYS_BEFORE, APPT_SOURCE
 } from './engine/appointments.js'
@@ -71,6 +77,7 @@ const DEPT_ICONS = {
 }
 
 const ICONS = {
+  feedback: ['M4 5h16v11H9l-5 4z', 'M8 9h8M8 12h5'],
   appointments: ['M4 6h16v15H4z', 'M8 3v5M16 3v5', 'M4 11h16', 'M9 15h2M13 15h2'],
   dashboard: ['M3 12h4l2.5 7 5-14L17 12h4'],
   records: ['M6 3h9l3 3v15H6z', 'M9 10h7', 'M9 14h7', 'M9 18h4'],
@@ -1961,6 +1968,25 @@ function ActivitySection ({ record, update, onEvent }) {
         <p className="note" style={{ marginTop: 7 }}>{t(CAMPAIGN.trackers.caveat)}</p>
       </div>
 
+      {/* The lifestyle hashtags live here now, beside the walk they describe,
+          rather than on a tab of their own. */}
+      <div className="card tight">
+        <div className="hashline">
+          <span className="hashtag sm">#{HASHTAG}</span>
+          <span className="tagtheme">#10ribulangkahHTPN</span>
+          <span style={{ flex: 1 }} />
+          <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
+                  onClick={async () => {
+                    const text = pick(CAMPAIGN.shareText, lang)
+                    onEvent('share_opened', 'none')
+                    if (navigator.share) { try { await navigator.share({ text }) } catch { /* dismissed */ } return }
+                    try { await navigator.clipboard.writeText(text) } catch { /* nothing to do */ }
+                  }}>
+            ↗ {t(T.gh_share)}
+          </button>
+        </div>
+      </div>
+
       <span style={{ flex: 1 }} />
 
       <div className="card tight">
@@ -2053,164 +2079,347 @@ function ShareIt ({ onEvent }) {
   )
 }
 
-function TagList ({ group, t }) {
-  const tags = TAGS.filter(x => x.group === group)
-  return (
-    <div className="card tight">
-      <p className="card-t">{t(T.gh_h_tags)}</p>
-      <div className="taggrid">
-        {tags.map(x => (
-          <div key={x.id} className="tagchip">
-            <span className="hashtag sm">#{x.tag}</span>
-            <span className="tagtheme">{t(x.theme)}</span>
-            {!x.verified ? <span className="badge warn">{t(T.gh_unchecked)}</span> : null}
-          </div>
-        ))}
-      </div>
-      {tags.some(x => !x.verified)
-        ? <div className="flagline" style={{ marginTop: 8 }}>⚠ {t(UNCHECKED_NOTE)}</div>
-        : null}
-    </div>
-  )
-}
 
 /* One of the two aims, with its hashtags and its posts under it. The screen
    is organised by what the patient is trying to say, not by which hashtag
    happens to carry it. */
-function SocialGroup ({ group, onEvent }) {
-  const [t, lang] = useT()
-  const narrow = useNarrow()
-  const [copied, setCopied] = useState(null)
-  const meta = GROUPS.find(g => g.id === group)
-  const posts = TEMPLATES.filter(x => x.group === group)
-  const tagOf = (id) => TAGS.find(x => x.id === id)
-  const paged = usePaged(posts, narrow ? posts.length : 2)
 
-  const copy = async (text, what) => {
-    try { await navigator.clipboard.writeText(text) } catch { /* nothing to do */ }
-    setCopied(what); setTimeout(() => setCopied(null), 1800)
-  }
 
+
+/* ===========================================================================
+   Feedback — the last tab, and the only screen in the app that transmits
+   what the patient types.
+
+   The banner at the top of every view of this tab says so. It is not a
+   disclaimer in small print at the bottom: a patient deciding whether to
+   name a nurse needs to know where the sentence is going before they write
+   it, not after.
+
+   This component reads `record` for nothing. It is not even passed in.
+   ========================================================================= */
+function Stars ({ value, onChange, t, lang }) {
   return (
-    <>
-      <div className="card tight">
-        <p className="card-t">{t(meta.title)}</p>
-        <p className="card-s">{t(meta.lead)}</p>
-      </div>
-
-      <TagList group={group} t={t} />
-
-      <p className="sect">{t(T.gh_h_posts)}</p>
-      {paged.slice.map(tpl => {
-        const tag = tagOf(tpl.tagId)
-        return (
-          <div className="card tight" key={tpl.id}>
-            <div className="hashline">
-              <span className="card-t" style={{ margin: 0 }}>{t(tpl.title)}</span>
-              <span style={{ flex: 1 }} />
-              <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
-                      onClick={() => { copy(pick(tpl.body, lang), tpl.id); onEvent('share_opened', 'none') }}>
-                {copied === tpl.id ? '✓ ' + t(T.gh_copied) : t(T.gh_copy_post)}
-              </button>
-            </div>
-            <pre className="tplbody">{t(tpl.body)}</pre>
-            {tag?.note ? <p className="note" style={{ marginTop: 6 }}>{t(tag.note)}</p> : null}
-          </div>
-        )
-      })}
-
-      <span style={{ flex: 1 }} />
-      {!narrow && paged.pages > 1
-        ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
-        : null}
-      <p className="note">{t(TEMPLATE_NOTE)}</p>
-    </>
+    <div className="stars" role="radiogroup" aria-label={t(T.fb_rating)}>
+      {RATING_LABELS.map(r => (
+        <button key={r.v} type="button" role="radio" aria-checked={value === r.v}
+                className={'star' + (value >= r.v ? ' on' : '')}
+                onClick={() => onChange(value === r.v ? 0 : r.v)}>
+          <span className="star-g">{value >= r.v ? '★' : '☆'}</span>
+          <span className="star-l">{pick(r, lang)}</span>
+        </button>
+      ))}
+    </div>
   )
 }
 
-function HowToPost ({ onEvent }) {
+/* The hashtags and one ready-made post, offered at the moment a patient has
+   just said something kind and might want to say it publicly too. It replaces
+   the tab that used to hold these: a hashtag is not a destination a patient
+   navigates to, it is something offered when it is relevant. */
+function ShareTemplate ({ group, onEvent }) {
   const [t, lang] = useT()
   const [copied, setCopied] = useState(null)
+  const posts = TEMPLATES.filter(x => x.group === group)
+  const [i, setI] = useState(0)
+  const tpl = posts[i % posts.length]
 
   const copy = async (text, what) => {
     try { await navigator.clipboard.writeText(text) } catch { /* nothing to do */ }
     setCopied(what); setTimeout(() => setCopied(null), 1800)
   }
 
-  const share = async () => {
-    const text = pick(CAMPAIGN.shareText, lang)
-    onEvent('share_opened', 'none')
-    /* The device's own share sheet. The app never sees what is chosen or
-       posted — it hands the text over and stops there. */
-    if (navigator.share) {
-      try { await navigator.share({ text }); return } catch { /* dismissed */ return }
-    }
-    copy(text, 'share')
-  }
-
   return (
     <>
       <div className="card tight">
-        <p className="card-t">{t(T.gh_h_steps)}</p>
-        <ol className="bullets num">{CAMPAIGN.how.map((x, i) => <li key={i}>{t(x)}</li>)}</ol>
-      </div>
-
-      {/* Step three decides whether the hospital ever sees the post, so it
-          gets the page link and the one piece of Facebook mechanics that
-          catches people out. */}
-      <div className="card tight">
-        <p className="card-t">{t(T.gh_tag_htpn)}</p>
         <div className="hashline">
-          <span className="hashtag">{HTPN_PAGE.handle}</span>
+          <span className="card-t" style={{ margin: 0 }}>{t(tpl.title)}</span>
           <span style={{ flex: 1 }} />
+          {posts.length > 1 ? (
+            <button className="pgbtn" onClick={() => setI(i + 1)} aria-label={t(T.next)}>›</button>
+          ) : null}
           <button className="btn quiet" style={{ padding: '6px 11px', fontSize: 12 }}
-                  onClick={() => copy(HTPN_PAGE.handle, 'page')}>
-            {copied === 'page' ? '✓ ' + t(T.gh_copied) : t(T.gh_copy)}
+                  onClick={() => { copy(pick(tpl.body, lang), 'tpl'); onEvent('share_opened', 'none') }}>
+            {copied === 'tpl' ? '✓ ' + t(T.gh_copied) : t(T.gh_copy_post)}
           </button>
         </div>
-        <p className="card-s" style={{ marginTop: 7 }}>{t(HTPN_PAGE.howToTag)}</p>
+        <pre className="tplbody">{t(tpl.body)}</pre>
+      </div>
+      <div className="card tight">
+        <p className="card-s">{t(HTPN_PAGE.howToTag)}</p>
         <a className="btn ghost" style={{ marginTop: 8 }} href={HTPN_PAGE.url}
            target="_blank" rel="noreferrer" onClick={() => onEvent('hashtag_opened', 'facebook')}>
           {t(T.gh_open_page)} ↗
         </a>
       </div>
-
-      <button className="btn wide" onClick={share}>↗ {t(T.gh_share)}</button>
-      {copied === 'share' ? <p className="note">{t(T.gh_share_unavailable)}</p> : null}
-
-      <span style={{ flex: 1 }} />
       <div className="flagline">⚠ {t(BEFORE_POSTING)}</div>
-      <p className="note">{t(CAMPAIGN.privacyNote)}</p>
     </>
   )
 }
 
-function TabGayaHidup ({ onEvent }) {
-  const [t] = useT()
-  const [view, setView] = useState('sihat')
+function TabFeedback ({ onEvent }) {
+  const [t, lang] = useT()
+  const [view, setView] = useState('what')
+  const [sending, setSending] = useState(false)
+  const [done, setDone] = useState(null)
+  const [problem, setProblem] = useState(null)
+  const today = isoDay(new Date())
+
+  const [form, setForm] = useState({
+    category: '', areaId: '', rating: 0, visitDate: '', message: '',
+    anonymous: false, name: '', rn: '', email: '', ageYears: '', ic: '',
+    consentReply: false, consentPublish: false, publishAs: 'anonymous',
+    image: null, lang
+  })
+  const set = (patch) => setForm(f => ({ ...f, ...patch }))
+  const category = CATEGORIES.find(c => c.id === form.category) || null
+
+  const onImage = async (file) => {
+    if (!file) return
+    setProblem(null)
+    try {
+      const img = await downscaleImage(file, IMAGE_LIMITS)
+      set({ image: img })
+    } catch (e) {
+      setProblem(e?.message === 'too_large' ? t(T.fb_photo_toobig) : String(e?.message || e))
+    }
+  }
+
+  const submit = async () => {
+    const problems = validateFeedback({ ...form, lang })
+    if (problems.includes('email_needed_for_reply')) return setProblem(t(T.fb_need_email))
+    if (problems.includes('email')) return setProblem(t(T.fb_bad_email))
+    if (problems.length) return setProblem(t(T.fb_need))
+    setProblem(null); setSending(true)
+    const ticket = newTicket()
+    const res = await sendFeedback({ ...form, lang }, ticket)
+    setSending(false)
+    if (res.ok) {
+      setDone(res.ticket)
+      onEvent('feedback_sent', form.category)
+      return
+    }
+    /* The form is left exactly as it was. Nothing a patient wrote is thrown
+       away because a network was down. */
+    setProblem(res.reason === 'server_off' || res.reason === 'not_configured'
+      ? t(T.fb_fail_off) : t(T.fb_fail_net))
+  }
+
+  const reset = () => {
+    setDone(null); setProblem(null); setView('what')
+    setForm({
+      category: '', areaId: '', rating: 0, visitDate: '', message: '',
+      anonymous: false, name: '', rn: '', email: '', ageYears: '', ic: '',
+      consentReply: false, consentPublish: false, publishAs: 'anonymous',
+      image: null, lang
+    })
+  }
+
+  if (done) {
+    return (
+      <div className="pane">
+        <div className="pane-head">
+          <h1 className="pane-title">{t(T.fb_sent)}</h1>
+        </div>
+        <div className="pane-body">
+          <div className="card tight">
+            <p className="card-t">{t(T.fb_ref)}</p>
+            <p className="hashtag">{done}</p>
+            <p className="card-s">{t(T.fb_ref_note)}</p>
+          </div>
+          {form.category === 'appreciation' ? (
+            <>
+              <div className="card tight">
+                <p className="card-t">{t(T.fb_also_share)}</p>
+                <p className="card-s">{t(CAMPAIGN.lead)}</p>
+                <div className="taggrid" style={{ marginTop: 8 }}>
+                  {TAGS.filter(x => x.group === 'hargai').map(x => (
+                    <div key={x.id} className="tagchip">
+                      <span className="hashtag sm">#{x.tag}</span>
+                      <span className="tagtheme">{t(x.theme)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <ShareTemplate group="hargai" onEvent={onEvent} />
+            </>
+          ) : null}
+          <span style={{ flex: 1 }} />
+          <button className="btn wide" onClick={reset}>{t(T.fb_another)}</button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="pane">
       <div className="pane-head">
-        <h1 className="pane-title">{t(T.gh_tab_title)}</h1>
-        <p className="pane-lead">{t(T.gh_tab_lead)}</p>
+        <h1 className="pane-title">{t(T.fb_title)}</h1>
+        <p className="pane-lead">{t(T.fb_lead)}</p>
       </div>
+      {/* On every view of this tab, not just the last one. */}
+      <div className="sendbar">↑ {t(T.fb_sent_banner)}</div>
       <div className="subtabs">
-        {GROUPS.map(g => (
-          <button key={g.id} className="subtab" aria-selected={view === g.id}
-                  onClick={() => setView(g.id)}>{t(g.title)}</button>
-        ))}
-        <button className="subtab" aria-selected={view === 'how'} onClick={() => setView('how')}>
-          {t(T.gh_sub_how)}
-        </button>
+        <button className="subtab" aria-selected={view === 'what'} onClick={() => setView('what')}>{t(T.fb_step_what)}</button>
+        <button className="subtab" aria-selected={view === 'detail'} onClick={() => setView('detail')}>{t(T.fb_step_detail)}</button>
+        <button className="subtab" aria-selected={view === 'you'} onClick={() => setView('you')}>{t(T.fb_step_you)}</button>
       </div>
+
       <div className="pane-body">
-        {view === 'how'
-          ? <HowToPost onEvent={onEvent} />
-          : <SocialGroup key={view} group={view} onEvent={onEvent} />}
+        {view === 'what' ? (
+          <>
+            {CATEGORIES.map(c => (
+              <button key={c.id} type="button"
+                      className={'card tight pickcard' + (form.category === c.id ? ' on' : '')}
+                      onClick={() => { set({ category: c.id, consentPublish: false }); setView('detail') }}>
+                <p className="card-t">{t(c)}</p>
+                <p className="card-s">{t(c.lead)}</p>
+              </button>
+            ))}
+            <span style={{ flex: 1 }} />
+            <div className="emergency">⚠ {t(URGENT)}</div>
+          </>
+        ) : null}
+
+        {view === 'detail' ? (
+          <>
+            <div className="card tight">
+              <p className="card-t">{t(T.fb_rating)}</p>
+              <Stars value={form.rating} onChange={v => set({ rating: v })} t={t} lang={lang} />
+            </div>
+            <div className="card tight">
+              <div className="frm two">
+                <Field label={t(T.fb_area)}>
+                  <select value={form.areaId} onChange={e => set({ areaId: e.target.value })}>
+                    <option value="">{t(T.fb_area_pick)}</option>
+                    {FEEDBACK_AREAS.map(g => (
+                      <optgroup key={g.items[0]?.id} label={t(g.group)}>
+                        {g.items.map(i => <option key={i.id} value={i.id}>{t(i)}</option>)}
+                      </optgroup>
+                    ))}
+                  </select>
+                </Field>
+                <Field label={t(T.fb_visit)}>
+                  <input type="date" max={today} value={form.visitDate}
+                         onChange={e => set({ visitDate: e.target.value })} />
+                </Field>
+              </div>
+              <Field label={t(T.fb_message)} hint={t(T.fb_message_eg)}>
+                <textarea rows={4} value={form.message}
+                          onChange={e => set({ message: e.target.value })} />
+              </Field>
+            </div>
+            <div className="card tight">
+              <p className="card-t">{t(T.fb_photo)}</p>
+              {form.image ? (
+                <div className="apptrow">
+                  <span className="note">{Math.round(form.image.bytes / 1024)} KB · {form.image.width}×{form.image.height}</span>
+                  <span style={{ flex: 1 }} />
+                  <button className="pgbtn" onClick={() => set({ image: null })}
+                          aria-label={t(T.fb_photo_remove)}>✕</button>
+                </div>
+              ) : (
+                <input type="file" accept="image/*"
+                       onChange={e => onImage(e.target.files?.[0])} />
+              )}
+              <p className="note" style={{ marginTop: 6 }}>{t(T.fb_photo_note)}</p>
+            </div>
+            <span style={{ flex: 1 }} />
+            <button className="btn wide" onClick={() => setView('you')}>{t(T.next)} ›</button>
+          </>
+        ) : null}
+
+        {view === 'you' ? (
+          <>
+            <div className="card tight">
+              <label className="chk">
+                <input type="checkbox" checked={form.anonymous}
+                       onChange={e => set({ anonymous: e.target.checked, consentReply: false })} />
+                <span><b>{t(T.fb_anon)}</b><br /><span className="card-s">{t(T.fb_anon_note)}</span></span>
+              </label>
+            </div>
+
+            {!form.anonymous ? (
+              <div className="card tight">
+                <div className="frm two">
+                  <Field label={t(T.fb_name)}>
+                    <input type="text" value={form.name} onChange={e => set({ name: e.target.value })} />
+                  </Field>
+                  <Field label={t(T.fb_age)}>
+                    <input type="number" inputMode="numeric" value={form.ageYears}
+                           onChange={e => set({ ageYears: e.target.value })} />
+                  </Field>
+                  <Field label={t(T.fb_rn)} hint={t(T.fb_rn_note)}>
+                    <input type="text" value={form.rn} onChange={e => set({ rn: e.target.value })} />
+                  </Field>
+                  <Field label={t(T.fb_email)}>
+                    <input type="email" inputMode="email" value={form.email}
+                           onChange={e => set({ email: e.target.value })} />
+                  </Field>
+                  {/* Off by default. See src/data/feedback.js for why, and
+                      src/feedback.js for the one line that turns it on. */}
+                  {ASK_FOR_IC ? (
+                    <Field label={t(T.fb_ic)}>
+                      <input type="text" value={form.ic}
+                             onChange={e => {
+                               const ic = e.target.value
+                               const age = ageFromIc(ic)
+                               set(age ? { ic, ageYears: String(age) } : { ic })
+                             }} />
+                    </Field>
+                  ) : null}
+                </div>
+                <label className="chk" style={{ marginTop: 8 }}>
+                  <input type="checkbox" checked={form.consentReply}
+                         onChange={e => set({ consentReply: e.target.checked })} />
+                  <span>{t(CONSENT.reply)}<br /><span className="note">{t(CONSENT.reply.note)}</span></span>
+                </label>
+              </div>
+            ) : null}
+
+            {/* Publication is offered only where it makes sense, and it is a
+                separate tick from sending. */}
+            {category?.canPublish ? (
+              <div className="card tight">
+                <label className="chk">
+                  <input type="checkbox" checked={form.consentPublish}
+                         onChange={e => set({ consentPublish: e.target.checked })} />
+                  <span><b>{t(CONSENT.publish)}</b><br /><span className="note">{t(CONSENT.publish.note)}</span></span>
+                </label>
+                {form.consentPublish ? (
+                  <div style={{ marginTop: 8 }}>
+                    <Field label={t(CONSENT.publish.nameChoice)}>
+                      <select value={form.publishAs} onChange={e => set({ publishAs: e.target.value })}>
+                        {CONSENT.publish.nameOptions.map(o => (
+                          <option key={o.id} value={o.id}>{t(o)}</option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className="card tight">
+              <p className="card-t">{t(T.fb_who_reads)}</p>
+              <p className="card-s">{t(HANDLING.note)}</p>
+              <p className="note" style={{ marginTop: 6 }}>{t(OFFICIAL_CHANNEL)}</p>
+            </div>
+
+            <span style={{ flex: 1 }} />
+            {problem ? <div className="flagline">⚠ {problem}</div> : null}
+            {!feedbackConfigured()
+              ? <p className="note">{t(T.fb_fail_off)}</p>
+              : null}
+            <button className="btn wide" onClick={submit} disabled={sending}>
+              {sending ? t(T.fb_sending) : t(T.fb_send)}
+            </button>
+          </>
+        ) : null}
       </div>
     </div>
   )
 }
+
 
 /* =========================================================================
    Lightbox
@@ -2594,7 +2803,7 @@ const TABS = [
   { id: 'iqms', label: T.tab_iqms, short: T.short_iqms },
   { id: 'myubat', label: T.tab_myubat, short: T.short_myubat },
   { id: 'rakyat', label: T.tab_rakyat, short: T.short_rakyat },
-  { id: 'gayahidup', label: T.tab_gayahidup, short: T.short_gayahidup }
+  { id: 'feedback', label: T.tab_fb, short: T.short_fb }
 ]
 
 export default function App () {
@@ -2734,7 +2943,7 @@ export default function App () {
         {tab === 'iqms' ? <TabIqms onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'rakyat' ? <TabRakyat onEvent={onEvent} onLightbox={setLightbox} /> : null}
-        {tab === 'gayahidup' ? <TabGayaHidup onEvent={onEvent} /> : null}
+        {tab === 'feedback' ? <TabFeedback onEvent={onEvent} /> : null}
 
         <nav className="tabbar">
           {TABS.map(x => (
