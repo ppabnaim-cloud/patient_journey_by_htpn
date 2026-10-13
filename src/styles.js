@@ -32,6 +32,16 @@ export const CSS = `
   /* Chart series. Validated with the dataviz validator against this app's own
      card surfaces; see the header of src/charts.jsx. */
   --s1: #2a78d6;  --s2: #eb6834;  --s3: #1baf7a;  --s4: #eda100;
+  --c-appointments: #6D3BBF; --c-appointments-t: #F0E9FA;
+  --c-dashboard:    #1F6FD0; --c-dashboard-t:    #E6F0FC;
+  --c-records:      #0E7C73; --c-records-t:      #E0F2F0;
+  --c-measurements: #2F8A4E; --c-measurements-t: #E5F3E9;
+  --c-wayfinding:   #C2621B; --c-wayfinding-t:   #FBEDE1;
+  --c-iqms:         #3B5BBF; --c-iqms-t:         #E9EDFB;
+  --c-myubat:       #A8357F; --c-myubat-t:       #FAE7F3;
+  --c-rakyat:       #B3384A; --c-rakyat-t:       #FBE8EB;
+  --c-feedback:     #9A6407; --c-feedback-t:     #FAF0DE;
+  --c-home: #5B2D8E; --c-home-t: #F0E9FA;
   --grid: #EDE9F3;
 
   --r: 14px;
@@ -51,6 +61,16 @@ export const CSS = `
     --watch: #8FC7EC; --watch-bg: #12293A;
     --calm: #A6CDB4; --calm-bg: #19291F;
     --s1: #3987e5;  --s2: #d95926;  --s3: #199e70;  --s4: #c98500;
+    --c-appointments: #C0A2EC; --c-appointments-t: #2B2140;
+    --c-dashboard:    #93C0F0; --c-dashboard-t:    #152638;
+    --c-records:      #7ECFC6; --c-records-t:      #12302D;
+    --c-measurements: #9ED5AE; --c-measurements-t: #16301E;
+    --c-wayfinding:   #F0B183; --c-wayfinding-t:   #352211;
+    --c-iqms:         #A9B8F0; --c-iqms-t:         #1B2240;
+    --c-myubat:       #EFA3D2; --c-myubat-t:       #341630;
+    --c-rakyat:       #F0A3AD; --c-rakyat-t:       #37181D;
+    --c-feedback:     #EAC078; --c-feedback-t:     #342710;
+    --c-home: #B388E0; --c-home-t: #2A1F3D;
     --grid: #2E2742;
   }
 }
@@ -155,7 +175,7 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 /* ---------- tab bar ---------- */
 .tabbar {
   height: var(--tabbar-h); flex: 0 0 auto;
-  display: grid; grid-template-columns: repeat(9, 1fr);
+  display: grid; grid-template-columns: repeat(10, 1fr);
   background: var(--card); border-top: 1px solid var(--line);
 }
 .tabbtn {
@@ -666,6 +686,49 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   text-decoration: none;
 }
 .hashline { display: flex; align-items: center; gap: 8px; }
+/* ---------- home hub ---------- */
+/* The landing screen. Big targets, one colour each, so a patient who opens
+   the app for the first time can see everything it does without reading a
+   tab bar of nine small words. */
+.hero { flex: 0 0 auto; border-radius: var(--r); padding: 15px 16px; margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--brand) 0%, #8249C4 55%, #B06FD8 100%);
+  color: #fff; }
+:root[data-theme="dark"] .hero, :root:not([data-theme="light"]) .hero {
+  background: linear-gradient(135deg, #3C1E63 0%, #5B2D8E 55%, #7A47B0 100%); }
+.hero-t { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -0.3px; }
+.hero-s { margin: 4px 0 0; font-size: 12.5px; opacity: .92; line-height: 1.45; }
+.hero-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.hero-chip { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; padding: 3px 9px;
+  border-radius: 999px; background: rgba(255,255,255,.18); color: #fff; }
+
+.hubgrid { display: grid; grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(0, 1fr); gap: 10px; flex: 1 1 auto; min-height: 0;
+  max-height: 760px; }
+@media (max-width: 560px) {
+  /* A phone scrolls, so the cards take their own height instead of being
+     squeezed into one screenful. */
+  .hubgrid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: auto; flex: 0 0 auto; }
+  .hubcard { min-height: 112px; }
+}
+.hubcard { display: flex; flex-direction: column; gap: 7px; align-items: flex-start;
+  justify-content: center;
+  padding: 14px 13px; border-radius: var(--r); border: 1px solid var(--line);
+  background: var(--card); cursor: pointer; text-align: left; min-height: 104px;
+  transition: transform .12s ease, box-shadow .12s ease; }
+.hubcard:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.10); }
+.hubcard:active { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .hubcard { transition: none; } .hubcard:hover { transform: none; } }
+.hubic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center;
+  flex: 0 0 auto; }
+.hubic svg { width: 26px; height: 26px; }
+.hubname { font-size: 15px; font-weight: 750; color: var(--ink); line-height: 1.25; }
+.hubdesc { font-size: 11.5px; color: var(--ink-soft); line-height: 1.35; }
+.hubbadge { position: absolute; }
+.hubcard { position: relative; }
+.hubcount { position: absolute; top: 9px; right: 9px; min-width: 19px; height: 19px;
+  padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 800;
+  display: grid; place-items: center; color: #fff; }
+
 /* ---------- appreciation board ---------- */
 .teaser { flex: 0 0 auto; width: 100%; text-align: left; padding: 9px 12px; border-radius: 10px;
   border: 1px solid var(--brand); background: var(--brand-tint); color: var(--brand);

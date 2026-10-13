@@ -104,7 +104,7 @@ export function bandPlatform (ua) {
    Anything not listed here is replaced with 'other' before it is sent, so a
    free-text value can never ride out inside an enum field. */
 
-export const TABS = ['appointments', 'dashboard', 'records', 'measurements', 'wayfinding', 'iqms', 'myubat', 'rakyat', 'gayahidup', 'feedback', 'privacy']
+export const TABS = ['home', 'appointments', 'dashboard', 'records', 'measurements', 'wayfinding', 'iqms', 'myubat', 'rakyat', 'gayahidup', 'feedback', 'privacy']
 
 export const ACTIONS = [
   'app_open',

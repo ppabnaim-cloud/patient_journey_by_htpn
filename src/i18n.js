@@ -76,7 +76,7 @@ export const T = {
   /* Short labels for the tab bar itself. Eight tabs across a 360px phone
      leaves about seven characters each, and a truncated word with an ellipsis
      names nothing. The full names stay on the screen headings. */
-  short_dashboard: L('Home', 'Utama'),
+  short_dashboard: L('Charts', 'Carta'),
   short_records: L('Records', 'Rekod'),
   short_measurements: L('Monitor', 'Pantau'),
   short_wayfinding: L('Map', 'Arah'),
@@ -126,16 +126,16 @@ export const T = {
   ),
   m_activity: L('From your watch', 'Daripada jam anda'),
   /* --- appointments (tab 1) --- */
-  tab_appt: L('Appointments', 'Temujanji'),
+  tab_appt: L('Record Your Appointments', 'Rekodkan Janji Temu Anda'),
   short_appt: L('Appt', 'Janji'),
   appt_lead: L(
     'Your appointments, kept on this phone. Type in what your appointment card says and the app will remind you the day before.',
-    'Temujanji anda, disimpan dalam telefon ini. Taipkan apa yang tertera pada kad temujanji anda dan aplikasi akan mengingatkan anda sehari sebelumnya.'
+    'Janji temu anda, disimpan dalam telefon ini. Taipkan apa yang tertera pada kad janji temu anda dan aplikasi akan mengingatkan anda sehari sebelumnya.'
   ),
   appt_next: L('Coming up', 'Akan Datang'),
   appt_past: L('Already been', 'Telah Berlalu'),
   appt_add: L('Add', 'Tambah'),
-  appt_none: L('No appointment saved yet', 'Tiada temujanji disimpan lagi'),
+  appt_none: L('No appointment saved yet', 'Tiada janji temu disimpan lagi'),
   appt_none_past: L('Nothing here yet', 'Tiada apa-apa di sini lagi'),
   appt_dept: L('Department', 'Jabatan'),
   appt_clinic: L('Clinic or unit', 'Klinik atau unit'),
@@ -143,7 +143,7 @@ export const T = {
   appt_time: L('Time (if your card gives one)', 'Masa (jika tertera pada kad)'),
   appt_note: L('Note to yourself', 'Nota untuk diri sendiri'),
   appt_note_eg: L('e.g. fasting since midnight, bring your scan films', 'cth. berpuasa sejak tengah malam, bawa filem imbasan'),
-  appt_save: L('Save appointment', 'Simpan temujanji'),
+  appt_save: L('Save appointment', 'Simpan janji temu'),
   appt_today: L('TODAY', 'HARI INI'),
   appt_tomorrow: L('TOMORROW', 'ESOK'),
   appt_in_days: L('In {n} days', '{n} hari lagi'),
@@ -158,6 +158,19 @@ export const T = {
   appt_pick_dept: L('Choose a department', 'Pilih jabatan'),
   appt_pick_clinic: L('Choose a clinic or unit', 'Pilih klinik atau unit'),
   /* --- feedback (tab 9) --- */
+  /* --- the home hub --- */
+  home_title: L('Patient Journey', 'Perjalanan Pesakit'),
+  home_lead: L('Everything in one place. Tap any card to open it.', 'Semuanya di satu tempat. Ketik mana-mana kad untuk membukanya.'),
+  home_back: L('Home', 'Utama'),
+  d_appointments: L('Your clinic dates, and a reminder the day before', 'Tarikh klinik anda, dan peringatan sehari sebelumnya'),
+  d_dashboard: L('Your readings over time, at a glance', 'Bacaan anda dari semasa ke semasa, sepintas lalu'),
+  d_records: L('Medicines, allergies, operations, results', 'Ubat, alahan, pembedahan, keputusan'),
+  d_measurements: L('Weight, blood pressure, sugar, steps', 'Berat, tekanan darah, gula, langkah'),
+  d_wayfinding: L('Find the right building and department', 'Cari bangunan dan jabatan yang betul'),
+  d_iqms: L('Check the queue before you set off', 'Semak giliran sebelum anda bertolak'),
+  d_myubat: L('Have repeat medicines delivered', 'Dapatkan ubat ulangan dihantar ke rumah'),
+  d_rakyat: L('When to come, and when not to', 'Bila perlu datang, dan bila tidak perlu'),
+  d_feedback: L('Thank the team, or tell us what to fix', 'Hargai pasukan kami, atau beritahu apa perlu diperbaiki'),
   tab_fb: L('Feedback', 'Maklum Balas'),
   short_fb: L('Say', 'Suara'),
   fb_title: L('Tell us how we did', 'Beritahu Kami Pengalaman Anda'),

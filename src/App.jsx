@@ -82,6 +82,7 @@ const DEPT_ICONS = {
 }
 
 const ICONS = {
+  home: ['M4 11l8-7 8 7', 'M6 10v10h12V10', 'M10 20v-6h4v6'],
   feedback: ['M4 5h16v11H9l-5 4z', 'M8 9h8M8 12h5'],
   appointments: ['M4 6h16v15H4z', 'M8 3v5M16 3v5', 'M4 11h16', 'M9 15h2M13 15h2'],
   dashboard: ['M3 12h4l2.5 7 5-14L17 12h4'],
@@ -485,6 +486,89 @@ function AppointmentCard ({ appt, today, lang, t, onCalendar, onRemove }) {
                   onClick={onCalendar}>{t(T.appt_calendar)}</button>
         </div>
       ) : null}
+    </div>
+  )
+}
+
+
+/* ===========================================================================
+   Home — the landing screen.
+
+   WHY IT EXISTS
+   Nine tabs across the bottom is a navigation bar, not an introduction. A
+   patient opening this for the first time sees nine small words and has no
+   idea the app can find a department or check a queue. This screen says what
+   each part does in one line, in a card big enough to hit with a thumb.
+
+   It carries a count where a count is real and useful — appointments coming
+   up, entries held — and shows nothing where the patient has entered nothing.
+   No invented figures: the rule from the dashboard applies here too.
+   ========================================================================= */
+const HERO_CHIPS = [
+  { en: 'Active', ms: 'Aktif' },
+  { en: 'Organised', ms: 'Tersusun' },
+  { en: 'Simple', ms: 'Mudah' },
+  { en: 'Meaningful', ms: 'Bermakna' }
+]
+
+const HUB = [
+  { id: 'appointments', desc: T.d_appointments },
+  { id: 'dashboard', desc: T.d_dashboard },
+  { id: 'records', desc: T.d_records },
+  { id: 'measurements', desc: T.d_measurements },
+  { id: 'wayfinding', desc: T.d_wayfinding },
+  { id: 'iqms', desc: T.d_iqms },
+  { id: 'myubat', desc: T.d_myubat },
+  { id: 'rakyat', desc: T.d_rakyat },
+  { id: 'feedback', desc: T.d_feedback }
+]
+
+function TabHome ({ record, goTo }) {
+  const [t, lang] = useT()
+  const today = isoDay(new Date())
+  const counts = {
+    appointments: upcoming(record.appointments || [], today).length,
+    records: (record.medications?.length || 0) + (record.issues?.length || 0) +
+             (record.allergies?.length || 0) + (record.surgeries?.length || 0) +
+             (record.labs?.length || 0) + (record.imaging?.length || 0),
+    measurements: (record.measurements?.length || 0)
+  }
+  const tabOf = (id) => TABS.find(x => x.id === id)
+
+  return (
+    <div className="pane">
+      <div className="pane-body">
+        <div className="hero">
+          <p className="hero-t">{t(T.home_title)}</p>
+          <p className="hero-s">{t(THEME.full)}</p>
+          <div className="hero-chips">
+            {HERO_CHIPS.map((c, i) => <span className="hero-chip" key={i}>{t(c)}</span>)}
+          </div>
+        </div>
+
+        <div className="hubgrid">
+          {HUB.map(h => {
+            const tab = tabOf(h.id)
+            const n = counts[h.id]
+            return (
+              <button type="button" className="hubcard" key={h.id} onClick={() => goTo(h.id)}>
+                <span className="hubic" style={{ background: `var(--c-${h.id}-t)` }}>
+                  <span style={{ color: `var(--c-${h.id})`, display: 'grid' }}>
+                    <Icon d={ICONS[h.id]} />
+                  </span>
+                </span>
+                <span className="hubname">{pick(tab.label, lang)}</span>
+                <span className="hubdesc">{t(h.desc)}</span>
+                {/* Only where there is something to count. An empty record
+                    shows no badge rather than a zero that reads as a score. */}
+                {n > 0 ? (
+                  <span className="hubcount" style={{ background: `var(--c-${h.id})` }}>{n}</span>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
@@ -2948,7 +3032,7 @@ const TABS = [
 export default function App () {
   const [prefs, setPrefs] = useState(() => store.loadPrefs())
   const [record, setRecord] = useState(() => store.loadRecord())
-  const [tab, setTab] = useState('appointments')
+  const [tab, setTab] = useState('home')
   const [lightbox, setLightbox] = useState(null)
   const [showPrivacy, setShowPrivacy] = useState(false)
   const [showPrint, setShowPrint] = useState(false)
@@ -3074,6 +3158,7 @@ export default function App () {
           <button className="hdr-btn" onClick={() => setShowPrivacy(true)} aria-label={pick(T.settings, lang)}>🔒</button>
         </header>
 
+        {tab === 'home' ? <TabHome record={record} goTo={goTo} /> : null}
         {tab === 'appointments' ? <TabAppointments record={record} update={update} onEvent={onEvent} /> : null}
         {tab === 'dashboard' ? <TabDashboard record={record} goTo={goTo} onPrint={() => setShowPrint(true)} /> : null}
         {tab === 'records' ? <TabRecords record={record} update={update} onEvent={onEvent} /> : null}
@@ -3085,7 +3170,7 @@ export default function App () {
         {tab === 'feedback' ? <TabFeedback onEvent={onEvent} /> : null}
 
         <nav className="tabbar">
-          {TABS.map(x => (
+          {[{ id: 'home', label: T.home_back, short: T.home_back }, ...TABS].map(x => (
             <button key={x.id} className="tabbtn" aria-selected={tab === x.id} onClick={() => goTo(x.id)}>
               <Icon d={ICONS[x.id]} />
               <span className="tablabel">{pick(x.short || x.label, lang)}</span>
