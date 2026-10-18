@@ -686,6 +686,20 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   text-decoration: none;
 }
 .hashline { display: flex; align-items: center; gap: 8px; }
+.sitewarn { flex: 0 0 auto; padding: 11px 13px; border-radius: 11px;
+  background: var(--attention-bg); border: 1px solid var(--attention);
+  color: var(--ink); margin-bottom: 2px; }
+.sitewarn .card-t { color: var(--attention); }
+.splitrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.splitway { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  background: var(--brand-tint); color: var(--brand); }
+.dhours, .dsign { display: block; font-size: 11px; color: var(--ink-soft); margin-top: 3px;
+  line-height: 1.35; }
+.pin.muted { color: var(--ink-faint); text-decoration: none; cursor: default; }
+.flowlist { list-style: decimal; margin: 7px 0 0; padding-left: 18px;
+  display: flex; flex-direction: column; gap: 3px; }
+.flowlist li { font-size: 12px; line-height: 1.4; color: var(--ink); }
+
 /* ---------- floor directory ---------- */
 .floorcard { display: flex; flex-direction: column; }
 .fl-head { margin: 0 0 7px; }
@@ -713,11 +727,8 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   background: var(--brand-tint); color: var(--brand); font-size: 12.5px; }
 .buildingbar .bb-ic { display: grid; flex: 0 0 auto; }
 .buildingbar svg { width: 18px; height: 18px; }
-.acc { display: inline-block; margin-top: 3px; font-size: 10px; font-weight: 800;
-  letter-spacing: .02em; padding: 2px 7px; border-radius: 999px; }
-.acc-restricted { background: var(--watch-bg); color: var(--watch); }
-.acc-staff { background: var(--grid); color: var(--ink-soft); }
-.acc-escorted { background: var(--attention-bg); color: var(--attention); }
+.dwhy { display: block; margin-top: 3px; font-size: 11px; color: var(--brand);
+  font-weight: 600; line-height: 1.35; }
 
 /* ---------- home hub ---------- */
 /* The landing screen. Big targets, one colour each, so a patient who opens
@@ -797,6 +808,30 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .chk input { margin-top: 2px; flex: 0 0 auto; width: 17px; height: 17px; accent-color: var(--brand); }
 textarea { width: 100%; font: inherit; font-size: 13.5px; padding: 8px 10px; resize: vertical;
   border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); }
+
+.onerecord { flex: 0 0 auto; padding: 9px 12px; border-radius: 10px; margin-bottom: 8px;
+  background: var(--brand-tint); color: var(--ink); font-size: 12px; line-height: 1.5; }
+.appthosp { margin: 3px 0 0; font-size: 11.5px; color: var(--ink-soft); }
+.monthbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.monthname { font-size: 14px; font-weight: 750; color: var(--ink); }
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 9px; }
+.calhead { font-size: 10px; font-weight: 800; color: var(--ink-faint); text-align: center;
+  padding-bottom: 2px; letter-spacing: .02em; }
+.calcell { min-height: 38px; border-radius: 8px; border: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  background: var(--card); }
+.calcell.empty { border-color: transparent; background: none; }
+.caldate { font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.calcell.today { border-color: var(--brand); }
+.calcell.today .caldate { font-weight: 800; color: var(--brand); }
+.calcell.has { background: var(--brand-tint); }
+.calcell.clash { border-color: var(--attention); background: var(--attention-bg); }
+.caldots { display: flex; gap: 2px; }
+.caldots i { width: 5px; height: 5px; border-radius: 50%; background: var(--brand); display: block; }
+.calcell.clash .caldots i { background: var(--attention); }
+.clashday { display: flex; flex-direction: column; gap: 2px; margin-top: 8px;
+  padding-top: 7px; border-top: 1px solid var(--line); font-size: 12px; }
+.clashitem { color: var(--ink-soft); padding-left: 10px; }
 
 /* ---------- appointments ---------- */
 .apptcard { border-left: 3px solid var(--line); }

@@ -13,24 +13,30 @@
    floor number is what gets them to the right counter. For everything on this
    board, the level is the useful instruction and the pin is the fallback.
 
-   AN UNRESOLVED CONFLICT, FLAGGED RATHER THAN SETTLED
-   HTPN described this board as the directory for the Women & Children Complex
-   (WCC). But eight locations supplied separately — Medical Records, the
-   Operating Theatre, ICU, Dietetics & Catering, Logistics Pharmacy, Forensic,
-   the Green Zone pharmacy counter and Dewan Bestari — were each described as
-   being in the MAIN BUILDING, and six of those eight appear on this board.
+   WHICH BUILDING — ANSWERED
+   This was flagged as an open conflict: six departments on this board had
+   also been described as being in the Main Building. HTPN's satellite view
+   settles it. They are TWO SEPARATE SITES about a kilometre apart, and the
+   map shows each has its own emergency department and its own intensive
+   care. So both statements were true all along: this board is the WCC's, and
+   the Main Building has its own Medical Records, theatre, ICU and the rest.
 
-   Both cannot be true unless the Main Building and the WCC are the same
-   structure, or one of the two descriptions is of the other building. This
-   file therefore does NOT assert which building it belongs to: `BUILDING` is
-   null and the screen says the question is open. Answer it and one line here
-   sets it for every level at once.
+   That distinction is now the most important thing on the way-finding screen.
+   A patient who goes to the wrong one does not take a wrong turn inside a
+   building — they are a kilometre away with an appointment starting.
    ========================================================================= */
 
-export const BUILDING = null
+export const BUILDING = {
+  en: 'Women & Children Complex (WCC)',
+  ms: 'Kompleks Wanita & Kanak-Kanak (WCC)'
+}
+
+/* The Main Building has departments of the same name — its own emergency
+   department, its own intensive care unit. The levels below are the WCC's
+   and nobody else's. */
 export const BUILDING_QUERY = {
-  en: 'HTPN supplied this board as the Women & Children Complex directory, and separately placed several of these same departments in the Main Building. Until that is confirmed, this screen names the levels without naming the building.',
-  ms: 'HTPN memberikan papan direktori ini sebagai direktori Kompleks Wanita & Kanak-Kanak, dan secara berasingan meletakkan beberapa jabatan yang sama di Bangunan Utama. Sehingga perkara ini disahkan, skrin ini menyatakan aras tanpa menamakan bangunan.'
+  en: 'These nine levels are the Women & Children Complex. The Main Building is a separate site about a kilometre away and has departments of the same name, so check which one your appointment letter gives.',
+  ms: 'Sembilan aras ini adalah Kompleks Wanita & Kanak-Kanak. Bangunan Utama ialah lokasi berasingan kira-kira satu kilometer dari sini dan mempunyai jabatan dengan nama yang sama, jadi sila semak lokasi yang dinyatakan dalam surat temujanji anda.'
 }
 
 export const DIRECTORY_PHOTO = 'brand/wcc-directory.jpg'

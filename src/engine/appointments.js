@@ -119,3 +119,59 @@ export function appointmentFindings (record, today) {
   }
   return out
 }
+
+/* --- multi-hospital, and days with more than one appointment --------------
+   "One Patient, One Record" only means anything if the record spans the
+   hospitals a patient actually attends. So an appointment carries where it
+   is, and the clash check runs across all of them: two clinics in different
+   hospitals do not know about each other, and the patient is the only person
+   who can see both. */
+export const DEFAULT_HOSPITAL = 'HTPN'
+
+export function monthKey (iso) {
+  return String(iso || '').slice(0, 7)
+}
+
+/* Days carrying more than one appointment, whatever hospital each is at.
+   Returns a Map of YYYY-MM-DD to the appointments on it, so the calendar can
+   mark the day and the list can explain it. */
+export function clashDays (list) {
+  const byDay = new Map()
+  for (const a of list || []) {
+    if (!a?.date) continue
+    if (!byDay.has(a.date)) byDay.set(a.date, [])
+    byDay.get(a.date).push(a)
+  }
+  const out = new Map()
+  for (const [day, items] of byDay) if (items.length > 1) out.set(day, items)
+  return out
+}
+
+/* A month as six weeks of seven days, Monday first, each cell carrying its
+   own appointments. Built from strings so no Date ever crosses a timezone:
+   a calendar that draws the wrong month in Kuala Lumpur is worse than none. */
+export function monthGrid (year, month1to12, list) {
+  const first = new Date(Date.UTC(year, month1to12 - 1, 1))
+  const daysInMonth = new Date(Date.UTC(year, month1to12, 0)).getUTCDate()
+  /* getUTCDay: 0 is Sunday. Monday-first means Sunday sits at the end. */
+  const lead = (first.getUTCDay() + 6) % 7
+  const byDay = new Map()
+  for (const a of list || []) {
+    if (monthKey(a?.date) !== `${year}-${String(month1to12).padStart(2, '0')}`) continue
+    if (!byDay.has(a.date)) byDay.set(a.date, [])
+    byDay.get(a.date).push(a)
+  }
+  const cells = []
+  for (let i = 0; i < lead; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = `${year}-${String(month1to12).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    cells.push({ day: d, iso, items: byDay.get(iso) || [] })
+  }
+  while (cells.length % 7) cells.push(null)
+  return cells
+}
+
+export function addMonths (year, month1to12, n) {
+  const total = (year * 12) + (month1to12 - 1) + n
+  return { year: Math.floor(total / 12), month: (total % 12) + 1 }
+}

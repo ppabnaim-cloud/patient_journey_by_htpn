@@ -77,11 +77,15 @@ export const CAMPUSES = [
    Everything here is in the Main Building. That is stated once, as a banner
    above the list, rather than repeated on all sixteen cards.
 
-   `access` is not decoration. An operating theatre, an intensive care unit,
-   a logistics pharmacy and a catering department are not places a patient
-   walks into, and a forensic department is somewhere a family is taken, not
-   somewhere anyone should be sent by a cheerful "Get directions" button. The
-   screen says which is which.
+   NO ACCESS LABELS. This build added "visitors by arrangement" and "staff
+   area" chips on the theatre, ICU, dietetics and the logistics pharmacy.
+   HTPN removed them, and was right to: the theatre and ICU have daily
+   visiting periods for family, dietetics runs a dietician clinic, and the
+   logistics pharmacy receives vendor deliveries. Every location here is one
+   somebody has a reason to walk to, and all of them give directions.
+
+   What replaced the chips is `why` — the reason a visitor would come, where
+   HTPN gave one. The useful half of the same sentence.
 
    `icon` names an inline SVG drawn in App.jsx. These are NOT photographs. A
    stock or generated picture of "a radiology department" is a picture of some
@@ -89,32 +93,32 @@ export const CAMPUSES = [
    to look for. Real photographs of these departments drop straight in here.
    ------------------------------------------------------------------------ */
 const DEPARTMENT_LIST = [
-  { icon: 'clinic', access: 'public',
+  { icon: 'clinic',
     en: 'Specialist Clinic 2 — General Medicine & Orthopaedics',
     ms: 'Klinik Pakar 2 — Perubatan Am & Ortopedik',
     map: 'https://maps.app.goo.gl/bY8cEXWnWYxw69Dw5' },
 
-  { icon: 'office', access: 'public',
+  { icon: 'office',
     en: 'Management Office 1 & Nursing Management Office',
     ms: 'Pejabat Pengurusan 1 & Pejabat Pengurusan Jururawat',
     map: 'https://maps.app.goo.gl/WuYSdY4AUdCgw78k8' },
 
-  { icon: 'radiology', access: 'public',
+  { icon: 'radiology',
     en: 'Radiology Department — X-ray & CT scan',
     ms: 'Jabatan Radiologi — X-ray & Imbasan CT',
     map: 'https://maps.app.goo.gl/onqXD8CAeZaFsUUZ6' },
 
-  { icon: 'emergency', access: 'public',
+  { icon: 'emergency',
     en: 'Emergency & Trauma Department',
     ms: 'Jabatan Kecemasan & Trauma',
     map: 'https://maps.app.goo.gl/4qbAZVq1znC3E2iL6' },
 
-  { icon: 'rehab', access: 'public',
+  { icon: 'rehab',
     en: 'Rehabilitation Department',
     ms: 'Jabatan Rehabilitasi',
     map: 'https://maps.app.goo.gl/c9y63sR5tv7WSs8g7' },
 
-  { icon: 'dental', access: 'public',
+  { icon: 'dental',
     en: 'Oral & Maxillofacial Surgery Specialist Clinic',
     ms: 'Klinik Pakar Bedah Mulut & Maksilofasial',
     map: 'https://maps.app.goo.gl/jV3jikoJCmLk1yYK9' },
@@ -122,17 +126,17 @@ const DEPARTMENT_LIST = [
   /* Renamed by HTPN from "Jabatan Farmasi". The hospital now has three
      pharmacy points, and an unqualified "Farmasi" would send a patient
      collecting a prescription to whichever one the search happened to find. */
-  { icon: 'pharmacy', access: 'public',
+  { icon: 'pharmacy',
     en: 'Specialist Clinic Pharmacy',
     ms: 'Farmasi Klinik Pakar',
     map: 'https://maps.app.goo.gl/iJa5mMaP8qgkN9WQ8' },
 
-  { icon: 'it', access: 'public',
+  { icon: 'it',
     en: 'Management Office 2 — IT & Engineering Unit',
     ms: 'Pejabat Pengurusan 2 — Unit IT & Kejuruteraan',
     map: 'https://maps.app.goo.gl/NTbNN6VfJjrS7Ps29' },
 
-  { icon: 'records', access: 'public',
+  { icon: 'records',
     en: 'Medical Records Department',
     ms: 'Unit Rekod Perubatan',
     map: 'https://maps.app.goo.gl/HnXQsXmNPuq3WvL19' },
@@ -141,48 +145,143 @@ const DEPARTMENT_LIST = [
      is the only one whose directions are exact to the metre. Coordinates are
      better than a name here: "kaunter zon hijau" is not a thing Google Maps
      can resolve by text. */
-  { icon: 'pharmacy', access: 'public',
+  { icon: 'pharmacy',
     en: 'Pharmacy Green Zone Counter',
     ms: 'Kaunter Zon Hijau Farmasi',
     latLng: '2.993372,101.792977' },
 
-  { icon: 'hall', access: 'public',
+  { icon: 'hall',
     en: 'Dewan Bestari / Dewan Permaisuri (hall)',
     ms: 'Dewan Bestari / Dewan Permaisuri',
     map: 'https://maps.app.goo.gl/MsRkKipjFSRckRW88' },
 
-  { icon: 'surgery', access: 'restricted',
+  { icon: 'surgery',
     en: 'Operating Theatre',
     ms: 'Dewan Bedah',
+    why: { en: 'Daily visiting period for family', ms: 'Waktu melawat harian untuk ahli keluarga' },
     map: 'https://maps.app.goo.gl/s9VpMtv2NaeQxrWm9' },
 
-  { icon: 'icu', access: 'restricted',
+  { icon: 'icu',
     en: 'Intensive Care Unit (ICU)',
     ms: 'Unit Rawatan Rapi (ICU)',
+    why: { en: 'Daily visiting period for family', ms: 'Waktu melawat harian untuk ahli keluarga' },
     map: 'https://maps.app.goo.gl/KN4nhPr8JJeeToWAA' },
 
-  { icon: 'dietetics', access: 'staff',
+  { icon: 'dietetics',
     en: 'Dietetics & Catering Department',
     ms: 'Jabatan Dietetik & Sajian',
+    why: { en: 'The dietitian clinic is held here', ms: 'Klinik pakar diet diadakan di sini' },
     map: 'https://maps.app.goo.gl/nU1V1f9VupnsuG8V7' },
 
-  { icon: 'pharmacy', access: 'staff',
+  { icon: 'pharmacy',
     en: 'Logistics Pharmacy',
     ms: 'Farmasi Logistik',
+    why: { en: 'Bulk deliveries from suppliers', ms: 'Penghantaran pukal daripada pembekal' },
     map: 'https://maps.app.goo.gl/XLYRMo9B4BTEo7En7' },
 
-  { icon: 'forensic', access: 'escorted',
+  { icon: 'forensic',
     en: 'Forensic Department',
     ms: 'Jabatan Forensik',
-    map: 'https://maps.app.goo.gl/G8g1wyB1fJJU3ES1A' }
+    map: 'https://maps.app.goo.gl/G8g1wyB1fJJU3ES1A' },
+
+  /* The three below were photographed by HTPN inside the Main Building. No
+     map pin has been supplied for them, so `map` is null and the card offers
+     directions to the hospital rather than to a guessed coordinate. The
+     photographs and the signage are what actually find these counters: they
+     are doors along a corridor, not places a satellite can point at. */
+  { icon: 'office',
+    en: 'Revenue Unit — Patient & Emergency Registration',
+    ms: 'Unit Hasil — Pendaftaran Pesakit & Kecemasan',
+    map: null, photo: 'brand/bu-unit-hasil.jpg',
+    hours: {
+      en: 'Revenue Unit: Monday to Friday, 8am to 5pm. The ward admission counter is open 24 hours.',
+      ms: 'Unit Hasil: Isnin hingga Jumaat, 8 pagi hingga 5 petang. Kaunter Daftar Masuk Wad dibuka 24 jam.'
+    },
+    sign: { en: 'Take your receipt after paying.', ms: 'Sila ambil resit selepas membuat pembayaran.' } },
+
+  { icon: 'radiology',
+    en: 'Diagnostic Imaging Department',
+    ms: 'Jabatan Pengimejan Diagnostik',
+    map: null, photo: 'brand/bu-pengimejan.jpg',
+    /* The department's own signboard splits here, with an arrow each way.
+       Reproduced rather than summarised: at the door, the arrow is the
+       instruction. */
+    split: [
+      { dir: 'left', en: 'CT scan', ms: 'CT Scan' },
+      { dir: 'right', en: 'Radiography A — X-ray', ms: 'Radiografi A — X-Ray' }
+    ] },
+
+  { icon: 'office',
+    en: 'Management Division',
+    ms: 'Bahagian Pengurusan',
+    map: null, photo: 'brand/bu-pengurusan.jpg' }
 ]
+
+/* ---------------------------------------------------------------------------
+   THE ADMISSION AND DISCHARGE PATHWAY
+
+   Transcribed from the flow chart on the wall beside the Unit Hasil counter,
+   photographed by HTPN. It is the hospital's own chart, in the hospital's own
+   order, and it answers the question a family actually asks at that counter:
+   what happens next, and where do I pay.
+   ------------------------------------------------------------------------ */
+export const ADMISSION_FLOW = {
+  title: { en: 'Being admitted to a ward', ms: 'Aliran Pesakit Dalam' },
+  source: { en: 'From the chart at the Revenue Unit counter', ms: 'Daripada carta di kaunter Unit Hasil' },
+  steps: [
+    { en: 'Admitted by the medical officer', ms: 'Masuk oleh Pegawai Perubatan' },
+    { en: 'Ward admission registered at the Admissions Unit', ms: 'Pendaftaran masuk wad di Unit Daftar Masuk' },
+    { en: 'Deposit paid, where one applies', ms: 'Bayaran cagaran (yang berkenaan)' },
+    { en: 'Admitted to the ward', ms: 'Masuk wad' },
+    { en: 'Patient discharged', ms: 'Discaj pesakit' },
+    { en: 'Bill paid at the Revenue Unit, or at ward registration after office hours',
+      ms: 'Bayaran bil di Unit Hasil, atau Daftar Wad selepas waktu pejabat' },
+    { en: 'Collect medicines, and any documents, from the ward', ms: 'Ambil ubat dan dokumen di wad (jika ada)' }
+  ]
+}
+
+/* What the Emergency Department's own signage asks of the public, transcribed
+   from the notice beside its door. It belongs on the way-finding screen
+   because that is where somebody deciding whether to go is standing. */
+export const ED_NOTICE = {
+  counter: { en: 'Main Screening Counter', ms: 'Kaunter Saringan Utama' },
+  zone: { en: 'Green Zone, Emergency & Trauma Department', ms: 'Zon Hijau, Jabatan Kecemasan dan Trauma' },
+  body: {
+    en: 'The Emergency & Trauma Department is for emergencies. Priority goes to emergency and critical cases. For ordinary, non-emergency problems, please use the health facility nearest you — it helps us ease the crowding here.',
+    ms: 'Jabatan Kecemasan dan Trauma adalah untuk kes KECEMASAN. Keutamaan diberikan kepada kes kecemasan dan kritikal. Bagi kes biasa dan BUKAN kecemasan, sila gunakan fasiliti kesihatan yang berhampiran — bantulah kami mengurangkan kesesakan di Jabatan Kecemasan.'
+  },
+  source: { en: 'Transcribed from the department\u2019s own notice', ms: 'Disalin daripada notis jabatan itu sendiri' }
+}
+
+/* ---------------------------------------------------------------------------
+   THE TWO SITES ARE NOT THE SAME PLACE, AND THAT IS THE HEADLINE
+
+   HTPN occupies two separate sites about a kilometre apart. Each has its own
+   emergency department and its own intensive care unit, so the names on a
+   signboard do not tell a patient which site they are standing at. Going to
+   the wrong one is not a wrong turn down a corridor — it is a kilometre and
+   a missed appointment.
+
+   Distance supplied by HTPN as "within 1 km"; it is stated as approximate
+   because that is how it was given, and because the walk between two
+   hospital entrances is never the straight line a map measures.
+   ------------------------------------------------------------------------ */
+export const SITES_DIFFER = {
+  title: { en: 'Two sites, about 1 km apart', ms: 'Dua lokasi, kira-kira 1 km berbeza' },
+  body: {
+    en: 'The Main Building and the Women & Children Complex are different places. Both have an emergency department and an intensive care unit, so the name alone will not tell you which one you want — check the site named on your appointment letter before you set off.',
+    ms: 'Bangunan Utama dan Kompleks Wanita & Kanak-Kanak adalah dua tempat berbeza. Kedua-duanya mempunyai jabatan kecemasan dan unit rawatan rapi, jadi nama sahaja tidak menentukan lokasi yang anda perlukan — sila semak lokasi yang dinyatakan dalam surat temujanji anda sebelum bertolak.'
+  },
+  approxKm: 1,
+  source: { en: 'Distance as given by HTPN', ms: 'Jarak sebagaimana dinyatakan oleh HTPN' }
+}
 
 /* Every department above is in the Main Building. Said once, here. */
 export const DEPARTMENTS_BUILDING = { en: 'Main Building', ms: 'Bangunan Utama' }
 
 /* What each access level means on screen. Worded so a patient knows whether
    to walk there, and worded carefully for the one that matters most. */
-export const ACCESS_NOTES = {
+export const ACCESS_NOTES_REMOVED_BY_HTPN = {
   public: null,
   restricted: {
     label: { en: 'Visitors by arrangement', ms: 'Pelawat mengikut kebenaran' },
@@ -212,14 +311,19 @@ export const DEPARTMENTS = DEPARTMENT_LIST.map((d, i) => ({
   index: i + 1,
   confirmed: true,
   icon: d.icon,
-  access: d.access,
+  why: d.why || null,
   detailKey: 'department',
   /* Kept on the record for anything that reads a single department on its
      own; the list screen prints the building once instead. */
   building: DEPARTMENTS_BUILDING,
   /* A saved place where HTPN gave one, a Maps query where it gave
-     coordinates. Both open the same app at the same pin. */
-  map: d.map || `https://www.google.com/maps/search/?api=1&query=${d.latLng}`,
+     coordinates, and null where it gave neither — a door photographed along
+     a corridor has no pin, and inventing one is worse than offering none. */
+  map: d.map || (d.latLng ? `https://www.google.com/maps/search/?api=1&query=${d.latLng}` : null),
+  photo: d.photo || null,
+  hours: d.hours || null,
+  sign: d.sign || null,
+  split: d.split || null,
   name: { en: d.en, ms: d.ms },
   /* Coordinates beat a text search every time, so they are used where they
      exist and the department's own name is the fallback. */

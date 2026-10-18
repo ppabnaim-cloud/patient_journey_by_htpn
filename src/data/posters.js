@@ -17,9 +17,11 @@ export const SECTION = {
     en: "The Public's Role Towards a Healthier Nation",
     ms: 'Peranan Rakyat Ke Arah Negara Lebih Sihat'
   },
+  /* HTPN's own wording for what this section is for. It names both halves:
+     the national aim, and the practical consequence at the hospital door. */
   subtitle: {
-    en: 'Easing the crowding in the Emergency Department',
-    ms: 'Mengurangkan kesesakan di Jabatan Kecemasan'
+    en: 'Towards a healthy nation, and easing the crowding in our hospitals',
+    ms: 'Ke arah negara sihat dan mengurangkan kesesakan di hospital'
   },
   lead: {
     en: 'Each poster shows one small daily choice — and what happens when it is not made. Tap any poster to see it large or download it.',

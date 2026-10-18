@@ -128,6 +128,22 @@ export const T = {
   /* --- appointments (tab 1) --- */
   tab_appt: L('Record Your Appointments', 'Rekodkan Janji Temu Anda'),
   short_appt: L('Appt', 'Janji'),
+  appt_onerecord: L(
+    'This is the "One Patient, One Record" idea in your own hands. Many patients are followed up at more than one hospital, and no single hospital sees the whole picture — you do. Record every appointment here, whichever hospital and whichever clinic it is at.',
+    'Inilah gagasan \u201c1 Pesakit 1 Rekod\u201d di tangan anda sendiri. Ramai pesakit mendapat rawatan susulan di lebih daripada satu hospital, dan tiada satu hospital pun melihat gambaran keseluruhan \u2014 anda yang melihatnya. Rekodkan setiap janji temu di sini, di mana-mana hospital dan klinik sekalipun.'
+  ),
+  appt_hospital: L('Which hospital', 'Hospital yang mana'),
+  appt_hospital_eg: L('HTPN, or another hospital or clinic', 'HTPN, atau hospital atau klinik lain'),
+  appt_elsewhere: L('Somewhere else', 'Tempat lain'),
+  appt_clinic_free: L('Clinic or department', 'Klinik atau jabatan'),
+  appt_month: L('Month', 'Bulan'),
+  appt_list: L('List', 'Senarai'),
+  appt_clash: L('Two on the same day', 'Dua pada hari yang sama'),
+  appt_clash_note: L(
+    'You have more than one appointment on the days marked. Check the times \u2014 if they clash, ring one of the clinics to move it before the day arrives.',
+    'Anda mempunyai lebih daripada satu janji temu pada hari yang bertanda. Sila semak masanya \u2014 sekiranya bertindih, hubungi salah satu klinik untuk menukarnya sebelum tarikh tersebut tiba.'
+  ),
+  appt_none_month: L('Nothing this month', 'Tiada pada bulan ini'),
   appt_lead: L(
     'Your appointments, kept on this phone. Type in what your appointment card says and the app will remind you the day before.',
     'Janji temu anda, disimpan dalam telefon ini. Taipkan apa yang tertera pada kad janji temu anda dan aplikasi akan mengingatkan anda sehari sebelumnya.'
@@ -441,6 +457,10 @@ export const T = {
     'Opening a map requires an internet connection. The list itself works offline.',
     'Membuka peta memerlukan sambungan internet. Senarai ini berfungsi tanpa talian.'
   ),
+  way_sites_differ: L('Not the same place', 'Bukan tempat yang sama'),
+  way_photo_soon: L('Photograph to come', 'Gambar akan menyusul'),
+  way_hours: L('Opening hours', 'Waktu urusan'),
+  way_admission: L('Being admitted', 'Masuk Wad'),
   way_floors: L('By floor', 'Mengikut Aras'),
   way_find: L('Which floor is it on?', 'Di aras mana?'),
   way_find_eg: L('Type a ward, clinic or unit', 'Taip nama wad, klinik atau unit'),

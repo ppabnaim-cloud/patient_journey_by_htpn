@@ -26,7 +26,7 @@ import { readText, draftMedicationsFrom, draftLabsFrom, draftDateFrom, ocrAvaila
 import { sendUsage, onUsageStatus, newDeviceCode, LAST_RECORD_FOR_DISPLAY } from './usage.js'
 import {
   CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl, confirmedCount,
-  DEPARTMENTS_BUILDING, ACCESS_NOTES
+  DEPARTMENTS_BUILDING, SITES_DIFFER, ADMISSION_FLOW, ED_NOTICE
 } from './data/wayfinding.js'
 import {
   FLOORS, TOTAL_ITEMS, findFloor, BUILDING_QUERY,
@@ -51,7 +51,8 @@ import {
 import { OFFICIAL_FORM, ROUTE, buildPrefillUrl } from './data/officialForm.js'
 import {
   dueState, daysUntil, reminderDate, upcoming, pastAppointments,
-  REMIND_DAYS_BEFORE, APPT_SOURCE
+  REMIND_DAYS_BEFORE, APPT_SOURCE,
+  DEFAULT_HOSPITAL, clashDays, monthGrid, addMonths
 } from './engine/appointments.js'
 import { buildIcs } from './ics.js'
 import { THEME, ARTICLE, ANNOUNCEMENT } from './data/announcement.js'
@@ -464,8 +465,9 @@ const APPT_HOW = [
 ]
 
 function apptTitle (appt, lang) {
+  if (appt.clinicText) return appt.clinicText
   const found = CLINIC_INDEX.get(appt.clinicId || appt.deptId)
-  if (!found) return pick({ en: 'Appointment', ms: 'Temujanji' }, lang)
+  if (!found) return pick({ en: 'Appointment', ms: 'Janji temu' }, lang)
   const dept = pick(found.dept, lang)
   return found.clinic ? `${dept} — ${pick(found.clinic, lang)}` : dept
 }
@@ -489,6 +491,7 @@ function AppointmentCard ({ appt, today, lang, t, onCalendar, onRemove }) {
         <button className="pgbtn" onClick={onRemove} aria-label={t(T.appt_remove)}>✕</button>
       </div>
       <p className="apptname">{apptTitle(appt, lang)}</p>
+      {appt.hospital ? <p className="appthosp">🏥 {appt.hospital}</p> : null}
       {found?.clinic?.queried ? <p className="note">⚑ {t(T.appt_queried)}</p> : null}
       {appt.note ? <p className="card-s">{appt.note}</p> : null}
       {state !== 'past' ? (
@@ -586,6 +589,87 @@ function TabHome ({ record, goTo }) {
   )
 }
 
+
+/* ===========================================================================
+   MonthView — the calendar a patient followed up at several hospitals needs.
+
+   Its real job is the clash: two clinics in two hospitals do not know about
+   each other, and the patient is the only person who can see both. A day
+   carrying more than one appointment is marked, and the day is marked
+   whatever hospital each appointment is at — which is the whole reason the
+   record spans hospitals in the first place.
+   ========================================================================= */
+function MonthView ({ list, today }) {
+  const [t, lang] = useT()
+  const [y, setY] = useState(Number(today.slice(0, 4)))
+  const [m, setM] = useState(Number(today.slice(5, 7)))
+  const cells = monthGrid(y, m, list)
+  const clashes = clashDays(list)
+  const inMonth = cells.filter(c => c && c.items.length).length
+  const monthName = new Date(Date.UTC(y, m - 1, 1))
+    .toLocaleDateString(lang === 'ms' ? 'ms-MY' : 'en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const dayNamesMs = ['Isn', 'Sel', 'Rab', 'Kha', 'Jum', 'Sab', 'Ahd']
+  const step = (n) => { const r = addMonths(y, m, n); setY(r.year); setM(r.month) }
+
+  return (
+    <>
+      <div className="card tight">
+        <div className="monthbar">
+          <button className="pgbtn" onClick={() => step(-1)} aria-label="−1">‹</button>
+          <span className="monthname">{monthName}</span>
+          <button className="pgbtn" onClick={() => step(1)} aria-label="+1">›</button>
+        </div>
+        <div className="calgrid">
+          {(lang === 'ms' ? dayNamesMs : dayNames).map(d => (
+            <span className="calhead" key={d}>{d}</span>
+          ))}
+          {cells.map((c, i) => {
+            if (!c) return <span className="calcell empty" key={i} />
+            const clash = clashes.has(c.iso)
+            return (
+              <span key={i}
+                    className={'calcell' + (c.iso === today ? ' today' : '') +
+                               (c.items.length ? ' has' : '') + (clash ? ' clash' : '')}>
+                <span className="caldate">{c.day}</span>
+                {c.items.length ? (
+                  <span className="caldots">
+                    {c.items.slice(0, 3).map(a => (
+                      <i key={a.id} title={`${a.hospital || ''} ${a.time || ''}`.trim()} />
+                    ))}
+                  </span>
+                ) : null}
+              </span>
+            )
+          })}
+        </div>
+        {!inMonth ? <p className="note" style={{ marginTop: 8 }}>{t(T.appt_none_month)}</p> : null}
+      </div>
+
+      {[...clashes.entries()].length ? (
+        <div className="card tight">
+          <p className="card-t">⚠ {t(T.appt_clash)}</p>
+          <p className="card-s">{t(T.appt_clash_note)}</p>
+          {[...clashes.entries()].map(([day, items]) => (
+            <div className="clashday" key={day}>
+              <b>{day}</b>
+              {items.map(a => (
+                <span className="clashitem" key={a.id}>
+                  {a.time ? a.time + ' · ' : ''}{apptTitle(a, lang)}
+                  {a.hospital ? ' · ' + a.hospital : ''}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <span style={{ flex: 1 }} />
+      <p className="cite"><b>{t(T.basedOn)}:</b> {t(APPT_SOURCE.full)}</p>
+    </>
+  )
+}
+
 function TabAppointments ({ record, update, onEvent }) {
   const [t, lang] = useT()
   const narrow = useNarrow()
@@ -595,7 +679,10 @@ function TabAppointments ({ record, update, onEvent }) {
   const next = upcoming(list, today)
   const past = pastAppointments(list, today)
 
-  const [draft, setDraft] = useState({ deptId: '', clinicId: '', date: '', time: '', note: '' })
+  const [draft, setDraft] = useState({
+    deptId: '', clinicId: '', date: '', time: '', note: '',
+    hospital: DEFAULT_HOSPITAL, clinicText: ''
+  })
   const dept = CLINIC_DEPTS.find(d => d.id === draft.deptId) || null
 
   /* The file is built here and handed to the phone. It is never uploaded:
@@ -619,19 +706,24 @@ function TabAppointments ({ record, update, onEvent }) {
   }
 
   const save = () => {
-    if (!draft.deptId || !draft.date) return
+    if ((!draft.deptId && !String(draft.clinicText || '').trim()) || !draft.date) return
     update(r => ({
       ...r,
       appointments: [...(r.appointments || []), {
         id: store.newId(),
         deptId: draft.deptId,
         clinicId: draft.clinicId || null,
+        /* Where, not just what. Without this the record covers one hospital
+           and the whole point of keeping it is lost. */
+        hospital: (draft.hospital || '').trim() || DEFAULT_HOSPITAL,
+        clinicText: (draft.clinicText || '').trim() || null,
         date: draft.date,
         time: draft.time || null,
         note: draft.note.trim() || null
       }]
     }))
-    setDraft({ deptId: '', clinicId: '', date: '', time: '', note: '' })
+    setDraft({ deptId: '', clinicId: '', date: '', time: '', note: '',
+               hospital: draft.hospital, clinicText: '' })
     onEvent('appointment_added', 'appointment')
     setView('next')
   }
@@ -650,19 +742,33 @@ function TabAppointments ({ record, update, onEvent }) {
         <h1 className="pane-title">{t(T.tab_appt)}</h1>
         <p className="pane-lead">{t(T.appt_lead)}</p>
       </div>
+      <div className="onerecord">{t(T.appt_onerecord)}</div>
       <div className="subtabs">
         <button className="subtab" aria-selected={view === 'next'} onClick={() => setView('next')}>
           {t(T.appt_next)}{next.length ? ' · ' + next.length : ''}
         </button>
+        <button className="subtab" aria-selected={view === 'month'} onClick={() => setView('month')}>{t(T.appt_month)}</button>
         <button className="subtab" aria-selected={view === 'past'} onClick={() => setView('past')}>{t(T.appt_past)}</button>
         <button className="subtab" aria-selected={view === 'add'} onClick={() => setView('add')}>{t(T.appt_add)}</button>
       </div>
 
       <div className="pane-body">
+        {view === 'month' ? <MonthView list={list} today={today} /> : null}
+
         {view === 'add' ? (
           <>
             <div className="card tight">
               <div className="frm two">
+                <Field label={t(T.appt_hospital)} hint={t(T.appt_hospital_eg)}>
+                  <input type="text" value={draft.hospital || ''}
+                         onChange={e => setDraft({ ...draft, hospital: e.target.value })} />
+                </Field>
+                {/* An appointment at another hospital has no HTPN department
+                    to pick, so the clinic can simply be typed. */}
+                <Field label={t(T.appt_clinic_free)}>
+                  <input type="text" value={draft.clinicText || ''} placeholder={t(T.appt_elsewhere)}
+                         onChange={e => setDraft({ ...draft, clinicText: e.target.value })} />
+                </Field>
                 <Field label={t(T.appt_dept)}>
                   <select value={draft.deptId}
                           onChange={e => setDraft({ ...draft, deptId: e.target.value, clinicId: '' })}>
@@ -691,7 +797,7 @@ function TabAppointments ({ record, update, onEvent }) {
                        onChange={e => setDraft({ ...draft, note: e.target.value })} />
               </Field>
               <button className="btn wide" style={{ marginTop: 8 }} onClick={save}
-                      disabled={!draft.deptId || !draft.date}>
+                      disabled={(!draft.deptId && !String(draft.clinicText || '').trim()) || !draft.date}>
                 {t(T.appt_save)}
               </button>
             </div>
@@ -1476,6 +1582,8 @@ function TabMeasurements ({ record, update, onEvent }) {
           )
         ) : null}
 
+        {view === 'month' ? <MonthView list={list} today={today} /> : null}
+
         {view === 'add' ? (
           <>
             <div className="card tight">
@@ -1680,6 +1788,12 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
         {view === 'floors' ? <FloorView onLightbox={onLightbox} /> : null}
         {view === 'sites' ? (
           <>
+            {/* The single most consequential thing on this screen: going to
+                the wrong site is a kilometre, not a wrong corridor. */}
+            <div className="sitewarn">
+              <p className="card-t" style={{ margin: 0 }}>⚠ {t(SITES_DIFFER.title)}</p>
+              <p className="card-s" style={{ marginTop: 5 }}>{t(SITES_DIFFER.body)}</p>
+            </div>
             {CAMPUSES.map(c => (
               <div key={c.id} className="sitecard">
                 <img src={c.image} alt={t(c.name)} />
@@ -1725,16 +1839,49 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
                     {/* Said on the card, not in a legend somebody has to go
                         and find: a closed unit, a staff area, or a place a
                         family should be met at rather than walk into. */}
-                    {ACCESS_NOTES[d.access] ? (
-                      <span className={'acc acc-' + d.access}>{t(ACCESS_NOTES[d.access].label)}</span>
+                    {/* Why somebody comes here, where HTPN said. Not a
+                        restriction — every location below gives directions. */}
+                    {d.why ? <span className="dwhy">{t(d.why)}</span> : null}
+                    {/* At the door, the arrow IS the instruction, so the
+                        signboard's own split is reproduced rather than
+                        flattened into prose. */}
+                    {d.split ? (
+                      <span className="splitrow">
+                        {d.split.map((x, i) => (
+                          <span className="splitway" key={i}>
+                            {x.dir === 'left' ? '←' : '→'} {t(x)}
+                          </span>
+                        ))}
+                      </span>
                     ) : null}
+                    {d.hours ? <span className="dhours">🕐 {t(d.hours)}</span> : null}
+                    {d.sign ? <span className="dsign">{t(d.sign)}</span> : null}
                   </span>
-                  <a className="pin" href={d.map} target="_blank" rel="noreferrer" onClick={() => go(d)}>
-                    {t(T.way_exact)}
-                  </a>
+                  {/* No pin was supplied for the three doors photographed
+                      along a corridor, so the card says so instead of
+                      offering a link to somewhere invented. */}
+                  {d.map ? (
+                    <a className="pin" href={d.map} target="_blank" rel="noreferrer" onClick={() => go(d)}>
+                      {t(T.way_exact)}
+                    </a>
+                  ) : <span className="pin muted">{t(T.way_photo_soon)}</span>}
                 </div>
               ))}
             </div>
+
+            <div className="card tight">
+              <p className="card-t">{t(ED_NOTICE.counter)} · {t(ED_NOTICE.zone)}</p>
+              <p className="card-s">{t(ED_NOTICE.body)}</p>
+              <p className="cite" style={{ marginTop: 6 }}><b>{t(T.basedOn)}:</b> {t(ED_NOTICE.source)}</p>
+            </div>
+            <div className="card tight">
+              <p className="card-t">{t(ADMISSION_FLOW.title)}</p>
+              <ol className="flowlist">
+                {ADMISSION_FLOW.steps.map((x, i) => <li key={i}>{t(x)}</li>)}
+              </ol>
+              <p className="cite" style={{ marginTop: 6 }}><b>{t(T.basedOn)}:</b> {t(ADMISSION_FLOW.source)}</p>
+            </div>
+
             <span style={{ flex: 1 }} />
             <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
           </>
