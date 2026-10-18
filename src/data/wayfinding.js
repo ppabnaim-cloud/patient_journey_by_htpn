@@ -67,102 +67,164 @@ export const CAMPUSES = [
   }
 ]
 
-/* The 21 further links, in the order they were supplied. */
-const RAW_DEPARTMENT_LINKS = [
-  'https://maps.app.goo.gl/bY8cEXWnWYxw69Dw5',
-  'https://maps.app.goo.gl/WuYSdY4AUdCgw78k8',
-  'https://maps.app.goo.gl/onqXD8CAeZaFsUUZ6',
-  'https://maps.app.goo.gl/4qbAZVq1znC3E2iL6',
-  'https://maps.app.goo.gl/c9y63sR5tv7WSs8g7',
-  'https://maps.app.goo.gl/jV3jikoJCmLk1yYK9',
-  'https://maps.app.goo.gl/iJa5mMaP8qgkN9WQ8',
-  'https://maps.app.goo.gl/NTbNN6VfJjrS7Ps29',
-  'https://maps.app.goo.gl/tHprYFFDAF2xpHXLA',
-  'https://maps.app.goo.gl/uhUW6pEogbUKRSxdA',
-  'https://maps.app.goo.gl/S5dm3qfw55UByBRG6',
-  'https://maps.app.goo.gl/vAm3eigPkjkWB2JW8',
-  'https://maps.app.goo.gl/cEc36HXjkszkdX6fA',
-  'https://maps.app.goo.gl/D2UJUXU22VbDyvJk6',
-  'https://maps.app.goo.gl/cvfB7meQd5fHN5xd6',
-  'https://maps.app.goo.gl/ebAMqdZrR1Qwu5u58',
-  'https://maps.app.goo.gl/5EBrFw8oT7TgsffC7',
-  'https://maps.app.goo.gl/o5k2tDMkHGF1eFuT6',
-  'https://maps.app.goo.gl/iaekFi5wJ1pPgZ1ZA',
-  'https://maps.app.goo.gl/8oKYkM6PRBE9je4w8',
-  'https://maps.app.goo.gl/3qcMu2JoF7zPd6xBA'
-]
-
 /* ---------------------------------------------------------------------------
-   Locations 1-8 named by HTPN. Locations 9-21 still awaiting names.
+   THE DEPARTMENT LIST
+
+   One entry per place, each carrying its own name and its own link, so a
+   name can never drift onto the wrong pin — the previous shape kept names
+   and links in two parallel arrays, which is exactly how that happens.
+
+   Everything here is in the Main Building. That is stated once, as a banner
+   above the list, rather than repeated on all sixteen cards.
+
+   `access` is not decoration. An operating theatre, an intensive care unit,
+   a logistics pharmacy and a catering department are not places a patient
+   walks into, and a forensic department is somewhere a family is taken, not
+   somewhere anyone should be sent by a cheerful "Get directions" button. The
+   screen says which is which.
 
    `icon` names an inline SVG drawn in App.jsx. These are NOT photographs. A
    stock or generated picture of "a radiology department" is a picture of some
-   other hospital, and on a way-finding screen a patient would read it as a
-   landmark to look for. An icon says what the department does and claims to be
-   nothing else. Real photographs of these departments would be better, and
-   would drop straight in here.
+   other hospital, and on a way-finding screen a patient reads it as a landmark
+   to look for. Real photographs of these departments drop straight in here.
    ------------------------------------------------------------------------ */
-const DEPARTMENT_NAMES = [
-  { confirmed: true, icon: 'clinic',
+const DEPARTMENT_LIST = [
+  { icon: 'clinic', access: 'public',
     en: 'Specialist Clinic 2 — General Medicine & Orthopaedics',
-    ms: 'Klinik Pakar 2 — Perubatan Am & Ortopedik', where: 'main' },                       //  1
-  { confirmed: true, icon: 'office',
+    ms: 'Klinik Pakar 2 — Perubatan Am & Ortopedik',
+    map: 'https://maps.app.goo.gl/bY8cEXWnWYxw69Dw5' },
+
+  { icon: 'office', access: 'public',
     en: 'Management Office 1 & Nursing Management Office',
-    ms: 'Pejabat Pengurusan 1 & Pejabat Pengurusan Jururawat', where: 'main' },             //  2
-  { confirmed: true, icon: 'radiology',
+    ms: 'Pejabat Pengurusan 1 & Pejabat Pengurusan Jururawat',
+    map: 'https://maps.app.goo.gl/WuYSdY4AUdCgw78k8' },
+
+  { icon: 'radiology', access: 'public',
     en: 'Radiology Department — X-ray & CT scan',
-    ms: 'Jabatan Radiologi — X-ray & Imbasan CT', where: 'main' },                          //  3
-  { confirmed: true, icon: 'emergency',
+    ms: 'Jabatan Radiologi — X-ray & Imbasan CT',
+    map: 'https://maps.app.goo.gl/onqXD8CAeZaFsUUZ6' },
+
+  { icon: 'emergency', access: 'public',
     en: 'Emergency & Trauma Department',
-    ms: 'Jabatan Kecemasan & Trauma', where: 'main' },                                      //  4
-  { confirmed: true, icon: 'rehab',
+    ms: 'Jabatan Kecemasan & Trauma',
+    map: 'https://maps.app.goo.gl/4qbAZVq1znC3E2iL6' },
+
+  { icon: 'rehab', access: 'public',
     en: 'Rehabilitation Department',
-    ms: 'Jabatan Rehabilitasi', where: 'main' },                                            //  5
-  { confirmed: true, icon: 'dental',
+    ms: 'Jabatan Rehabilitasi',
+    map: 'https://maps.app.goo.gl/c9y63sR5tv7WSs8g7' },
+
+  { icon: 'dental', access: 'public',
     en: 'Oral & Maxillofacial Surgery Specialist Clinic',
-    ms: 'Klinik Pakar Bedah Mulut & Maksilofasial', where: 'main' },                        //  6
-  { confirmed: true, icon: 'pharmacy',
-    en: 'Pharmacy Department',
-    ms: 'Jabatan Farmasi', where: 'main' },                                                 //  7
-  { confirmed: true, icon: 'it',
+    ms: 'Klinik Pakar Bedah Mulut & Maksilofasial',
+    map: 'https://maps.app.goo.gl/jV3jikoJCmLk1yYK9' },
+
+  /* Renamed by HTPN from "Jabatan Farmasi". The hospital now has three
+     pharmacy points, and an unqualified "Farmasi" would send a patient
+     collecting a prescription to whichever one the search happened to find. */
+  { icon: 'pharmacy', access: 'public',
+    en: 'Specialist Clinic Pharmacy',
+    ms: 'Farmasi Klinik Pakar',
+    map: 'https://maps.app.goo.gl/iJa5mMaP8qgkN9WQ8' },
+
+  { icon: 'it', access: 'public',
     en: 'Management Office 2 — IT & Engineering Unit',
-    ms: 'Pejabat Pengurusan 2 — Unit IT & Kejuruteraan', where: 'main' },                   //  8
-  { confirmed: false }, { confirmed: false }, { confirmed: false }, { confirmed: false },   //  9-12
-  { confirmed: false }, { confirmed: false }, { confirmed: false }, { confirmed: false },   // 13-16
-  { confirmed: false }, { confirmed: false }, { confirmed: false }, { confirmed: false },   // 17-20
-  { confirmed: false }                                                                      // 21
+    ms: 'Pejabat Pengurusan 2 — Unit IT & Kejuruteraan',
+    map: 'https://maps.app.goo.gl/NTbNN6VfJjrS7Ps29' },
+
+  { icon: 'records', access: 'public',
+    en: 'Medical Records Department',
+    ms: 'Unit Rekod Perubatan',
+    map: 'https://maps.app.goo.gl/HnXQsXmNPuq3WvL19' },
+
+  /* The only entry supplied as coordinates rather than a saved place, so it
+     is the only one whose directions are exact to the metre. Coordinates are
+     better than a name here: "kaunter zon hijau" is not a thing Google Maps
+     can resolve by text. */
+  { icon: 'pharmacy', access: 'public',
+    en: 'Pharmacy Green Zone Counter',
+    ms: 'Kaunter Zon Hijau Farmasi',
+    latLng: '2.993372,101.792977' },
+
+  { icon: 'hall', access: 'public',
+    en: 'Dewan Bestari / Dewan Permaisuri (hall)',
+    ms: 'Dewan Bestari / Dewan Permaisuri',
+    map: 'https://maps.app.goo.gl/MsRkKipjFSRckRW88' },
+
+  { icon: 'surgery', access: 'restricted',
+    en: 'Operating Theatre',
+    ms: 'Dewan Bedah',
+    map: 'https://maps.app.goo.gl/s9VpMtv2NaeQxrWm9' },
+
+  { icon: 'icu', access: 'restricted',
+    en: 'Intensive Care Unit (ICU)',
+    ms: 'Unit Rawatan Rapi (ICU)',
+    map: 'https://maps.app.goo.gl/KN4nhPr8JJeeToWAA' },
+
+  { icon: 'dietetics', access: 'staff',
+    en: 'Dietetics & Catering Department',
+    ms: 'Jabatan Dietetik & Sajian',
+    map: 'https://maps.app.goo.gl/nU1V1f9VupnsuG8V7' },
+
+  { icon: 'pharmacy', access: 'staff',
+    en: 'Logistics Pharmacy',
+    ms: 'Farmasi Logistik',
+    map: 'https://maps.app.goo.gl/XLYRMo9B4BTEo7En7' },
+
+  { icon: 'forensic', access: 'escorted',
+    en: 'Forensic Department',
+    ms: 'Jabatan Forensik',
+    map: 'https://maps.app.goo.gl/G8g1wyB1fJJU3ES1A' }
 ]
 
-/* Points 9 to 21 were withdrawn by HTPN: the links did not correspond to
-   anything on the hospital campus, and a numbered pin with no name on a
-   public way-finding screen reads as a department the patient has failed to
-   recognise. Removed rather than renamed — a short list that is right beats a
-   long one that is not. Only points HTPN has named appear here; new ones are
-   added by naming them, never by listing a link and hoping.
-   The numbering of what remains is NOT shifted to close the gap: 1 to 8 are
-   the numbers HTPN itself used when it named them. */
-const WITHDRAWN = new Set([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21])
+/* Every department above is in the Main Building. Said once, here. */
+export const DEPARTMENTS_BUILDING = { en: 'Main Building', ms: 'Bangunan Utama' }
 
-export const DEPARTMENTS = RAW_DEPARTMENT_LINKS.map((map, i) => {
-  const n = DEPARTMENT_NAMES[i] || { confirmed: false }
-  const ok = !!(n.confirmed && n.en && n.ms)
-  const name = ok ? { en: n.en, ms: n.ms } : { en: `Location ${i + 1}`, ms: `Lokasi ${i + 1}` }
-  return {
-    id: 'dept_' + String(i + 1).padStart(2, '0'),
-    index: i + 1,
-    confirmed: ok,
-    icon: n.icon || 'pin',
-    detailKey: 'department',
-    building: n.where === 'main'
-      ? { en: 'Main Building', ms: 'Bangunan Utama' }
-      : null,
-    map,
-    name,
-    /* An unconfirmed location has no name to search for, so it gets directions
-       to the hospital itself rather than to a guess. */
-    destination: ok ? `${n.ms}, ${HOSPITAL}` : HOSPITAL
+/* What each access level means on screen. Worded so a patient knows whether
+   to walk there, and worded carefully for the one that matters most. */
+export const ACCESS_NOTES = {
+  public: null,
+  restricted: {
+    label: { en: 'Visitors by arrangement', ms: 'Pelawat mengikut kebenaran' },
+    note: {
+      en: 'A closed unit. Visiting is by the ward\u2019s arrangement, not by walking in — ask the nurse in charge first.',
+      ms: 'Unit tertutup. Lawatan adalah mengikut kebenaran wad, bukan dengan masuk terus — sila tanya jururawat bertugas dahulu.'
+    }
+  },
+  staff: {
+    label: { en: 'Staff area', ms: 'Kawasan kakitangan' },
+    note: {
+      en: 'A service department rather than a patient one. The location is here for staff and for deliveries.',
+      ms: 'Jabatan sokongan, bukan untuk pesakit. Lokasi ini disertakan untuk kakitangan dan urusan penghantaran.'
+    }
+  },
+  escorted: {
+    label: { en: 'Please ask at the counter first', ms: 'Sila tanya di kaunter dahulu' },
+    note: {
+      en: 'Families are accompanied here by hospital staff. If you have been asked to come, speak to the counter or the ward first so that somebody meets you.',
+      ms: 'Keluarga akan diiringi ke sini oleh pihak hospital. Sekiranya anda diminta hadir, sila berhubung dengan kaunter atau wad terlebih dahulu supaya ada yang menyambut anda.'
+    }
   }
-}).filter(d => !WITHDRAWN.has(d.index))
+}
+
+export const DEPARTMENTS = DEPARTMENT_LIST.map((d, i) => ({
+  id: 'dept_' + String(i + 1).padStart(2, '0'),
+  index: i + 1,
+  confirmed: true,
+  icon: d.icon,
+  access: d.access,
+  detailKey: 'department',
+  /* Kept on the record for anything that reads a single department on its
+     own; the list screen prints the building once instead. */
+  building: DEPARTMENTS_BUILDING,
+  /* A saved place where HTPN gave one, a Maps query where it gave
+     coordinates. Both open the same app at the same pin. */
+  map: d.map || `https://www.google.com/maps/search/?api=1&query=${d.latLng}`,
+  name: { en: d.en, ms: d.ms },
+  /* Coordinates beat a text search every time, so they are used where they
+     exist and the department's own name is the fallback. */
+  destination: d.latLng || `${d.ms}, ${HOSPITAL}`
+}))
 
 export const UNCONFIRMED_NOTE = {
   en: 'HTPN has not yet confirmed a name for this point. The exact-location link still opens the right place in Google Maps, where its real name is shown.',

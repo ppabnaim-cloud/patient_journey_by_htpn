@@ -686,6 +686,39 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   text-decoration: none;
 }
 .hashline { display: flex; align-items: center; gap: 8px; }
+/* ---------- floor directory ---------- */
+.floorcard { display: flex; flex-direction: column; }
+.fl-head { margin: 0 0 7px; }
+.fl-badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .03em;
+  padding: 3px 9px; border-radius: 999px; background: var(--brand); color: #fff; }
+.fl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.fl-list li { font-size: 12px; line-height: 1.35; color: var(--ink); padding-left: 11px;
+  position: relative; }
+.fl-list li::before { content: ''; position: absolute; left: 0; top: 7px; width: 4px; height: 4px;
+  border-radius: 50%; background: var(--line); }
+.fl-list li.urgent { color: var(--warning); font-weight: 650; }
+.fl-list li.urgent::before { background: var(--warning); }
+.floorhits { display: flex; flex-direction: column; gap: 6px; margin-top: 9px; }
+.floorhit { display: flex; align-items: center; gap: 9px; padding: 7px 10px;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--bg); }
+.fl-name { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.boardshot { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer;
+  text-align: left; }
+.boardshot img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.boardshot .note { display: block; margin-top: 6px; }
+
+/* ---------- wayfinding ---------- */
+.buildingbar { flex: 0 0 auto; display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border-radius: 10px; margin-bottom: 2px;
+  background: var(--brand-tint); color: var(--brand); font-size: 12.5px; }
+.buildingbar .bb-ic { display: grid; flex: 0 0 auto; }
+.buildingbar svg { width: 18px; height: 18px; }
+.acc { display: inline-block; margin-top: 3px; font-size: 10px; font-weight: 800;
+  letter-spacing: .02em; padding: 2px 7px; border-radius: 999px; }
+.acc-restricted { background: var(--watch-bg); color: var(--watch); }
+.acc-staff { background: var(--grid); color: var(--ink-soft); }
+.acc-escorted { background: var(--attention-bg); color: var(--attention); }
+
 /* ---------- home hub ---------- */
 /* The landing screen. Big targets, one colour each, so a patient who opens
    the app for the first time can see everything it does without reading a

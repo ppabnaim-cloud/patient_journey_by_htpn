@@ -24,7 +24,14 @@ import { reviewRecord, summarise } from './engine/review.js'
 import * as store from './storage.js'
 import { readText, draftMedicationsFrom, draftLabsFrom, draftDateFrom, ocrAvailable } from './ocr.js'
 import { sendUsage, onUsageStatus, newDeviceCode, LAST_RECORD_FOR_DISPLAY } from './usage.js'
-import { CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl, confirmedCount } from './data/wayfinding.js'
+import {
+  CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl, confirmedCount,
+  DEPARTMENTS_BUILDING, ACCESS_NOTES
+} from './data/wayfinding.js'
+import {
+  FLOORS, TOTAL_ITEMS, findFloor, BUILDING_QUERY,
+  DIRECTORY_PHOTO, DIRECTORY_CAPTION, TRANSCRIPTION_NOTES
+} from './data/floors.js'
 import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
@@ -78,6 +85,12 @@ const DEPT_ICONS = {
   dental: ['M7 3c2 0 2 1.4 5 1.4S15 3 17 3c2.4 0 3 2.4 2.4 5.6-.6 3.2-1.4 4-2 7.4-.5 3-1 5-2.4 5-1.6 0-1.4-4-3-4s-1.4 4-3 4c-1.4 0-1.9-2-2.4-5-.6-3.4-1.4-4.2-2-7.4C4 5.4 4.6 3 7 3z'],
   pharmacy: ['M5 8h14l-1.4 11.2A2 2 0 0 1 15.6 21H8.4a2 2 0 0 1-2-1.8z', 'M9 8V5h6v3', 'M12 11v6M9 14h6'],
   it: ['M3 5h18v11H3z', 'M8 20h8M12 16v4'],
+  records: ['M6 3h9l3 3v15H6z', 'M9 10h7', 'M9 14h7', 'M9 18h4'],
+  hall: ['M3 20h18', 'M5 20V9l7-5 7 5v11', 'M10 20v-6h4v6'],
+  surgery: ['M4 14l10-10 3 3-10 10-3.6.6z', 'M14 17h6', 'M17 14v6'],
+  icu: ['M3 12h4l2-5 3 10 2-5h7'],
+  dietetics: ['M7 3v8a2.5 2.5 0 0 0 5 0V3', 'M9.5 11v10', 'M17 3c-1.6 1.6-2 3.6-2 6 0 1.6.6 2.6 2 3v9'],
+  forensic: ['M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z', 'M12 9.5v3M12 15.5h.01'],
   pin: ['M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z', 'M12 10.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z']
 }
 
@@ -1567,7 +1580,79 @@ function TabMeasurements ({ record, update, onEvent }) {
    the precise link HTPN supplied, which is always right because it points at a
    saved place rather than a search.
    ====================================================================== */
-function TabWayfinding ({ onEvent, online }) {
+
+/* ===========================================================================
+   Floors — the nine-level directory, and a box to search it.
+
+   A map pin leaves a patient at the front door of a nine-storey building.
+   The floor number is the instruction that actually gets them to the right
+   counter, so this view exists alongside the pins rather than under them.
+
+   Everything here is transcribed from the photographed board; see the head of
+   src/data/floors.js, including the building question that is still open.
+   ========================================================================= */
+function FloorView ({ onLightbox }) {
+  const [t, lang] = useT()
+  const narrow = useNarrow()
+  const [q, setQ] = useState('')
+  const hits = findFloor(q, lang)
+  const paged = usePaged(FLOORS, narrow ? FLOORS.length : 3)
+
+  return (
+    <>
+      <div className="card tight">
+        <Field label={t(T.way_find)} hint={t(T.way_find_eg)}>
+          <input type="search" value={q} onChange={e => setQ(e.target.value)} />
+        </Field>
+        {q.trim().length >= 2 ? (
+          hits.length ? (
+            <div className="floorhits">
+              {hits.map((h, i) => (
+                <div className="floorhit" key={i}>
+                  <span className="fl-badge">{t(h.floor)}</span>
+                  <span className="fl-name">{t(h.item)}</span>
+                </div>
+              ))}
+            </div>
+          ) : <p className="note" style={{ marginTop: 7 }}>{t(T.way_nofound)}</p>
+        ) : null}
+      </div>
+
+      {q.trim().length < 2 ? (
+        <>
+          <div className="linkgrid">
+            {paged.slice.map(f => (
+              <div className="card tight floorcard" key={f.level}>
+                <p className="fl-head"><span className="fl-badge">{t(f)}</span></p>
+                <ul className="fl-list">
+                  {f.items.map((it, i) => (
+                    <li key={i} className={it.urgent ? 'urgent' : ''}>{t(it)}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <span style={{ flex: 1 }} />
+          {!narrow ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} /> : null}
+          <div className="card tight">
+            <button type="button" className="boardshot"
+                    onClick={() => onLightbox({ src: DIRECTORY_PHOTO, caption: pick(DIRECTORY_CAPTION, lang) })}>
+              <img src={DIRECTORY_PHOTO} alt={pick(DIRECTORY_CAPTION, lang)} loading="lazy" />
+              <span className="note">{t(T.way_board)} — {t(DIRECTORY_CAPTION)}</span>
+            </button>
+          </div>
+          <p className="note">
+            {t(T.way_levels).replace('{n}', String(FLOORS.length)).replace('{m}', String(TOTAL_ITEMS))}
+            {' · '}{t(TRANSCRIPTION_NOTES)}
+          </p>
+          <div className="flagline">⚠ {t(BUILDING_QUERY)}</div>
+        </>
+      ) : null}
+    </>
+  )
+}
+
+function TabWayfinding ({ onEvent, online, onLightbox }) {
   const [t] = useT()
   const [view, setView] = useState('sites')
   const paged = usePaged(DEPARTMENTS, PAGE.depts)
@@ -1583,12 +1668,16 @@ function TabWayfinding ({ onEvent, online }) {
         <button className="subtab" aria-selected={view === 'sites'} onClick={() => setView('sites')}>
           {t(T.way_campuses)}
         </button>
+        <button className="subtab" aria-selected={view === 'floors'} onClick={() => setView('floors')}>
+          {t(T.way_floors)}
+        </button>
         <button className="subtab" aria-selected={view === 'depts'} onClick={() => setView('depts')}>
           {t(T.way_departments)} · {DEPARTMENTS.length}
         </button>
       </div>
 
       <div className="pane-body">
+        {view === 'floors' ? <FloorView onLightbox={onLightbox} /> : null}
         {view === 'sites' ? (
           <>
             {CAMPUSES.map(c => (
@@ -1616,9 +1705,13 @@ function TabWayfinding ({ onEvent, online }) {
           </>
         ) : (
           <>
-            {confirmedCount() < DEPARTMENTS.length ? (
-              <p className="note">{t(T.way_unconfirmed_banner)}</p>
-            ) : null}
+            {/* Every department is in the same building, so it is stated
+                once here. Repeating it on each card cost two wrapped lines a
+                card and told the patient nothing new sixteen times. */}
+            <div className="buildingbar">
+              <span className="bb-ic"><Icon d={DEPT_ICONS.office} /></span>
+              <span><b>{t(DEPARTMENTS_BUILDING)}</b> · {t(T.way_all_here)}</span>
+            </div>
             <div className="linkgrid">
               {paged.slice.map(d => (
                 <div key={d.id} className={'deptcard' + (d.confirmed ? '' : ' unconfirmed')}>
@@ -1628,9 +1721,13 @@ function TabWayfinding ({ onEvent, online }) {
                        onClick={() => go(d)} style={{ color: 'inherit', textDecoration: 'none', display: 'block' }}>
                       {d.index}. {t(d.name)}
                     </a>
-                    <span className="sub">
-                      ➤ {t(T.way_directions)}{d.building ? ' · ' + t(d.building) : ''}
-                    </span>
+                    <span className="sub">➤ {t(T.way_directions)}</span>
+                    {/* Said on the card, not in a legend somebody has to go
+                        and find: a closed unit, a staff area, or a place a
+                        family should be met at rather than walk into. */}
+                    {ACCESS_NOTES[d.access] ? (
+                      <span className={'acc acc-' + d.access}>{t(ACCESS_NOTES[d.access].label)}</span>
+                    ) : null}
                   </span>
                   <a className="pin" href={d.map} target="_blank" rel="noreferrer" onClick={() => go(d)}>
                     {t(T.way_exact)}
@@ -3163,7 +3260,7 @@ export default function App () {
         {tab === 'dashboard' ? <TabDashboard record={record} goTo={goTo} onPrint={() => setShowPrint(true)} /> : null}
         {tab === 'records' ? <TabRecords record={record} update={update} onEvent={onEvent} /> : null}
         {tab === 'measurements' ? <TabMeasurements record={record} update={update} onEvent={onEvent} /> : null}
-        {tab === 'wayfinding' ? <TabWayfinding onEvent={onEvent} online={online} /> : null}
+        {tab === 'wayfinding' ? <TabWayfinding onEvent={onEvent} online={online} onLightbox={setLightbox} /> : null}
         {tab === 'iqms' ? <TabIqms onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'rakyat' ? <TabRakyat onEvent={onEvent} onLightbox={setLightbox} /> : null}

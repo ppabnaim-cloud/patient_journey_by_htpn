@@ -441,6 +441,15 @@ export const T = {
     'Opening a map requires an internet connection. The list itself works offline.',
     'Membuka peta memerlukan sambungan internet. Senarai ini berfungsi tanpa talian.'
   ),
+  way_floors: L('By floor', 'Mengikut Aras'),
+  way_find: L('Which floor is it on?', 'Di aras mana?'),
+  way_find_eg: L('Type a ward, clinic or unit', 'Taip nama wad, klinik atau unit'),
+  way_found: L('{n} found', '{n} dijumpai'),
+  way_nofound: L('Nothing on the board matches that', 'Tiada yang sepadan pada papan direktori'),
+  way_board: L('The directory board', 'Papan direktori'),
+  way_levels: L('{n} levels · {m} departments and units', '{n} aras · {m} jabatan dan unit'),
+  way_all_here: L('every department below is in this building', 'semua jabatan di bawah terletak di bangunan ini'),
+  way_access: L('Before you go', 'Sebelum anda pergi'),
   way_unconfirmed_banner: L(
     'HTPN has not yet confirmed names for the remaining points. Their exact-location links still open the correct place in Google Maps.',
     'HTPN masih belum mengesahkan nama bagi titik yang selebihnya. Pautan lokasi tepatnya tetap membuka tempat yang betul dalam Google Maps.'
