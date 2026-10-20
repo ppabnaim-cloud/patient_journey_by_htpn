@@ -8,7 +8,7 @@ const t = (name, cond) => { if (cond) console.log('  ok   ' + name); else { fail
 
 const good = buildRecord({
   appVersion: '0.1.0', deviceCode: newDeviceCode(), sessionCode: newDeviceCode(),
-  isNewDevice: true, lang: 'en', action: 'tab_open', tab: 'records', detail: 'meds',
+  isNewDevice: true, lang: 'en', action: 'tab_open', tab: 'record', detail: 'meds',
   seq: 2, userAgent: 'Mozilla/5.0 (iPhone)', screenWidth: 390, standalone: false,
   online: true, sessionMs: 90000, tabsUsed: 2, recordsHeld: 3
 })

@@ -175,7 +175,7 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 /* ---------- tab bar ---------- */
 .tabbar {
   height: var(--tabbar-h); flex: 0 0 auto;
-  display: grid; grid-template-columns: repeat(10, 1fr);
+  display: grid; grid-template-columns: repeat(8, 1fr);
   background: var(--card); border-top: 1px solid var(--line);
 }
 .tabbtn {
@@ -690,6 +690,10 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   background: var(--attention-bg); border: 1px solid var(--attention);
   color: var(--ink); margin-bottom: 2px; }
 .sitewarn .card-t { color: var(--attention); }
+.sitebig { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer;
+  flex: 0 0 auto; }
+.sitebig img { width: 100%; display: block; border-radius: var(--r); border: 1px solid var(--line);
+  max-height: 300px; object-fit: cover; }
 .twosites { display: block; width: 100%; margin-top: 9px; padding: 0; border: 0;
   background: none; cursor: pointer; }
 .twosites img { width: 100%; display: block; border-radius: 9px;
@@ -792,6 +796,34 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .appbar i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
 .appn { font-size: 12px; font-weight: 700; color: var(--ink-soft); text-align: right;
   font-variant-numeric: tabular-nums; }
+
+.findinglist { display: flex; flex-direction: column; gap: 8px; margin-top: 7px; }
+.foldhead { width: 100%; text-align: left; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); padding: 0; }
+
+/* ---------- merged record section ---------- */
+.editorbody { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 10px;
+  overflow-y: auto; }
+.editorbody > * { flex-shrink: 0; }
+.bcount { float: right; font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 999px;
+  background: var(--brand-tint); color: var(--brand); }
+.entered { font-size: 10px; color: var(--ink-faint); white-space: nowrap; margin-left: 6px; }
+.bullets.dim li { color: var(--ink-soft); }
+.trendrows { display: flex; flex-direction: column; gap: 6px; margin-top: 7px; }
+.trendrow, .imgrow { display: grid; gap: 2px 9px; padding: 7px 9px; border-radius: 9px;
+  background: var(--bg); border: 1px solid var(--line); }
+.trendrow { grid-template-columns: 1fr auto; align-items: baseline; }
+.tr-name { font-size: 12.5px; font-weight: 650; color: var(--ink); }
+.tr-val { font-size: 14px; font-weight: 750; color: var(--ink); font-variant-numeric: tabular-nums; }
+.tr-dir { font-size: 10.5px; font-weight: 700; }
+.tr-dir.up { color: var(--attention); }
+.tr-dir.down { color: var(--calm); }
+.tr-dir.same, .tr-dir.none { color: var(--ink-faint); font-weight: 600; }
+.tr-n { font-size: 10.5px; color: var(--ink-faint); }
+.imgtext { grid-column: 1 / -1; font-size: 11.5px; color: var(--ink-soft); line-height: 1.4;
+  margin-top: 2px; }
+.ondevice { flex: 0 0 auto; padding: 9px 12px; border-radius: 10px; font-size: 11.5px;
+  line-height: 1.5; background: var(--calm-bg); color: var(--calm); font-weight: 600; }
 
 /* ---------- feedback ---------- */
 /* The one tab that transmits says so on every view, in a colour used

@@ -17,7 +17,7 @@ const DB_NAME = 'pjhtpn-photos'
 const DB_STORE = 'photos'
 
 export const EMPTY_RECORD = {
-  version: 3,
+  version: 4,
   gender: null,
   noKnownAllergy: false,
   medications: [],
@@ -67,6 +67,19 @@ function migrate (r) {
     r.version = 2
   }
   if (r.version < 3) r.version = 3
+  /* v4 stamps every entry with WHEN IT WAS TYPED IN, which is a different
+     question from when the thing happened clinically. Existing entries get
+     null rather than today's date: pretending an old entry was typed this
+     morning would be inventing a fact about the patient's own record. */
+  if (r.version < 4) {
+    for (const key of ['medications', 'issues', 'allergies', 'surgeries',
+                       'labs', 'imaging', 'measurements', 'activity', 'appointments']) {
+      if (Array.isArray(r[key])) {
+        for (const e of r[key]) if (e && !('recordedAt' in e)) e.recordedAt = null
+      }
+    }
+    r.version = 4
+  }
   return r
 }
 
@@ -157,6 +170,12 @@ export function exportBlob (record) {
   }
   return new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
 }
+
+/* Stamped at the moment of entry, which is a different question from the
+   clinical date on the same entry: a March result typed in October is both.
+   Exported beside newId because every section already calls that one, so a
+   new list cannot be added without its entries carrying a time. */
+export const stampNow = () => new Date().toISOString()
 
 export const newId = () => {
   const b = new Uint8Array(8)

@@ -67,10 +67,13 @@ export const T = {
   tab_dashboard: L('My Journey', 'Perjalanan Saya'),
   tab_records: L('My Records', 'Rekod Saya'),
   tab_measurements: L('Monitoring', 'Pemantauan'),
-  tab_wayfinding: L('Finding Your Way', 'Mencari Arah'),
-  tab_iqms: L('Queue Number', 'Nombor Giliran'),
-  tab_myubat: L('Medicine Delivery', 'Penghantaran Ubat'),
-  tab_rakyat: L("The Public's Role", 'Peranan Rakyat'),
+  tab_wayfinding: L('Finding Your Way in HTPN', 'Mencari Arah di HTPN'),
+  tab_iqms: L('IQMS', 'IQMS'),
+  tab_myubat: L('MyUbat', 'MyUbat'),
+  tab_rakyat: L(
+    'The Public’s Role Towards a Healthy Nation and Easing Hospital Crowding',
+    'Peranan Rakyat Ke Arah Negara Sihat dan Mengurangkan Kesesakan di Hospital'
+  ),
   tab_gayahidup: L('Healthy Living', 'Gaya Hidup Sihat'),
 
   /* Short labels for the tab bar itself. Eight tabs across a 360px phone
@@ -126,7 +129,7 @@ export const T = {
   ),
   m_activity: L('From your watch', 'Daripada jam anda'),
   /* --- appointments (tab 1) --- */
-  tab_appt: L('Record Your Appointments', 'Rekodkan Janji Temu Anda'),
+  tab_appt: L('Record Your Appointment for Multiple Hospitals', 'Rekodkan Janji Temu Anda untuk Pelbagai Hospital'),
   short_appt: L('Appt', 'Janji'),
   appt_onerecord: L(
     'This is the "One Patient, One Record" idea in your own hands. Many patients are followed up at more than one hospital, and no single hospital sees the whole picture — you do. Record every appointment here, whichever hospital and whichever clinic it is at.',
@@ -179,6 +182,7 @@ export const T = {
   home_lead: L('Everything in one place. Tap any card to open it.', 'Semuanya di satu tempat. Ketik mana-mana kad untuk membukanya.'),
   home_back: L('Home', 'Utama'),
   d_appointments: L('Your clinic dates, and a reminder the day before', 'Tarikh klinik anda, dan peringatan sehari sebelumnya'),
+  d_record: L('Your conditions, medicines, results and scans', 'Penyakit, ubat, keputusan dan imbasan anda'),
   d_dashboard: L('Your readings over time, at a glance', 'Bacaan anda dari semasa ke semasa, sepintas lalu'),
   d_records: L('Medicines, allergies, operations, results', 'Ubat, alahan, pembedahan, keputusan'),
   d_measurements: L('Weight, blood pressure, sugar, steps', 'Berat, tekanan darah, gula, langkah'),
@@ -187,8 +191,34 @@ export const T = {
   d_myubat: L('Have repeat medicines delivered', 'Dapatkan ubat ulangan dihantar ke rumah'),
   d_rakyat: L('When to come, and when not to', 'Bila perlu datang, dan bila tidak perlu'),
   d_feedback: L('Thank the team, or tell us what to fix', 'Hargai pasukan kami, atau beritahu apa perlu diperbaiki'),
-  tab_fb: L('Feedback', 'Maklum Balas'),
-  short_fb: L('Say', 'Suara'),
+  /* --- the merged record section --- */
+  tab_rec: L('1 Patient 1 Record', '1 Pesakit 1 Rekod'),
+  short_rec: L('Record', 'Rekod'),
+  rec_merged_lead: L(
+    'Everything about your health in one place — what you have, what you take, what has been tested and scanned.',
+    'Semua tentang kesihatan anda di satu tempat — penyakit anda, ubat anda, ujian dan imbasan yang telah dibuat.'
+  ),
+  rec_sub_summary: L('Summary', 'Ringkasan'),
+  rec_sub_add: L('Add', 'Tambah'),
+  rec_sub_trend: L('Trends', 'Trend'),
+  rec_comorbid: L('Long-term conditions', 'Penyakit Jangka Panjang'),
+  rec_active: L('Active problems', 'Masalah Aktif'),
+  rec_meds_now: L('Medicines you take now', 'Ubat Yang Diambil Sekarang'),
+  rec_meds_past: L('Medicines you took before', 'Ubat Yang Pernah Diambil'),
+  rec_investigations: L('Investigation trends', 'Trend Siasatan'),
+  rec_imaging: L('Imaging reports', 'Laporan Imbasan'),
+  rec_none: L('Nothing recorded yet', 'Belum ada rekod'),
+  rec_entered: L('Entered', 'Dimasukkan'),
+  rec_readings: L('{n} readings', '{n} bacaan'),
+  rec_followed: L('Followed over time', 'Dipantau dari semasa ke semasa'),
+  rec_since_last: L('since last', 'berbanding sebelumnya'),
+  rec_one_reading: L('One reading only — not a trend yet', 'Satu bacaan sahaja — belum menjadi trend'),
+  rec_ondevice: L(
+    'This app does not store any of this. Everything on this screen is on your own phone, and nothing is sent anywhere.',
+    'Aplikasi ini tidak menyimpan apa-apa daripada semua ini. Semua yang ada pada skrin ini berada dalam telefon anda sendiri, dan tiada apa-apa yang dihantar ke mana-mana.'
+  ),
+  tab_fb: L('Feedback & Appreciation', 'Maklum Balas & Penghargaan'),
+  short_fb: L('Say', 'Balas'),
   fb_title: L('Tell us how we did', 'Beritahu Kami Pengalaman Anda'),
   fb_lead: L(
     'Rate the service and tell HTPN what happened. This is the one screen in the app that sends what you type to the hospital.',
@@ -462,6 +492,8 @@ export const T = {
   way_photo_soon: L('Photograph to come', 'Gambar akan menyusul'),
   way_hours: L('Opening hours', 'Waktu urusan'),
   way_admission: L('Being admitted', 'Masuk Wad'),
+  way_main: L('Main Building', 'Bangunan Utama'),
+  way_wcc: L('Women & Children Complex', 'Kompleks Wanita & Kanak-Kanak'),
   way_floors: L('By floor', 'Mengikut Aras'),
   way_find: L('Which floor is it on?', 'Di aras mana?'),
   way_find_eg: L('Type a ward, clinic or unit', 'Taip nama wad, klinik atau unit'),

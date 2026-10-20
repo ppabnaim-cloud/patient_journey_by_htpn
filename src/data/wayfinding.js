@@ -34,22 +34,6 @@ export function directionsUrl (destinationText) {
 
 export const CAMPUSES = [
   {
-    id: 'wcc',
-    confirmed: true,
-    detailKey: 'wcc',
-    image: 'brand/wcc.jpg',
-    name: {
-      en: 'Women & Children Complex (WCC)',
-      ms: 'Kompleks Wanita & Kanak-Kanak (WCC)'
-    },
-    blurb: {
-      en: 'Obstetrics, gynaecology, paediatrics and the newborn unit.',
-      ms: 'Obstetrik, ginekologi, pediatrik dan unit bayi baharu lahir.'
-    },
-    destination: 'Hospital Tengku Permaisuri Norashikin (Pusat Rawatan Wanita dan Kanak-Kanak), Kajang',
-    map: 'https://maps.app.goo.gl/REaZswJ2h5YenUyC6'
-  },
-  {
     id: 'main',
     confirmed: true,
     detailKey: 'main',
@@ -64,6 +48,22 @@ export const CAMPUSES = [
     },
     destination: HOSPITAL,
     map: 'https://maps.app.goo.gl/39pox6E6PciNfYTz5'
+  },
+  {
+    id: 'wcc',
+    confirmed: true,
+    detailKey: 'wcc',
+    image: 'brand/wcc.jpg',
+    name: {
+      en: 'Women & Children Complex (WCC)',
+      ms: 'Kompleks Wanita & Kanak-Kanak (WCC)'
+    },
+    blurb: {
+      en: 'Obstetrics, gynaecology, paediatrics and the newborn unit.',
+      ms: 'Obstetrik, ginekologi, pediatrik dan unit bayi baharu lahir.'
+    },
+    destination: 'Hospital Tengku Permaisuri Norashikin (Pusat Rawatan Wanita dan Kanak-Kanak), Kajang',
+    map: 'https://maps.app.goo.gl/REaZswJ2h5YenUyC6'
   }
 ]
 

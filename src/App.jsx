@@ -32,6 +32,7 @@ import {
   FLOORS, TOTAL_ITEMS, findFloor, BUILDING_QUERY,
   DIRECTORY_PHOTO, DIRECTORY_CAPTION, TRANSCRIPTION_NOTES
 } from './data/floors.js'
+import { buildSummary } from './engine/summary.js'
 import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
@@ -46,7 +47,7 @@ import { ASK_FOR_IC, newTicket, downscaleImage, validateFeedback, ageFromIc } fr
 import { sendFeedback, feedbackConfigured } from './feedbackSend.js'
 import {
   APPRECIATION_2026, TOTAL_2026, AS_AT, APPRECIATION_YEAR,
-  SOURCE_NOTE, QUERIED_NOTE, parseSummaryCsv
+  SOURCE_NOTE, QUERIED_NOTE, parseSummaryCsv, APPRECIATION_VIDEO
 } from './data/appreciation.js'
 import { OFFICIAL_FORM, ROUTE, buildPrefillUrl } from './data/officialForm.js'
 import {
@@ -96,6 +97,7 @@ const DEPT_ICONS = {
 }
 
 const ICONS = {
+  record: ['M6 3h9l3 3v15H6z', 'M9 10h7', 'M9 14h7', 'M9 18h4'],
   home: ['M4 11l8-7 8 7', 'M6 10v10h12V10', 'M10 20v-6h4v6'],
   feedback: ['M4 5h16v11H9l-5 4z', 'M8 9h8M8 12h5'],
   appointments: ['M4 6h16v15H4z', 'M8 3v5M16 3v5', 'M4 11h16', 'M9 15h2M13 15h2'],
@@ -527,17 +529,20 @@ const HERO_CHIPS = [
   { en: 'Meaningful', ms: 'Bermakna' }
 ]
 
-const HUB = [
-  { id: 'appointments', desc: T.d_appointments },
-  { id: 'dashboard', desc: T.d_dashboard },
-  { id: 'records', desc: T.d_records },
-  { id: 'measurements', desc: T.d_measurements },
-  { id: 'wayfinding', desc: T.d_wayfinding },
-  { id: 'iqms', desc: T.d_iqms },
-  { id: 'myubat', desc: T.d_myubat },
-  { id: 'rakyat', desc: T.d_rakyat },
-  { id: 'feedback', desc: T.d_feedback }
-]
+const HUB_DESC = {
+  wayfinding: T.d_wayfinding,
+  feedback: T.d_feedback,
+  rakyat: T.d_rakyat,
+  record: T.d_record,
+  appointments: T.d_appointments,
+  iqms: T.d_iqms,
+  myubat: T.d_myubat
+}
+
+/* The hub follows the tab order, so the two can never disagree. Computed on
+   render rather than at module level: TABS is declared further down the file,
+   and reading it here at evaluation time is a temporal dead zone. */
+const hubItems = () => TABS.map(x => ({ id: x.id, desc: HUB_DESC[x.id] }))
 
 function TabHome ({ record, goTo }) {
   const [t, lang] = useT()
@@ -563,7 +568,7 @@ function TabHome ({ record, goTo }) {
         </div>
 
         <div className="hubgrid">
-          {HUB.map(h => {
+          {hubItems().map(h => {
             const tab = tabOf(h.id)
             const n = counts[h.id]
             return (
@@ -710,7 +715,7 @@ function TabAppointments ({ record, update, onEvent }) {
     update(r => ({
       ...r,
       appointments: [...(r.appointments || []), {
-        id: store.newId(),
+        id: store.newId(), recordedAt: store.stampNow(),
         deptId: draft.deptId,
         clinicId: draft.clinicId || null,
         /* Where, not just what. Without this the record covers one hospital
@@ -1019,7 +1024,7 @@ function MedsSection ({ record, update, onEvent }) {
 
   const add = () => {
     if (!draft.drug.trim()) return
-    update(r => ({ ...r, medications: [...(r.medications || []), { ...draft, id: store.newId() }] }))
+    update(r => ({ ...r, medications: [...(r.medications || []), { ...draft, id: store.newId(), recordedAt: store.stampNow() }] }))
     setDraft({ drug: '', dose: '', indication: '', status: 'on', startedOn: '', endsOn: '' })
     onEvent('record_typed_entry', 'meds')
   }
@@ -1033,7 +1038,7 @@ function MedsSection ({ record, update, onEvent }) {
       <p className="note multisite">⌁ {t(ANNOUNCEMENT.medsNote)}</p>
       <OcrPanel kind="meds" onEvent={onEvent} onDraft={(rows) => {
         if (!rows.length) return
-        update(r => ({ ...r, medications: [...(r.medications || []), ...rows.map(x => ({ ...x, id: store.newId() }))] }))
+        update(r => ({ ...r, medications: [...(r.medications || []), ...rows.map(x => ({ ...x, id: store.newId(), recordedAt: store.stampNow() }))] }))
       }} />
       <div className="card tight listcard">
         {meds.length === 0
@@ -1118,7 +1123,7 @@ function SimpleListSection ({ record, update, onEvent, field, columns, makeEmpty
 
   const add = () => {
     if (!String(draft[primary] || '').trim()) return
-    update(r => ({ ...r, [field]: [...(r[field] || []), { ...draft, id: store.newId() }] }))
+    update(r => ({ ...r, [field]: [...(r[field] || []), { ...draft, id: store.newId(), recordedAt: store.stampNow() }] }))
     setDraft(makeEmpty())
     onEvent('record_typed_entry', detail)
   }
@@ -1185,7 +1190,7 @@ function BloodsSection ({ record, update, onEvent }) {
 
   const add = () => {
     if (draft.value === '' || !draft.date) return
-    update(r => ({ ...r, labs: [...(r.labs || []), { ...draft, value: parseFloat(draft.value), id: store.newId() }] }))
+    update(r => ({ ...r, labs: [...(r.labs || []), { ...draft, value: parseFloat(draft.value), id: store.newId(), recordedAt: store.stampNow() }] }))
     setDraft({ analyteId: draft.analyteId, value: '', date: '', refLow: '', refHigh: '' })
     onEvent('record_typed_entry', 'bloods')
   }
@@ -1203,7 +1208,7 @@ function BloodsSection ({ record, update, onEvent }) {
         <OcrPanel kind="bloods" onEvent={onEvent} onDraft={(rows) => {
           if (!rows.length) return
           const today = new Date().toISOString().slice(0, 10)
-          update(r => ({ ...r, labs: [...(r.labs || []), ...rows.map(x => ({ ...x, date: today, id: store.newId() }))] }))
+          update(r => ({ ...r, labs: [...(r.labs || []), ...rows.map(x => ({ ...x, date: today, id: store.newId(), recordedAt: store.stampNow() }))] }))
           setView('list')
         }} />
       ) : null}
@@ -1301,7 +1306,7 @@ function ImagingSection ({ record, update, onEvent }) {
 
   const add = () => {
     if (!draft.finding.trim()) return
-    update(r => ({ ...r, imaging: [...(r.imaging || []), { ...draft, id: store.newId() }] }))
+    update(r => ({ ...r, imaging: [...(r.imaging || []), { ...draft, id: store.newId(), recordedAt: store.stampNow() }] }))
     setDraft({ modality: draft.modality, bodyPart: '', date: '', finding: '' })
     onEvent('record_typed_entry', 'bloods')
     setView('list')
@@ -1381,19 +1386,221 @@ function ImagingSection ({ record, update, onEvent }) {
   )
 }
 
-function TabRecords ({ record, update, onEvent }) {
+
+/* ===========================================================================
+   TabRecord — My Journey, My Records and Monitoring, merged into one.
+
+   WHY THE MERGE
+   Three tabs described three ways of looking at the same thing, and a
+   patient had to know which of the three held what they wanted. There is now
+   one section with three jobs: read the summary, add something, look at the
+   trends.
+
+   WHAT THE SUMMARY IS
+   Five groupings computed from the patient's own entries, by rule, in the
+   browser: long-term conditions, active problems, medicines now and before,
+   investigation trends, imaging. See the head of engine/summary.js for why
+   it is rules and not a model — the short version is that theming a
+   patient's diagnoses with an API would mean sending them off the device,
+   and every other screen promises the opposite.
+
+   Every entry shows WHEN IT WAS TYPED IN as well as when it happened. A
+   result from March entered in October is both, and a record that shows only
+   one of those dates misleads about how current it is.
+   ========================================================================= */
+function Bucket ({ title, count, children, empty, t }) {
+  return (
+    <div className="card tight">
+      <p className="chart-t">
+        {title}
+        {count ? <span className="bcount">{count}</span> : null}
+      </p>
+      {count ? children : <p className="note">{empty || t(T.rec_none)}</p>}
+    </div>
+  )
+}
+
+function Entered ({ entry, t }) {
+  if (!entry?.recordedAt) return null
+  return <span className="entered">{t(T.rec_entered)} {String(entry.recordedAt).slice(0, 10)}</span>
+}
+
+function RecordSummary ({ record, onAdd }) {
+  const [t, lang] = useT()
+  const today = isoDay(new Date())
+  const s = buildSummary(record, today)
+  const arrow = { up: '▲', down: '▼', same: '=' }
+  const findings = useMemo(() => reviewRecord(record), [record])
+  const actionable = findings.filter(f => f.level !== 'none')
+  const quiet = findings.filter(f => f.level === 'none')
+  const [showQuiet, setShowQuiet] = useState(false)
+
+  return (
+    <>
+      {/* A first-time patient meeting five empty buckets needs one clear way
+          in, not five statements of emptiness. */}
+      {store.entryCount(record) === 0 ? (
+        <div className="emptybar">
+          <span>{t(T.dash_empty_body)}</span>
+          <span className="sp" />
+          <button className="btn" style={{ padding: '6px 11px', fontSize: 12 }} onClick={onAdd}>
+            {t(T.dash_empty_cta)}
+          </button>
+        </div>
+      ) : null}
+
+      {/* Rule 4 of this project: what needs acting on comes first, and the
+          rest starts folded rather than deleted. */}
+      {actionable.length ? (
+        <div className="card tight">
+          <p className="chart-t">
+            {t(T.dash_sub_actions)}<span className="bcount">{actionable.length}</span>
+          </p>
+          <div className="findinglist">
+            {actionable.map(f => <Finding key={f.id} f={f} />)}
+          </div>
+        </div>
+      ) : null}
+
+      {quiet.length ? (
+        <div className="card tight">
+          <button type="button" className="foldhead" onClick={() => setShowQuiet(v => !v)}>
+            {showQuiet ? '▾' : '▸'} {t(T.dash_sub_checked)} · {quiet.length}
+          </button>
+          {showQuiet ? (
+            <div className="findinglist" style={{ marginTop: 8 }}>
+              {quiet.map(f => <Finding key={f.id} f={f} />)}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <Bucket title={t(T.rec_comorbid)} count={s.comorbidities.length} t={t}>
+        <ul className="bullets">
+          {s.comorbidities.map(i => (
+            <li key={i.id}>{i.text} <Entered entry={i} t={t} /></li>
+          ))}
+        </ul>
+      </Bucket>
+
+      <Bucket title={t(T.rec_active)} count={s.activeIssues.length} t={t}>
+        <ul className="bullets">
+          {s.activeIssues.map(i => (
+            <li key={i.id}>{i.text} <Entered entry={i} t={t} /></li>
+          ))}
+        </ul>
+      </Bucket>
+
+      <Bucket title={t(T.rec_meds_now)} count={s.medicinesNow.length} t={t}>
+        <ul className="bullets">
+          {s.medicinesNow.map(m => (
+            <li key={m.id}>
+              <b>{m.drug}</b>{m.dose ? ' · ' + m.dose : ''}{m.indication ? ' · ' + m.indication : ''}
+              <Entered entry={m} t={t} />
+            </li>
+          ))}
+        </ul>
+      </Bucket>
+
+      {s.medicinesPast.length ? (
+        <Bucket title={t(T.rec_meds_past)} count={s.medicinesPast.length} t={t}>
+          <ul className="bullets dim">
+            {s.medicinesPast.map(m => (
+              <li key={m.id}>
+                {m.drug}{m.endsOn ? ' · ' + m.endsOn : ''}
+                <Entered entry={m} t={t} />
+              </li>
+            ))}
+          </ul>
+        </Bucket>
+      ) : null}
+
+      <Bucket title={t(T.rec_investigations)} count={s.investigations.length} t={t}>
+        <div className="trendrows">
+          {s.investigations.map(v => (
+            <div className="trendrow" key={v.analyteId}>
+              <span className="tr-name">{v.finding?.label ? t(v.finding.label) : v.analyteId}</span>
+              <span className="tr-val">{v.latest.value}</span>
+              {/* A direction only where there are two readings to compare.
+                  One reading is not a trend and is not drawn as one. */}
+              {v.direction ? (
+                <span className={'tr-dir ' + v.direction}>
+                  {arrow[v.direction]} {v.delta > 0 ? '+' : ''}{Number(v.delta.toFixed(2))} {t(T.rec_since_last)}
+                </span>
+              ) : <span className="tr-dir none">{t(T.rec_one_reading)}</span>}
+              <span className="tr-n">{t(T.rec_readings).replace('{n}', String(v.count))}</span>
+            </div>
+          ))}
+        </div>
+      </Bucket>
+
+      <Bucket title={t(T.rec_imaging)} count={s.imaging.length} t={t}>
+        <div className="trendrows">
+          {s.imaging.map(g => (
+            <div className="imgrow" key={g.bodyPart}>
+              <span className="tr-name">{g.bodyPart}</span>
+              <span className="tr-n">
+                {g.count} · {String(g.latest.date || '').slice(0, 10)}
+                {g.repeated ? ' · ' + t(T.rec_followed) : ''}
+              </span>
+              {g.latest.report ? <span className="imgtext">{g.latest.report}</span> : null}
+            </div>
+          ))}
+        </div>
+      </Bucket>
+
+      <span style={{ flex: 1 }} />
+      <div className="ondevice">{t(T.rec_ondevice)}</div>
+    </>
+  )
+}
+
+function TabRecord ({ record, update, onEvent, goTo, onPrint }) {
+  const [t] = useT()
+  const [view, setView] = useState('summary')
+  return (
+    <div className="pane">
+      <div className="pane-head">
+        <h1 className="pane-title">{t(T.tab_rec)}</h1>
+        <p className="pane-lead">{t(T.rec_merged_lead)}</p>
+      </div>
+      <div className="subtabs">
+        <button className="subtab" aria-selected={view === 'summary'} onClick={() => setView('summary')}>
+          {t(T.rec_sub_summary)}
+        </button>
+        <button className="subtab" aria-selected={view === 'add'} onClick={() => setView('add')}>
+          {t(T.rec_sub_add)}
+        </button>
+        <button className="subtab" aria-selected={view === 'trend'} onClick={() => setView('trend')}>
+          {t(T.rec_sub_trend)}
+        </button>
+      </div>
+      <div className="pane-body">
+        {view === 'summary' ? <RecordSummary record={record} onAdd={() => setView('add')} /> : null}
+        {view === 'add' ? <RecordEditor record={record} update={update} onEvent={onEvent} /> : null}
+        {view === 'trend' ? (
+          <>
+            <Overview record={record} />
+            <span style={{ flex: 1 }} />
+            <button className="btn wide" onClick={onPrint}>{t(T.dash_print)}</button>
+          </>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+/* The station pipeline and every section editor, with no pane of its own —
+   it is now one view inside the merged record tab rather than a tab. */
+function RecordEditor ({ record, update, onEvent }) {
   const [t] = useT()
   const [section, setSection] = useState('meds')
   useEffect(() => { onEvent('record_section_open', REC_SECTIONS.find(s => s.id === section)?.detail || 'none') }, [section])
 
   return (
-    <div className="pane">
-      <div className="pane-head">
-        <h1 className="pane-title">{t(T.tab_records)}</h1>
-        <p className="pane-lead">{t(T.rec_lead)}</p>
-      </div>
+    <>
       <Stations record={record} current={section} onPick={setSection} />
-      <div className="pane-body">
+      <div className="editorbody">
         {section === 'meds' ? <MedsSection record={record} update={update} onEvent={onEvent} /> : null}
 
         {section === 'issues' ? (
@@ -1431,7 +1638,7 @@ function TabRecords ({ record, update, onEvent }) {
               ]} />
             {(record.allergies || []).length === 0 ? (
               <button className="btn quiet wide" onClick={() => {
-                update(r => ({ ...r, allergies: [{ id: store.newId(), substance: pick(T.allergy_none_known_label, 'en'), reaction: '', severity: 'mild', noneKnown: true }] }))
+                update(r => ({ ...r, allergies: [{ id: store.newId(), recordedAt: store.stampNow(), substance: pick(T.allergy_none_known_label, 'en'), reaction: '', severity: 'mild', noneKnown: true }] }))
                 onEvent('record_typed_entry', 'allergies')
               }}>{t(T.allergy_none_known)}</button>
             ) : null}
@@ -1453,7 +1660,7 @@ function TabRecords ({ record, update, onEvent }) {
         {section === 'imaging' ? <ImagingSection record={record} update={update} onEvent={onEvent} /> : null}
         {section === 'activity' ? <ActivitySection record={record} update={update} onEvent={onEvent} /> : null}
       </div>
-    </div>
+    </>
   )
 }
 
@@ -1496,7 +1703,7 @@ function TabMeasurements ({ record, update, onEvent }) {
       labs: draft.fpg === ''
         ? (r.labs || [])
         : [...(r.labs || []), {
-            id: store.newId(), date: draft.date, analyteId: 'fpg',
+            id: store.newId(), recordedAt: store.stampNow(), date: draft.date, analyteId: 'fpg',
             value: parseFloat(draft.fpg), refLow: '', refHigh: '', atHome: true
           }],
       /* Steps and energy entered here go to the SAME activity list the
@@ -1506,13 +1713,13 @@ function TabMeasurements ({ record, update, onEvent }) {
       activity: (draft.steps === '' && draft.kcal === '')
         ? (r.activity || [])
         : [...(r.activity || []), {
-            id: store.newId(), date: draft.date,
+            id: store.newId(), recordedAt: store.stampNow(), date: draft.date,
             minutes: null, km: null,
             steps: draft.steps === '' ? null : parseInt(draft.steps, 10),
             kcal: draft.kcal === '' ? null : parseInt(draft.kcal, 10)
           }],
       measurements: [...(r.measurements || []), {
-        id: store.newId(), date: draft.date,
+        id: store.newId(), recordedAt: store.stampNow(), date: draft.date,
         weightKg: draft.weightKg === '' ? null : parseFloat(draft.weightKg),
         heightCm: draft.heightCm === '' ? null : parseFloat(draft.heightCm),
         waistCm: draft.waistCm === '' ? null : parseFloat(draft.waistCm),
@@ -1760,9 +1967,54 @@ function FloorView ({ onLightbox }) {
   )
 }
 
+
+/* ===========================================================================
+   SiteView — one of the two sites, on its own screen.
+
+   A patient driving to HTPN is looking for a building, and the two look
+   nothing alike: the Main Building is the old low red-roofed Hospital Kajang
+   behind a wall sign, the WCC is a nine-storey block. Given a screen each,
+   the photograph can be large enough to recognise from the road, which is
+   what it is for.
+   ========================================================================= */
+function SiteView ({ site, go, onLightbox }) {
+  const [t, lang] = useT()
+  if (!site) return null
+  return (
+    <>
+      <button type="button" className="sitebig"
+              onClick={() => onLightbox({ src: site.image, caption: pick(site.name, lang) })}>
+        <img src={site.image} alt={pick(site.name, lang)} loading="lazy" />
+      </button>
+      <div className="card tight">
+        <p className="card-t">{t(site.name)}</p>
+        <p className="card-s">{t(site.blurb)}</p>
+        <div className="btnrow" style={{ marginTop: 10 }}>
+          <a className="btn" style={{ flex: '1 1 58%' }} href={directionsUrl(site.destination)}
+             target="_blank" rel="noreferrer" onClick={() => go(site)}>
+            ➤ {t(T.way_directions)}
+          </a>
+          <a className="btn ghost" style={{ flex: '1 1 34%' }} href={site.map}
+             target="_blank" rel="noreferrer" onClick={() => go(site)}>
+            {t(T.way_exact)}
+          </a>
+        </div>
+      </div>
+      {/* The warning follows the patient onto each site screen, because this
+          is exactly where somebody is about to set off for the wrong one. */}
+      <div className="sitewarn">
+        <p className="card-t" style={{ margin: 0 }}>⚠ {t(SITES_DIFFER.title)}</p>
+        <p className="card-s" style={{ marginTop: 5 }}>{t(SITES_DIFFER.body)}</p>
+      </div>
+      <span style={{ flex: 1 }} />
+      <p className="note">{t(DIRECTIONS_NOTE)}</p>
+    </>
+  )
+}
+
 function TabWayfinding ({ onEvent, online, onLightbox }) {
   const [t, lang] = useT()
-  const [view, setView] = useState('sites')
+  const [view, setView] = useState('main')
   const go = (item) => onEvent('wayfinding_map_opened', item.detailKey)
 
   return (
@@ -1772,6 +2024,12 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
         <p className="pane-lead">{t(T.way_lead)}</p>
       </div>
       <div className="subtabs">
+        <button className="subtab" aria-selected={view === 'main'} onClick={() => setView('main')}>
+          {t(T.way_main)}
+        </button>
+        <button className="subtab" aria-selected={view === 'wcc'} onClick={() => setView('wcc')}>
+          {t(T.way_wcc)}
+        </button>
         <button className="subtab" aria-selected={view === 'sites'} onClick={() => setView('sites')}>
           {t(T.way_campuses)}
         </button>
@@ -1785,6 +2043,9 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
 
       <div className="pane-body">
         {view === 'floors' ? <FloorView onLightbox={onLightbox} /> : null}
+        {view === 'main' || view === 'wcc' ? (
+          <SiteView site={CAMPUSES.find(c => c.id === view)} go={go} onLightbox={onLightbox} />
+        ) : null}
         {view === 'sites' ? (
           <>
             {/* The single most consequential thing on this screen: going to
@@ -2231,7 +2492,7 @@ function ActivitySection ({ record, update, onEvent }) {
     update(r => ({
       ...r,
       activity: [...(r.activity || []), {
-        id: store.newId(), date: draft.date || today,
+        id: store.newId(), recordedAt: store.stampNow(), date: draft.date || today,
         minutes: draft.minutes === '' ? null : parseFloat(draft.minutes),
         km: draft.km === '' ? null : parseFloat(draft.km),
         steps: draft.steps === '' ? null : parseInt(draft.steps, 10),
@@ -2570,6 +2831,13 @@ function AppreciationBoard () {
         ) : null}
       </div>
 
+      <div className="card tight">
+        <a className="btn ghost wide" href={APPRECIATION_VIDEO.url} target="_blank" rel="noreferrer">
+          ▶ {t(APPRECIATION_VIDEO.label)}
+        </a>
+        <p className="note" style={{ marginTop: 7 }}>{t(APPRECIATION_VIDEO.note)}</p>
+      </div>
+
       <span style={{ flex: 1 }} />
       <p className="cite">
         <b>{t(T.basedOn)}:</b> {t(SOURCE_NOTE)} {t(T.fb_board_asat).replace('{d}', asAt)}
@@ -2582,7 +2850,7 @@ function AppreciationBoard () {
 
 function TabFeedback ({ onEvent }) {
   const [t, lang] = useT()
-  const [view, setView] = useState('what')
+  const [view, setView] = useState('board')
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(null)
   const [problem, setProblem] = useState(null)
@@ -2629,7 +2897,7 @@ function TabFeedback ({ onEvent }) {
   }
 
   const reset = () => {
-    setDone(null); setProblem(null); setView('what')
+    setDone(null); setProblem(null); setView('board')
     setForm({
       category: '', areaId: '', rating: 0, visitDate: '', message: '',
       anonymous: false, name: '', rn: '', email: '', ageYears: '', ic: '',
@@ -2683,10 +2951,10 @@ function TabFeedback ({ onEvent }) {
       {/* On every view of this tab, not just the last one. */}
       <div className="sendbar">↑ {t(T.fb_sent_banner)}</div>
       <div className="subtabs">
+        <button className="subtab" aria-selected={view === 'board'} onClick={() => setView('board')}>{t(T.fb_board)}</button>
         <button className="subtab" aria-selected={view === 'what'} onClick={() => setView('what')}>{t(T.fb_step_what)}</button>
         <button className="subtab" aria-selected={view === 'detail'} onClick={() => setView('detail')}>{t(T.fb_step_detail)}</button>
         <button className="subtab" aria-selected={view === 'you'} onClick={() => setView('you')}>{t(T.fb_step_you)}</button>
-        <button className="subtab" aria-selected={view === 'board'} onClick={() => setView('board')}>{t(T.fb_board)}</button>
       </div>
 
       <div className="pane-body">
@@ -3254,17 +3522,16 @@ function PrintDialog ({ identifiers, setIdentifiers, onPrint, onClose }) {
    The shell
    ====================================================================== */
 const TABS = [
-  /* First, deliberately. This is the screen that replaces the yellow book,
-     and it is the reason most patients will open the app at all. */
-  { id: 'appointments', label: T.tab_appt, short: T.short_appt },
-  { id: 'dashboard', label: T.tab_dashboard, short: T.short_dashboard },
-  { id: 'records', label: T.tab_records, short: T.short_records },
-  { id: 'measurements', label: T.tab_measurements, short: T.short_measurements },
+  /* HTPN's own pipeline order: find the place, say how it went, understand
+     the public's part, then the patient's own record and appointments, then
+     the two services. */
   { id: 'wayfinding', label: T.tab_wayfinding, short: T.short_wayfinding },
-  { id: 'iqms', label: T.tab_iqms, short: T.short_iqms },
-  { id: 'myubat', label: T.tab_myubat, short: T.short_myubat },
+  { id: 'feedback', label: T.tab_fb, short: T.short_fb },
   { id: 'rakyat', label: T.tab_rakyat, short: T.short_rakyat },
-  { id: 'feedback', label: T.tab_fb, short: T.short_fb }
+  { id: 'record', label: T.tab_rec, short: T.short_rec },
+  { id: 'appointments', label: T.tab_appt, short: T.short_appt },
+  { id: 'iqms', label: T.tab_iqms, short: T.short_iqms },
+  { id: 'myubat', label: T.tab_myubat, short: T.short_myubat }
 ]
 
 export default function App () {
@@ -3398,9 +3665,10 @@ export default function App () {
 
         {tab === 'home' ? <TabHome record={record} goTo={goTo} /> : null}
         {tab === 'appointments' ? <TabAppointments record={record} update={update} onEvent={onEvent} /> : null}
-        {tab === 'dashboard' ? <TabDashboard record={record} goTo={goTo} onPrint={() => setShowPrint(true)} /> : null}
-        {tab === 'records' ? <TabRecords record={record} update={update} onEvent={onEvent} /> : null}
-        {tab === 'measurements' ? <TabMeasurements record={record} update={update} onEvent={onEvent} /> : null}
+        {tab === 'record' ? (
+          <TabRecord record={record} update={update} onEvent={onEvent}
+                     goTo={goTo} onPrint={() => setShowPrint(true)} />
+        ) : null}
         {tab === 'wayfinding' ? <TabWayfinding onEvent={onEvent} online={online} onLightbox={setLightbox} /> : null}
         {tab === 'iqms' ? <TabIqms onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} onLightbox={setLightbox} /> : null}
