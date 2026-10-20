@@ -784,6 +784,35 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 800;
   display: grid; place-items: center; color: #fff; }
 
+.linkgrid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; margin-top: 8px; }
+@media (max-width: 560px) { .linkgrid2 { grid-template-columns: 1fr; } }
+.postlink { display: flex; align-items: center; gap: 9px; padding: 10px 11px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--bg); text-decoration: none; }
+.pl-n { width: 22px; height: 22px; border-radius: 999px; background: var(--brand); color: #fff;
+  font-size: 11px; font-weight: 800; display: grid; place-items: center; flex: 0 0 auto; }
+.pl-t { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.pl-go { color: var(--brand); font-weight: 700; }
+
+.gallerygrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; flex: 0 0 auto; }
+@media (max-width: 560px) { .linkgrid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; margin-top: 8px; }
+@media (max-width: 560px) { .linkgrid2 { grid-template-columns: 1fr; } }
+.postlink { display: flex; align-items: center; gap: 9px; padding: 10px 11px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--bg); text-decoration: none; }
+.pl-n { width: 22px; height: 22px; border-radius: 999px; background: var(--brand); color: #fff;
+  font-size: 11px; font-weight: 800; display: grid; place-items: center; flex: 0 0 auto; }
+.pl-t { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.pl-go { color: var(--brand); font-weight: 700; }
+
+.gallerygrid { grid-template-columns: 1fr; } }
+.galcard { margin: 0; display: flex; flex-direction: column; border: 1px solid var(--line);
+  border-radius: var(--r); overflow: hidden; background: var(--card); }
+.galshot { padding: 0; border: 0; background: none; cursor: pointer; display: block; }
+.galshot img { width: 100%; display: block; max-height: 320px; object-fit: cover;
+  object-position: top; }
+.galcard figcaption { padding: 9px 11px 11px; display: flex; flex-direction: column; gap: 4px; }
+.galcap { font-size: 12px; line-height: 1.45; color: var(--ink); }
+.galred { font-size: 10.5px; color: var(--ink-faint); line-height: 1.35; }
+
 /* ---------- appreciation board ---------- */
 .teaser { flex: 0 0 auto; width: 100%; text-align: left; padding: 9px 12px; border-radius: 10px;
   border: 1px solid var(--brand); background: var(--brand-tint); color: var(--brand);

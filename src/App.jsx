@@ -49,6 +49,9 @@ import {
   APPRECIATION_2026, TOTAL_2026, AS_AT, APPRECIATION_YEAR,
   SOURCE_NOTE, QUERIED_NOTE, parseSummaryCsv, APPRECIATION_VIDEO
 } from './data/appreciation.js'
+import {
+  GALLERY, GALLERY_NOTE, GALLERY_LINKS, GALLERY_LINKS_NOTE
+} from './data/gallery.js'
 import { OFFICIAL_FORM, ROUTE, buildPrefillUrl } from './data/officialForm.js'
 import {
   dueState, daysUntil, reminderDate, upcoming, pastAppointments,
@@ -604,10 +607,17 @@ function TabHome ({ record, goTo }) {
    whatever hospital each appointment is at — which is the whole reason the
    record spans hospitals in the first place.
    ========================================================================= */
-function MonthView ({ list, today }) {
+function MonthView ({ list, today, focus, compact }) {
   const [t, lang] = useT()
-  const [y, setY] = useState(Number(today.slice(0, 4)))
-  const [m, setM] = useState(Number(today.slice(5, 7)))
+  const base = focus || today
+  const [y, setY] = useState(Number(base.slice(0, 4)))
+  const [m, setM] = useState(Number(base.slice(5, 7)))
+  /* When the form is driving it, the calendar follows the date being typed
+     rather than staying on whatever month was last browsed. */
+  useEffect(() => {
+    if (!focus) return
+    setY(Number(focus.slice(0, 4))); setM(Number(focus.slice(5, 7)))
+  }, [focus])
   const cells = monthGrid(y, m, list)
   const clashes = clashDays(list)
   const inMonth = cells.filter(c => c && c.items.length).length
@@ -651,7 +661,7 @@ function MonthView ({ list, today }) {
         {!inMonth ? <p className="note" style={{ marginTop: 8 }}>{t(T.appt_none_month)}</p> : null}
       </div>
 
-      {[...clashes.entries()].length ? (
+      {[...clashes.entries()].length && !compact ? (
         <div className="card tight">
           <p className="card-t">⚠ {t(T.appt_clash)}</p>
           <p className="card-s">{t(T.appt_clash_note)}</p>
@@ -669,8 +679,8 @@ function MonthView ({ list, today }) {
         </div>
       ) : null}
 
-      <span style={{ flex: 1 }} />
-      <p className="cite"><b>{t(T.basedOn)}:</b> {t(APPT_SOURCE.full)}</p>
+      {compact ? null : <span style={{ flex: 1 }} />}
+      {compact ? null : <p className="cite"><b>{t(T.basedOn)}:</b> {t(APPT_SOURCE.full)}</p>}
     </>
   )
 }
@@ -689,6 +699,8 @@ function TabAppointments ({ record, update, onEvent }) {
     hospital: DEFAULT_HOSPITAL, clinicText: ''
   })
   const dept = CLINIC_DEPTS.find(d => d.id === draft.deptId) || null
+  /* "HTPN", "htpn", "Hospital Tengku Permaisuri Norashikin" all count. */
+  const isHTPN = /htpn|tengku permaisuri/i.test(String(draft.hospital || ''))
 
   /* The file is built here and handed to the phone. It is never uploaded:
      a blob URL is a local address, revoked as soon as the handover is done. */
@@ -768,26 +780,32 @@ function TabAppointments ({ record, update, onEvent }) {
                   <input type="text" value={draft.hospital || ''}
                          onChange={e => setDraft({ ...draft, hospital: e.target.value })} />
                 </Field>
-                {/* An appointment at another hospital has no HTPN department
-                    to pick, so the clinic can simply be typed. */}
-                <Field label={t(T.appt_clinic_free)}>
-                  <input type="text" value={draft.clinicText || ''} placeholder={t(T.appt_elsewhere)}
-                         onChange={e => setDraft({ ...draft, clinicText: e.target.value })} />
-                </Field>
-                <Field label={t(T.appt_dept)}>
-                  <select value={draft.deptId}
-                          onChange={e => setDraft({ ...draft, deptId: e.target.value, clinicId: '' })}>
-                    <option value="">{t(T.appt_pick_dept)}</option>
-                    {CLINIC_DEPTS.map(d => <option key={d.id} value={d.id}>{t(d)}</option>)}
-                  </select>
-                </Field>
-                <Field label={t(T.appt_clinic)}>
-                  <select value={draft.clinicId} disabled={!dept || !dept.clinics.length}
-                          onChange={e => setDraft({ ...draft, clinicId: e.target.value })}>
-                    <option value="">{dept && dept.clinics.length ? t(T.appt_pick_clinic) : '—'}</option>
-                    {(dept?.clinics || []).map(c => <option key={c.id} value={c.id}>{t(c)}</option>)}
-                  </select>
-                </Field>
+                {isHTPN ? (
+                  <>
+                    <Field label={t(T.appt_dept)}>
+                      <select value={draft.deptId}
+                              onChange={e => setDraft({ ...draft, deptId: e.target.value, clinicId: '' })}>
+                        <option value="">{t(T.appt_pick_dept)}</option>
+                        {CLINIC_DEPTS.map(d => <option key={d.id} value={d.id}>{t(d)}</option>)}
+                      </select>
+                    </Field>
+                    <Field label={t(T.appt_clinic)}>
+                      <select value={draft.clinicId} disabled={!dept || !dept.clinics.length}
+                              onChange={e => setDraft({ ...draft, clinicId: e.target.value })}>
+                        <option value="">{dept && dept.clinics.length ? t(T.appt_pick_clinic) : '—'}</option>
+                        {(dept?.clinics || []).map(c => <option key={c.id} value={c.id}>{t(c)}</option>)}
+                      </select>
+                    </Field>
+                  </>
+                ) : (
+                  /* Another hospital's clinics are not ours to list, and a
+                     dropdown of HTPN departments on a Serdang appointment is
+                     worse than a blank box. */
+                  <Field label={t(T.appt_dept_free)} hint={t(T.appt_dept_free_eg)}>
+                    <input type="text" value={draft.clinicText || ''}
+                           onChange={e => setDraft({ ...draft, clinicText: e.target.value })} />
+                  </Field>
+                )}
                 <Field label={t(T.appt_date)}>
                   <input type="date" value={draft.date}
                          onChange={e => setDraft({ ...draft, date: e.target.value })} />
@@ -801,6 +819,17 @@ function TabAppointments ({ record, update, onEvent }) {
                 <input type="text" value={draft.note}
                        onChange={e => setDraft({ ...draft, note: e.target.value })} />
               </Field>
+              {/* The month the patient is adding into, so a second
+                  appointment on a day that already has one is visible before
+                  it is saved rather than after. */}
+              {draft.date ? (
+                <div className="previewcal">
+                  <p className="card-t" style={{ margin: '10px 0 0' }}>{t(T.appt_preview)}</p>
+                  <MonthView list={[...list, { id: '__draft', date: draft.date, time: draft.time,
+                                               hospital: draft.hospital, clinicText: draft.clinicText }]}
+                             today={today} focus={draft.date} compact />
+                </div>
+              ) : null}
               <button className="btn wide" style={{ marginTop: 8 }} onClick={save}
                       disabled={(!draft.deptId && !String(draft.clinicText || '').trim()) || !draft.date}>
                 {t(T.appt_save)}
@@ -2848,7 +2877,62 @@ function AppreciationBoard () {
   )
 }
 
-function TabFeedback ({ onEvent }) {
+
+/* ===========================================================================
+   Gallery — the appreciation HTPN has received, as pictures.
+
+   Every face, name, ward and bed number is blacked out in the files; see the
+   head of src/data/gallery.js for what was removed from each and why. The
+   card says so under each picture rather than leaving a reader to wonder
+   what the black bars are hiding.
+
+   It scrolls. Four tall phone screenshots do not fit a pane and should not
+   be made to.
+   ========================================================================= */
+function Gallery ({ onLightbox }) {
+  const [t, lang] = useT()
+  return (
+    <>
+      <div className="card tight">
+        <p className="card-s">{t(T.fb_gallery_lead)}</p>
+        <p className="note" style={{ marginTop: 6 }}>{t(GALLERY_NOTE)}</p>
+      </div>
+
+      <div className="gallerygrid">
+        {GALLERY.map(g => (
+          <figure className="galcard" key={g.id}>
+            <button type="button" className="galshot"
+                    onClick={() => onLightbox({ src: g.src, caption: pick(g.caption, lang) })}>
+              <img src={g.src} alt={pick(g.caption, lang)} loading="lazy" />
+            </button>
+            <figcaption>
+              <span className="galcap">{t(g.caption)}</span>
+              <span className="galred">{t(T.fb_redacted)}: {t(g.redacted)}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+
+      <div className="card tight">
+        <p className="card-t">{t(T.fb_links)}</p>
+        <div className="linkgrid2">
+          {GALLERY_LINKS.map((l, i) => (
+            <a className="postlink" key={l.id} href={l.url} target="_blank" rel="noreferrer">
+              <span className="pl-n">{i + 1}</span>
+              <span className="pl-t">{t(T.fb_open_post).replace('{n}', String(i + 1))}</span>
+              <span className="pl-go">↗</span>
+            </a>
+          ))}
+        </div>
+        <p className="note" style={{ marginTop: 8 }}>{t(GALLERY_LINKS_NOTE)}</p>
+      </div>
+
+      <span style={{ flex: 1 }} />
+    </>
+  )
+}
+
+function TabFeedback ({ onEvent, onLightbox }) {
   const [t, lang] = useT()
   const [view, setView] = useState('board')
   const [sending, setSending] = useState(false)
@@ -2952,6 +3036,7 @@ function TabFeedback ({ onEvent }) {
       <div className="sendbar">↑ {t(T.fb_sent_banner)}</div>
       <div className="subtabs">
         <button className="subtab" aria-selected={view === 'board'} onClick={() => setView('board')}>{t(T.fb_board)}</button>
+        <button className="subtab" aria-selected={view === 'gallery'} onClick={() => setView('gallery')}>{t(T.fb_gallery)}</button>
         <button className="subtab" aria-selected={view === 'what'} onClick={() => setView('what')}>{t(T.fb_step_what)}</button>
         <button className="subtab" aria-selected={view === 'detail'} onClick={() => setView('detail')}>{t(T.fb_step_detail)}</button>
         <button className="subtab" aria-selected={view === 'you'} onClick={() => setView('you')}>{t(T.fb_step_you)}</button>
@@ -2959,6 +3044,7 @@ function TabFeedback ({ onEvent }) {
 
       <div className="pane-body">
         {view === 'board' ? <AppreciationBoard /> : null}
+        {view === 'gallery' ? <Gallery onLightbox={onLightbox} /> : null}
 
         {view === 'official' ? (
           <>
@@ -3673,7 +3759,7 @@ export default function App () {
         {tab === 'iqms' ? <TabIqms onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'rakyat' ? <TabRakyat onEvent={onEvent} onLightbox={setLightbox} /> : null}
-        {tab === 'feedback' ? <TabFeedback onEvent={onEvent} /> : null}
+        {tab === 'feedback' ? <TabFeedback onEvent={onEvent} onLightbox={setLightbox} /> : null}
 
         <nav className="tabbar">
           {[{ id: 'home', label: T.home_back, short: T.home_back }, ...TABS].map(x => (

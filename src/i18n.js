@@ -139,6 +139,10 @@ export const T = {
   appt_hospital_eg: L('HTPN, or another hospital or clinic', 'HTPN, atau hospital atau klinik lain'),
   appt_elsewhere: L('Somewhere else', 'Tempat lain'),
   appt_clinic_free: L('Clinic or department', 'Klinik atau jabatan'),
+  appt_dept_free: L('Department or clinic', 'Jabatan atau klinik'),
+  appt_dept_free_eg: L('Type it as your appointment card writes it', 'Taip sebagaimana tertulis pada kad janji temu anda'),
+  appt_htpn_only: L('The dropdown lists HTPN\u2019s departments. For another hospital, type it instead.', 'Senarai juntai memaparkan jabatan HTPN. Untuk hospital lain, sila taip sendiri.'),
+  appt_preview: L('This month', 'Bulan ini'),
   appt_month: L('Month', 'Bulan'),
   appt_list: L('List', 'Senarai'),
   appt_clash: L('Two on the same day', 'Dua pada hari yang sama'),
@@ -273,6 +277,14 @@ export const T = {
   fb_official: L('Hospital form', 'Borang Hospital'),
   fb_goes_to: L('Goes to', 'Dihantar kepada'),
   fb_back: L('Choose something else', 'Pilih yang lain'),
+  fb_gallery: L('Gallery', 'Galeri'),
+  fb_gallery_lead: L(
+    'What being thanked looks like. Tap any picture to see it full size.',
+    'Inilah rupa penghargaan. Ketik mana-mana gambar untuk melihatnya dengan lebih besar.'
+  ),
+  fb_links: L('More on Threads', 'Lagi di Threads'),
+  fb_open_post: L('Open post {n}', 'Buka hantaran {n}'),
+  fb_redacted: L('Removed from this picture', 'Dibuang daripada gambar ini'),
   fb_board: L('Appreciation in 2026', 'Penghargaan 2026'),
   fb_board_lead: L(
     'Every one of these began with somebody deciding to say so. Yours would be the next.',
