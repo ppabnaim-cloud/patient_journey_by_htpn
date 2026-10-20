@@ -173,7 +173,7 @@ export function classifyBP (systolic, diastolic) {
       },
       steps: [
         { en: 'Sit quietly for five minutes and measure again. If it stays this high, be seen today rather than at your next appointment.',
-          ms: 'Duduk tenang selama lima minit dan ukur semula. Sekiranya ia kekal setinggi ini, dapatkan pemeriksaan hari ini dan bukan pada temujanji seterusnya.' },
+          ms: 'Duduk tenang selama lima minit dan ukur semula. Sekiranya ia kekal setinggi ini, dapatkan pemeriksaan hari ini dan bukan pada janji temu seterusnya.' },
         { en: 'With chest pain, breathlessness, a bad headache, blurred vision or weakness on one side — go to the Emergency Department now.',
           ms: 'Sekiranya disertai sakit dada, sesak nafas, sakit kepala teruk, penglihatan kabur atau lemah sebelah badan — terus ke Jabatan Kecemasan sekarang.' }
       ]
@@ -188,7 +188,7 @@ export function classifyBP (systolic, diastolic) {
       },
       steps: [{
         en: 'Bring your readings to your next appointment. A single raised reading is common and does not settle anything on its own.',
-        ms: 'Bawa bacaan anda ke temujanji seterusnya. Satu bacaan tinggi adalah perkara biasa dan tidak menentukan apa-apa dengan sendirinya.'
+        ms: 'Bawa bacaan anda ke janji temu seterusnya. Satu bacaan tinggi adalah perkara biasa dan tidak menentukan apa-apa dengan sendirinya.'
       }]
     }
   }

@@ -255,7 +255,7 @@ export const SITES_DIFFER = {
   title: { en: 'Two sites, nearly 1 km apart', ms: 'Dua lokasi, hampir 1 km berbeza' },
   body: {
     en: 'The Main Building and the Women & Children Complex are different places, nearly 1 km apart. Both have an emergency department and an intensive care unit, so the name alone will not tell you which one you want — check the site named on your appointment letter before you set off.',
-    ms: 'Bangunan Utama dan Kompleks Wanita & Kanak-Kanak adalah dua tempat berbeza, hampir 1 km jaraknya. Kedua-duanya mempunyai jabatan kecemasan dan unit rawatan rapi, jadi nama sahaja tidak menentukan lokasi yang anda perlukan — sila semak lokasi yang dinyatakan dalam surat temujanji anda sebelum bertolak.'
+    ms: 'Bangunan Utama dan Kompleks Wanita & Kanak-Kanak adalah dua tempat berbeza, hampir 1 km jaraknya. Kedua-duanya mempunyai jabatan kecemasan dan unit rawatan rapi, jadi nama sahaja tidak menentukan lokasi yang anda perlukan — sila semak lokasi yang dinyatakan dalam surat janji temu anda sebelum bertolak.'
   },
   approxKm: 1,
   /* HTPN's own satellite view, which is what makes the point at a glance:

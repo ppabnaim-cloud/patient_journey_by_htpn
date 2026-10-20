@@ -108,7 +108,7 @@ function medicationFindings (record) {
       title: { en: 'Medicines not recorded', ms: 'Ubat tidak direkodkan' },
       detail: {
         en: 'Staff ask for your current medicines at almost every visit. Having the list ready saves the whole appointment time.',
-        ms: 'Kakitangan bertanya ubat semasa anda pada hampir setiap lawatan. Senarai yang sedia ada menjimatkan masa temujanji.'
+        ms: 'Kakitangan bertanya ubat semasa anda pada hampir setiap lawatan. Senarai yang sedia ada menjimatkan masa janji temu.'
       },
       steps: [{
         en: 'Photograph your medicine labels in My Records, or type them in.',

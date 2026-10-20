@@ -95,7 +95,7 @@ export const SERVICE_AREAS = [
   { id: 'pharmacy', en: 'Pharmacy', ms: 'Farmasi' },
   { id: 'lab', en: 'Laboratory / blood taking', ms: 'Makmal / Pengambilan Darah' },
   { id: 'payment', en: 'Payment counter', ms: 'Kaunter Bayaran' },
-  { id: 'appointment_desk', en: 'Appointment counter', ms: 'Kaunter Temujanji' },
+  { id: 'appointment_desk', en: 'Appointment counter', ms: 'Kaunter Janji Temu' },
   { id: 'ambulance', en: 'Ambulance & transport', ms: 'Ambulans & Pengangkutan' },
   { id: 'cleanliness', en: 'Cleanliness & facilities', ms: 'Kebersihan & Kemudahan' },
   { id: 'security', en: 'Security & parking', ms: 'Keselamatan & Tempat Letak Kereta' },

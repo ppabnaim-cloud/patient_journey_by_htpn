@@ -282,7 +282,7 @@ export const T = {
     'What being thanked looks like. Tap any picture to see it full size.',
     'Inilah rupa penghargaan. Ketik mana-mana gambar untuk melihatnya dengan lebih besar.'
   ),
-  fb_links: L('More on Threads', 'Lagi di Threads'),
+  fb_links: L('Also on TikTok and Threads', 'Juga di TikTok dan Threads'),
   fb_open_post: L('Open post {n}', 'Buka hantaran {n}'),
   fb_redacted: L('Removed from this picture', 'Dibuang daripada gambar ini'),
   fb_board: L('Appreciation in 2026', 'Penghargaan 2026'),
@@ -489,10 +489,9 @@ export const T = {
   /* --- wayfinding ---------------------------------------------------- */
   way_lead: L(
     'HTPN occupies two sites. Please check which one your appointment letter names before setting off.',
-    'HTPN terletak di dua lokasi. Sila semak lokasi yang dinyatakan dalam surat temujanji anda sebelum bertolak.'
+    'HTPN terletak di dua lokasi. Sila semak lokasi yang dinyatakan dalam surat janji temu anda sebelum bertolak.'
   ),
   way_campuses: L('The two main sites', 'Dua Lokasi Utama'),
-  way_departments: L('Departments & units', 'Jabatan & Unit'),
   way_directions: L('Get directions', 'Dapatkan Arah'),
   way_exact: L('Exact location', 'Lokasi tepat'),
   way_needs_net: L(
@@ -506,14 +505,12 @@ export const T = {
   way_admission: L('Being admitted', 'Masuk Wad'),
   way_main: L('Main Building', 'Bangunan Utama'),
   way_wcc: L('Women & Children Complex', 'Kompleks Wanita & Kanak-Kanak'),
-  way_floors: L('By floor', 'Mengikut Aras'),
   way_find: L('Which floor is it on?', 'Di aras mana?'),
   way_find_eg: L('Type a ward, clinic or unit', 'Taip nama wad, klinik atau unit'),
   way_found: L('{n} found', '{n} dijumpai'),
   way_nofound: L('Nothing on the board matches that', 'Tiada yang sepadan pada papan direktori'),
   way_board: L('The directory board', 'Papan direktori'),
   way_levels: L('{n} levels · {m} departments and units', '{n} aras · {m} jabatan dan unit'),
-  way_all_here: L('every department below is in this building', 'semua jabatan di bawah terletak di bangunan ini'),
   way_access: L('Before you go', 'Sebelum anda pergi'),
   way_unconfirmed_banner: L(
     'HTPN has not yet confirmed names for the remaining points. Their exact-location links still open the correct place in Google Maps.',

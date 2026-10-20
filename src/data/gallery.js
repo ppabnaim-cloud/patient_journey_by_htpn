@@ -14,20 +14,27 @@
    says what is covered, because black bars with no explanation read worse
    than black bars with one.
 
-   TO SHOW THEM AS SUPPLIED, the four originals need to replace these files
-   directly — same four names, no code change:
-       public/brand/appreciation/note-ramadhan.jpg
-       public/brand/appreciation/gift-tags.jpg
-       public/brand/appreciation/fb-ward-visit.jpg
-       public/brand/appreciation/fb-emergency.jpg
-   When they do, delete the `redacted` line from each entry below and the
-   matching line from GALLERY_NOTE; nothing else refers to them.
+   TO SHOW THEM AS SUPPLIED — two steps, and the second is one word.
+   1. Replace these four files with the originals. Same four names:
+          public/brand/appreciation/note-ramadhan.jpg
+          public/brand/appreciation/gift-tags.jpg
+          public/brand/appreciation/fb-ward-visit.jpg
+          public/brand/appreciation/fb-emergency.jpg
+   2. Change IMAGES_ARE_REDACTED below from true to false. Every "what was
+      removed" line disappears from the screen at once, because each one is
+      drawn only while that flag is true. Nothing else needs editing.
 
    One factual note for the record, not an argument: three of these four were
    published by their authors. The handwritten Ramadan note was not — it was
    left on a ward, and it carries a patient's name together with her ward, bed
    number and admission dates.
    ========================================================================= */
+
+/* The one switch. True while the files in this repository still carry black
+   bars; false once the originals replace them. It governs every line on the
+   screen that mentions a redaction, so the pictures and the words describing
+   them can never disagree. */
+export const IMAGES_ARE_REDACTED = true
 
 export const GALLERY = [
   {
@@ -68,16 +75,21 @@ export const GALLERY = [
   }
 ]
 
-export const GALLERY_NOTE = {
+export const GALLERY_NOTE = IMAGES_ARE_REDACTED ? {
   en: 'Shared by HTPN. Names, faces, wards and bed numbers are covered in the copies held in this build.',
   ms: 'Dikongsikan oleh HTPN. Nama, wajah, wad dan nombor katil ditutup dalam salinan yang digunakan dalam binaan ini.'
+} : {
+  en: 'Appreciation shared by HTPN, as it was given.',
+  ms: 'Penghargaan yang dikongsikan oleh HTPN, sebagaimana ia diberikan.'
 }
 
-/* Four more, supplied by HTPN as links rather than pictures.
+/* Five more, supplied by HTPN as links rather than pictures: one TikTok
+   video and four Threads posts. The TikTok video used to sit on the
+   dashboard; it belongs here with the rest of the appreciation.
 
    NO PREVIEW IMAGE IS GENERATED FOR THESE, and that is deliberate. This
-   build cannot reach threads.com, so it has not seen what is behind any of
-   them. Drawing a "preview" of a post nobody has read would be inventing a
+   build cannot reach threads.com or tiktok.com, so it has not seen what is
+   behind any of them. Drawing a "preview" of a post nobody has read would be inventing a
    picture of someone else's words — the same mistake as inventing a
    threshold, with a person's name attached. Each gets a plain card that says
    what it is and opens the real thing.
@@ -85,13 +97,14 @@ export const GALLERY_NOTE = {
    If HTPN wants real thumbnails, the honest route is a screenshot taken by
    HTPN and added to GALLERY. */
 export const GALLERY_LINKS = [
-  { id: 'th1', url: 'https://www.threads.com/share/ECkvPAwlR/' },
-  { id: 'th2', url: 'https://www.threads.com/share/Gsd3odtwz/' },
-  { id: 'th3', url: 'https://www.threads.com/share/Fztb953SS/' },
-  { id: 'th4', url: 'https://www.threads.com/share/KXWZzcWrR/' }
+  { id: 'tt1', platform: 'TikTok', url: 'https://vt.tiktok.com/ZS9A68nQk/' },
+  { id: 'th1', platform: 'Threads', url: 'https://www.threads.com/share/ECkvPAwlR/' },
+  { id: 'th2', platform: 'Threads', url: 'https://www.threads.com/share/Gsd3odtwz/' },
+  { id: 'th3', platform: 'Threads', url: 'https://www.threads.com/share/Fztb953SS/' },
+  { id: 'th4', platform: 'Threads', url: 'https://www.threads.com/share/KXWZzcWrR/' }
 ]
 
 export const GALLERY_LINKS_NOTE = {
-  en: 'Posts shared by HTPN. They open on Threads, outside this app, and this app has not read them — so what you find there is between you and that platform.',
-  ms: 'Hantaran yang dikongsikan oleh HTPN. Ia dibuka di Threads, di luar aplikasi ini, dan aplikasi ini tidak membacanya — jadi apa yang anda temui di sana adalah antara anda dan platform tersebut.'
+  en: 'Shared by HTPN. They open on TikTok or Threads, outside this app, and this app has not read them — so what you find there is between you and that platform.',
+  ms: 'Dikongsikan oleh HTPN. Ia dibuka di TikTok atau Threads, di luar aplikasi ini, dan aplikasi ini tidak membacanya — jadi apa yang anda temui di sana adalah antara anda dan platform tersebut.'
 }

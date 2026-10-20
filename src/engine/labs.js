@@ -58,7 +58,7 @@ export function classifyResult (analyteId, value, ownRange) {
     if (band.level !== 'none') {
       steps.push({
         en: 'Bring this result to your next appointment. One reading on its own does not settle anything.',
-        ms: 'Bawa keputusan ini ke temujanji anda yang seterusnya. Satu bacaan sahaja tidak menentukan apa-apa.'
+        ms: 'Bawa keputusan ini ke janji temu anda yang seterusnya. Satu bacaan sahaja tidak menentukan apa-apa.'
       })
     }
     if (band.id === 'low') {

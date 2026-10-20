@@ -95,18 +95,8 @@ export const QUERIED_NOTE = {
   ms: 'Satu catatan direkodkan sebagai “WAD 72” dalam daftar. Ia dipaparkan sebagaimana ditulis dan tidak diletakkan di bawah mana-mana wad secara andaian.'
 }
 
-/* Supplied by HTPN. A short video is a different kind of evidence from a
-   bar chart: the chart says how many, this shows what one looked like.
-   It opens on TikTok, outside the app, which the button says. */
-export const APPRECIATION_VIDEO = {
-  url: 'https://vt.tiktok.com/ZS9A68nQk/',
-  source: { en: 'Supplied by HTPN', ms: 'Diberikan oleh HTPN' },
-  label: { en: 'Watch on TikTok', ms: 'Tonton di TikTok' },
-  note: {
-    en: 'Opens TikTok outside this app. Nothing you watch there is seen by this app or by HTPN.',
-    ms: 'Membuka TikTok di luar aplikasi ini. Apa yang anda tonton di sana tidak dilihat oleh aplikasi ini atau oleh HTPN.'
-  }
-}
+/* The TikTok video HTPN supplied now lives in src/data/gallery.js, with
+   the Threads posts: this file counts appreciation, the gallery shows it. */
 
 export const TOTAL_2026 = APPRECIATION_2026.reduce((n, r) => n + r.n, 0)
 

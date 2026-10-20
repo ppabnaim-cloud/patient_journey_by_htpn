@@ -733,11 +733,6 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .boardshot .note { display: block; margin-top: 6px; }
 
 /* ---------- wayfinding ---------- */
-.buildingbar { flex: 0 0 auto; display: flex; align-items: center; gap: 9px;
-  padding: 9px 12px; border-radius: 10px; margin-bottom: 2px;
-  background: var(--brand-tint); color: var(--brand); font-size: 12.5px; }
-.buildingbar .bb-ic { display: grid; flex: 0 0 auto; }
-.buildingbar svg { width: 18px; height: 18px; }
 .dwhy { display: block; margin-top: 3px; font-size: 11px; color: var(--brand);
   font-weight: 600; line-height: 1.35; }
 
@@ -792,18 +787,11 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   font-size: 11px; font-weight: 800; display: grid; place-items: center; flex: 0 0 auto; }
 .pl-t { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--ink); }
 .pl-go { color: var(--brand); font-weight: 700; }
+.pl-p { display: block; margin-top: 2px; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
 
 .gallerygrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; flex: 0 0 auto; }
-@media (max-width: 560px) { .linkgrid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; margin-top: 8px; }
-@media (max-width: 560px) { .linkgrid2 { grid-template-columns: 1fr; } }
-.postlink { display: flex; align-items: center; gap: 9px; padding: 10px 11px; border-radius: 10px;
-  border: 1px solid var(--line); background: var(--bg); text-decoration: none; }
-.pl-n { width: 22px; height: 22px; border-radius: 999px; background: var(--brand); color: #fff;
-  font-size: 11px; font-weight: 800; display: grid; place-items: center; flex: 0 0 auto; }
-.pl-t { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--ink); }
-.pl-go { color: var(--brand); font-weight: 700; }
-
-.gallerygrid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .gallerygrid { grid-template-columns: 1fr; } }
 .galcard { margin: 0; display: flex; flex-direction: column; border: 1px solid var(--line);
   border-radius: var(--r); overflow: hidden; background: var(--card); }
 .galshot { padding: 0; border: 0; background: none; cursor: pointer; display: block; }

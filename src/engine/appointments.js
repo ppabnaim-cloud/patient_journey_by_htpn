@@ -97,7 +97,7 @@ export const APPT_SOURCE = {
   short: { en: 'Typed in by you', ms: 'Ditaip oleh anda' },
   full: {
     en: 'Typed in by you from your appointment card. This app does not read the hospital system, so it cannot confirm the date, and it will not know if the clinic changes it.',
-    ms: 'Ditaip oleh anda daripada kad temujanji anda. Aplikasi ini tidak membaca sistem hospital, jadi ia tidak dapat mengesahkan tarikh tersebut, dan ia tidak akan mengetahui jika klinik menukarnya.'
+    ms: 'Ditaip oleh anda daripada kad janji temu anda. Aplikasi ini tidak membaca sistem hospital, jadi ia tidak dapat mengesahkan tarikh tersebut, dan ia tidak akan mengetahui jika klinik menukarnya.'
   }
 }
 

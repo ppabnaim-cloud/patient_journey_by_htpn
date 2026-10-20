@@ -26,10 +26,10 @@ import { readText, draftMedicationsFrom, draftLabsFrom, draftDateFrom, ocrAvaila
 import { sendUsage, onUsageStatus, newDeviceCode, LAST_RECORD_FOR_DISPLAY } from './usage.js'
 import {
   CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl, confirmedCount,
-  DEPARTMENTS_BUILDING, SITES_DIFFER
+  SITES_DIFFER
 } from './data/wayfinding.js'
 import {
-  FLOORS, TOTAL_ITEMS, findFloor, BUILDING_QUERY,
+  FLOORS, TOTAL_ITEMS, findFloor,
   DIRECTORY_PHOTO, DIRECTORY_CAPTION, TRANSCRIPTION_NOTES
 } from './data/floors.js'
 import { buildSummary } from './engine/summary.js'
@@ -47,10 +47,10 @@ import { ASK_FOR_IC, newTicket, downscaleImage, validateFeedback, ageFromIc } fr
 import { sendFeedback, feedbackConfigured } from './feedbackSend.js'
 import {
   APPRECIATION_2026, TOTAL_2026, AS_AT, APPRECIATION_YEAR,
-  SOURCE_NOTE, QUERIED_NOTE, parseSummaryCsv, APPRECIATION_VIDEO
+  SOURCE_NOTE, QUERIED_NOTE, parseSummaryCsv
 } from './data/appreciation.js'
 import {
-  GALLERY, GALLERY_NOTE, GALLERY_LINKS, GALLERY_LINKS_NOTE
+  GALLERY, GALLERY_NOTE, GALLERY_LINKS, GALLERY_LINKS_NOTE, IMAGES_ARE_REDACTED
 } from './data/gallery.js'
 import { OFFICIAL_FORM, ROUTE, buildPrefillUrl } from './data/officialForm.js'
 import {
@@ -462,7 +462,7 @@ function Overview ({ record }) {
    is why it works on a day the app is never opened. */
 const APPT_HOW = [
   { en: 'This screen shows the appointment as soon as you open the app, with the day it falls on.',
-    ms: 'Skrin ini memaparkan temujanji anda sebaik sahaja anda membuka aplikasi, berserta harinya.' },
+    ms: 'Skrin ini memaparkan janji temu anda sebaik sahaja anda membuka aplikasi, berserta harinya.' },
   { en: 'Add it to your phone calendar and the phone itself will alert you one day before — even with the app closed and no internet.',
     ms: 'Tambahkannya ke kalendar telefon anda dan telefon itu sendiri akan memberi amaran sehari sebelumnya — walaupun aplikasi ditutup dan tiada internet.' },
   { en: 'Everything you type stays on this phone. Adding it to your calendar keeps it on the phone too.',
@@ -711,12 +711,12 @@ function TabAppointments ({ record, update, onEvent }) {
       location: 'Hospital Tengku Permaisuri Norashikin'
     })), {
       daysBefore: REMIND_DAYS_BEFORE,
-      alarmText: pick({ en: 'Appointment at HTPN tomorrow', ms: 'Temujanji di HTPN esok' }, lang)
+      alarmText: pick({ en: 'Appointment at HTPN tomorrow', ms: 'Janji temu di HTPN esok' }, lang)
     })
     const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }))
     const a = document.createElement('a')
     a.href = url
-    a.download = 'htpn-temujanji.ics'
+    a.download = 'htpn-janji-temu.ics'
     document.body.appendChild(a); a.click(); a.remove()
     setTimeout(() => URL.revokeObjectURL(url), 2000)
     onEvent('appointment_calendar_export', which)
@@ -1989,7 +1989,10 @@ function FloorView ({ onLightbox }) {
             {t(T.way_levels).replace('{n}', String(FLOORS.length)).replace('{m}', String(TOTAL_ITEMS))}
             {' · '}{t(TRANSCRIPTION_NOTES)}
           </p>
-          <div className="flagline">⚠ {t(BUILDING_QUERY)}</div>
+          {/* "These nine levels are the WCC, the Main Building is a separate
+              site" used to be repeated here. It is not needed now: this board
+              sits inside the WCC screen, and the two-sites warning is on the
+              screen this section opens on. */}
         </>
       ) : null}
     </>
@@ -2006,7 +2009,7 @@ function FloorView ({ onLightbox }) {
    the photograph can be large enough to recognise from the road, which is
    what it is for.
    ========================================================================= */
-function SiteView ({ site, go, onLightbox }) {
+function SiteView ({ site, go, onLightbox, children }) {
   const [t, lang] = useT()
   if (!site) return null
   return (
@@ -2029,21 +2032,92 @@ function SiteView ({ site, go, onLightbox }) {
           </a>
         </div>
       </div>
-      {/* The warning follows the patient onto each site screen, because this
-          is exactly where somebody is about to set off for the wrong one. */}
-      <div className="sitewarn">
-        <p className="card-t" style={{ margin: 0 }}>⚠ {t(SITES_DIFFER.title)}</p>
-        <p className="card-s" style={{ marginTop: 5 }}>{t(SITES_DIFFER.body)}</p>
-      </div>
+      {/* What is actually AT this site: the Main Building's nineteen
+          departments, the WCC's nine levels. The two-sites warning is not
+          repeated here — it is on "The two main sites" screen, which is the
+          first thing this section opens on. */}
+      {children}
       <span style={{ flex: 1 }} />
       <p className="note">{t(DIRECTIONS_NOTE)}</p>
     </>
   )
 }
 
+/* ===========================================================================
+   DeptList — the nineteen departments, shown under the Main Building.
+
+   All nineteen are in that one building, which is why they sit inside its
+   screen rather than on a tab of their own. The building no longer needs
+   naming on a bar above them: the patient is already on the Main Building
+   screen, with its photograph at the top.
+   ========================================================================= */
+function DeptList ({ go }) {
+  const [t] = useT()
+  return (
+    <div className="linkgrid">
+      {DEPARTMENTS.map(d => (
+        <div key={d.id} className={'deptcard' + (d.confirmed ? '' : ' unconfirmed')}>
+          <span className="ic"><Icon d={DEPT_ICONS[d.icon] || DEPT_ICONS.pin} /></span>
+          <span className="tx">
+            <a className="nm" href={directionsUrl(d.destination)} target="_blank" rel="noreferrer"
+               onClick={() => go(d)} style={{ color: 'inherit', textDecoration: 'none', display: 'block' }}>
+              {d.index}. {t(d.name)}
+            </a>
+            <span className="sub">➤ {t(T.way_directions)}</span>
+            {/* Why somebody comes here, where HTPN said. Not a
+                restriction — every location below gives directions. */}
+            {d.why ? <span className="dwhy">{t(d.why)}</span> : null}
+            {/* At the door, the arrow IS the instruction, so the
+                signboard's own split is reproduced rather than
+                flattened into prose. */}
+            {d.split ? (
+              <span className="splitrow">
+                {d.split.map((x, i) => (
+                  <span className="splitway" key={i}>
+                    {x.dir === 'left' ? '←' : '→'} {t(x)}
+                  </span>
+                ))}
+              </span>
+            ) : null}
+            {/* The wording actually painted above the door, which is what
+                somebody in the car park is reading. */}
+            {d.signboard ? (
+              <span className="dboard">{t(T.way_signboard)}: <b>{d.signboard}</b></span>
+            ) : null}
+            {d.hours ? <span className="dhours">🕐 {t(d.hours)}</span> : null}
+            {d.sign ? <span className="dsign">{t(d.sign)}</span> : null}
+          </span>
+          {/* No pin was supplied for the three doors photographed along a
+              corridor, so the card says so instead of offering a link to
+              somewhere invented. */}
+          {d.map ? (
+            <a className="pin" href={d.map} target="_blank" rel="noreferrer" onClick={() => go(d)}>
+              {t(T.way_exact)}
+            </a>
+          ) : <span className="pin muted">{t(T.way_photo_soon)}</span>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ===========================================================================
+   TabWayfinding — three screens, in the order a patient needs them.
+
+   1. The two main sites — which of the two you are going to. Get this wrong
+      and nothing else on this screen helps you; it is a kilometre, not a
+      wrong corridor. So it opens here.
+   2. Main Building — the building, and the nineteen departments in it.
+   3. WCC — the building, and its nine-level directory board.
+
+   The departments and the floor board used to be two more sub-tabs of their
+   own. They are not separate places: every department on that list is in the
+   Main Building, and all nine levels are the WCC's. Filing each under its own
+   site is one fewer thing for a patient to work out.
+   ========================================================================= */
 function TabWayfinding ({ onEvent, online, onLightbox }) {
   const [t, lang] = useT()
-  const [view, setView] = useState('main')
+  const [view, setView] = useState('sites')
   const go = (item) => onEvent('wayfinding_map_opened', item.detailKey)
 
   return (
@@ -2053,27 +2127,27 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
         <p className="pane-lead">{t(T.way_lead)}</p>
       </div>
       <div className="subtabs">
-        <button className="subtab" aria-selected={view === 'main'} onClick={() => setView('main')}>
-          {t(T.way_main)}
-        </button>
-        <button className="subtab" aria-selected={view === 'wcc'} onClick={() => setView('wcc')}>
-          {t(T.way_wcc)}
-        </button>
         <button className="subtab" aria-selected={view === 'sites'} onClick={() => setView('sites')}>
           {t(T.way_campuses)}
         </button>
-        <button className="subtab" aria-selected={view === 'floors'} onClick={() => setView('floors')}>
-          {t(T.way_floors)}
+        <button className="subtab" aria-selected={view === 'main'} onClick={() => setView('main')}>
+          {t(T.way_main)} · {DEPARTMENTS.length}
         </button>
-        <button className="subtab" aria-selected={view === 'depts'} onClick={() => setView('depts')}>
-          {t(T.way_departments)} · {DEPARTMENTS.length}
+        <button className="subtab" aria-selected={view === 'wcc'} onClick={() => setView('wcc')}>
+          {t(T.way_wcc)} · {FLOORS.length}
         </button>
       </div>
 
       <div className="pane-body">
-        {view === 'floors' ? <FloorView onLightbox={onLightbox} /> : null}
-        {view === 'main' || view === 'wcc' ? (
-          <SiteView site={CAMPUSES.find(c => c.id === view)} go={go} onLightbox={onLightbox} />
+        {view === 'wcc' ? (
+          <SiteView site={CAMPUSES.find(c => c.id === 'wcc')} go={go} onLightbox={onLightbox}>
+            <FloorView onLightbox={onLightbox} />
+          </SiteView>
+        ) : null}
+        {view === 'main' ? (
+          <SiteView site={CAMPUSES.find(c => c.id === 'main')} go={go} onLightbox={onLightbox}>
+            <DeptList go={go} />
+          </SiteView>
         ) : null}
         {view === 'sites' ? (
           <>
@@ -2113,65 +2187,7 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
             </div>
             <p className="note">{t(DIRECTIONS_NOTE)} {online ? '' : '· ⚠ '}{t(T.way_needs_net)}</p>
           </>
-        ) : (
-          <>
-            {/* Every department is in the same building, so it is stated
-                once here. Repeating it on each card cost two wrapped lines a
-                card and told the patient nothing new sixteen times. */}
-            <div className="buildingbar">
-              <span className="bb-ic"><Icon d={DEPT_ICONS.office} /></span>
-              <span><b>{t(DEPARTMENTS_BUILDING)}</b> · {t(T.way_all_here)}</span>
-            </div>
-            <div className="linkgrid">
-              {DEPARTMENTS.map(d => (
-                <div key={d.id} className={'deptcard' + (d.confirmed ? '' : ' unconfirmed')}>
-                  <span className="ic"><Icon d={DEPT_ICONS[d.icon] || DEPT_ICONS.pin} /></span>
-                  <span className="tx">
-                    <a className="nm" href={directionsUrl(d.destination)} target="_blank" rel="noreferrer"
-                       onClick={() => go(d)} style={{ color: 'inherit', textDecoration: 'none', display: 'block' }}>
-                      {d.index}. {t(d.name)}
-                    </a>
-                    <span className="sub">➤ {t(T.way_directions)}</span>
-                    {/* Said on the card, not in a legend somebody has to go
-                        and find: a closed unit, a staff area, or a place a
-                        family should be met at rather than walk into. */}
-                    {/* Why somebody comes here, where HTPN said. Not a
-                        restriction — every location below gives directions. */}
-                    {d.why ? <span className="dwhy">{t(d.why)}</span> : null}
-                    {/* At the door, the arrow IS the instruction, so the
-                        signboard's own split is reproduced rather than
-                        flattened into prose. */}
-                    {d.split ? (
-                      <span className="splitrow">
-                        {d.split.map((x, i) => (
-                          <span className="splitway" key={i}>
-                            {x.dir === 'left' ? '←' : '→'} {t(x)}
-                          </span>
-                        ))}
-                      </span>
-                    ) : null}
-                    {/* The wording actually painted above the door, which
-                        is what somebody in the car park is reading. */}
-                    {d.signboard ? (
-                      <span className="dboard">{t(T.way_signboard)}: <b>{d.signboard}</b></span>
-                    ) : null}
-                    {d.hours ? <span className="dhours">🕐 {t(d.hours)}</span> : null}
-                    {d.sign ? <span className="dsign">{t(d.sign)}</span> : null}
-                  </span>
-                  {/* No pin was supplied for the three doors photographed
-                      along a corridor, so the card says so instead of
-                      offering a link to somewhere invented. */}
-                  {d.map ? (
-                    <a className="pin" href={d.map} target="_blank" rel="noreferrer" onClick={() => go(d)}>
-                      {t(T.way_exact)}
-                    </a>
-                  ) : <span className="pin muted">{t(T.way_photo_soon)}</span>}
-                </div>
-              ))}
-            </div>
-
-          </>
-        )}
+        ) : null}
       </div>
     </div>
   )
@@ -2860,13 +2876,8 @@ function AppreciationBoard () {
         ) : null}
       </div>
 
-      <div className="card tight">
-        <a className="btn ghost wide" href={APPRECIATION_VIDEO.url} target="_blank" rel="noreferrer">
-          ▶ {t(APPRECIATION_VIDEO.label)}
-        </a>
-        <p className="note" style={{ marginTop: 7 }}>{t(APPRECIATION_VIDEO.note)}</p>
-      </div>
-
+      {/* The TikTok video has moved to the gallery, with the Threads posts.
+          This screen counts appreciation; the gallery shows it. */}
       <span style={{ flex: 1 }} />
       <p className="cite">
         <b>{t(T.basedOn)}:</b> {t(SOURCE_NOTE)} {t(T.fb_board_asat).replace('{d}', asAt)}
@@ -2907,7 +2918,11 @@ function Gallery ({ onLightbox }) {
             </button>
             <figcaption>
               <span className="galcap">{t(g.caption)}</span>
-              <span className="galred">{t(T.fb_redacted)}: {t(g.redacted)}</span>
+              {/* Only while the files still carry bars. One flag in
+                  gallery.js turns every one of these off at once. */}
+              {IMAGES_ARE_REDACTED ? (
+                <span className="galred">{t(T.fb_redacted)}: {t(g.redacted)}</span>
+              ) : null}
             </figcaption>
           </figure>
         ))}
@@ -2918,8 +2933,11 @@ function Gallery ({ onLightbox }) {
         <div className="linkgrid2">
           {GALLERY_LINKS.map((l, i) => (
             <a className="postlink" key={l.id} href={l.url} target="_blank" rel="noreferrer">
-              <span className="pl-n">{i + 1}</span>
-              <span className="pl-t">{t(T.fb_open_post).replace('{n}', String(i + 1))}</span>
+              <span className="pl-n">{l.platform === 'TikTok' ? '▶' : i + 1}</span>
+              <span className="pl-t">
+                {t(T.fb_open_post).replace('{n}', String(i + 1))}
+                <span className="pl-p">{l.platform}</span>
+              </span>
               <span className="pl-go">↗</span>
             </a>
           ))}

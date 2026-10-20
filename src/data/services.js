@@ -208,9 +208,9 @@ export const BEFORE_YOU_COME = {
   title: { en: 'Before you set off', ms: 'Sebelum anda bertolak' },
   points: [
     { en: 'Check which of the two sites your appointment letter names. They are not next door to each other.',
-      ms: 'Semak lokasi mana antara dua yang dinyatakan dalam surat temujanji anda. Keduanya tidak bersebelahan.' },
+      ms: 'Semak lokasi mana antara dua yang dinyatakan dalam surat janji temu anda. Keduanya tidak bersebelahan.' },
     { en: 'Bring your appointment letter, your IC, and your medicines or their boxes.',
-      ms: 'Bawa surat temujanji, kad pengenalan, dan ubat anda atau kotaknya.' },
+      ms: 'Bawa surat janji temu, kad pengenalan, dan ubat anda atau kotaknya.' },
     { en: 'If you cannot bring the medicines, bring the list. My Records will print one for you.',
       ms: 'Jika anda tidak dapat membawa ubat, bawa senarainya. Rekod Saya boleh mencetaknya untuk anda.' }
   ]

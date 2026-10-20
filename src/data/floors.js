@@ -31,14 +31,6 @@ export const BUILDING = {
   ms: 'Kompleks Wanita & Kanak-Kanak (WCC)'
 }
 
-/* The Main Building has departments of the same name — its own emergency
-   department, its own intensive care unit. The levels below are the WCC's
-   and nobody else's. */
-export const BUILDING_QUERY = {
-  en: 'These nine levels are the Women & Children Complex. The Main Building is a separate site about a kilometre away and has departments of the same name, so check which one your appointment letter gives.',
-  ms: 'Sembilan aras ini adalah Kompleks Wanita & Kanak-Kanak. Bangunan Utama ialah lokasi berasingan kira-kira satu kilometer dari sini dan mempunyai jabatan dengan nama yang sama, jadi sila semak lokasi yang dinyatakan dalam surat temujanji anda.'
-}
-
 export const DIRECTORY_PHOTO = 'brand/wcc-directory.jpg'
 export const DIRECTORY_CAPTION = {
   en: 'The directory board, photographed by HTPN. Every line below is transcribed from it.',
