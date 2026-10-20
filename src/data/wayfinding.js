@@ -252,12 +252,20 @@ const DEPARTMENT_LIST = [
    hospital entrances is never the straight line a map measures.
    ------------------------------------------------------------------------ */
 export const SITES_DIFFER = {
-  title: { en: 'Two sites, about 1 km apart', ms: 'Dua lokasi, kira-kira 1 km berbeza' },
+  title: { en: 'Two sites, nearly 1 km apart', ms: 'Dua lokasi, hampir 1 km berbeza' },
   body: {
-    en: 'The Main Building and the Women & Children Complex are different places. Both have an emergency department and an intensive care unit, so the name alone will not tell you which one you want — check the site named on your appointment letter before you set off.',
-    ms: 'Bangunan Utama dan Kompleks Wanita & Kanak-Kanak adalah dua tempat berbeza. Kedua-duanya mempunyai jabatan kecemasan dan unit rawatan rapi, jadi nama sahaja tidak menentukan lokasi yang anda perlukan — sila semak lokasi yang dinyatakan dalam surat temujanji anda sebelum bertolak.'
+    en: 'The Main Building and the Women & Children Complex are different places, nearly 1 km apart. Both have an emergency department and an intensive care unit, so the name alone will not tell you which one you want — check the site named on your appointment letter before you set off.',
+    ms: 'Bangunan Utama dan Kompleks Wanita & Kanak-Kanak adalah dua tempat berbeza, hampir 1 km jaraknya. Kedua-duanya mempunyai jabatan kecemasan dan unit rawatan rapi, jadi nama sahaja tidak menentukan lokasi yang anda perlukan — sila semak lokasi yang dinyatakan dalam surat temujanji anda sebelum bertolak.'
   },
   approxKm: 1,
+  /* HTPN's own satellite view, which is what makes the point at a glance:
+     two emergency departments, two sites, a kilometre of Kajang between
+     them. A sentence can be skimmed past; the picture cannot. */
+  image: 'brand/two-sites.jpg',
+  imageCaption: {
+    en: 'Both sites on one map, as supplied by HTPN. The Main Building is on the left, the Women & Children Complex on the right.',
+    ms: 'Kedua-dua lokasi pada satu peta, sebagaimana diberikan oleh HTPN. Bangunan Utama di sebelah kiri, Kompleks Wanita & Kanak-Kanak di sebelah kanan.'
+  },
   source: { en: 'Distance as given by HTPN', ms: 'Jarak sebagaimana dinyatakan oleh HTPN' }
 }
 

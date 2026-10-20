@@ -690,6 +690,10 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   background: var(--attention-bg); border: 1px solid var(--attention);
   color: var(--ink); margin-bottom: 2px; }
 .sitewarn .card-t { color: var(--attention); }
+.twosites { display: block; width: 100%; margin-top: 9px; padding: 0; border: 0;
+  background: none; cursor: pointer; }
+.twosites img { width: 100%; display: block; border-radius: 9px;
+  border: 1px solid var(--attention); }
 .splitrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .splitway { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
   background: var(--brand-tint); color: var(--brand); }

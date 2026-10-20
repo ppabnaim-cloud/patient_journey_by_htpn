@@ -1761,7 +1761,7 @@ function FloorView ({ onLightbox }) {
 }
 
 function TabWayfinding ({ onEvent, online, onLightbox }) {
-  const [t] = useT()
+  const [t, lang] = useT()
   const [view, setView] = useState('sites')
   const go = (item) => onEvent('wayfinding_map_opened', item.detailKey)
 
@@ -1792,6 +1792,13 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
             <div className="sitewarn">
               <p className="card-t" style={{ margin: 0 }}>⚠ {t(SITES_DIFFER.title)}</p>
               <p className="card-s" style={{ marginTop: 5 }}>{t(SITES_DIFFER.body)}</p>
+              {SITES_DIFFER.image ? (
+                <button type="button" className="twosites"
+                        onClick={() => onLightbox({ src: SITES_DIFFER.image, caption: pick(SITES_DIFFER.imageCaption, lang) })}>
+                  <img src={SITES_DIFFER.image} alt={pick(SITES_DIFFER.imageCaption, lang)} loading="lazy" />
+                </button>
+              ) : null}
+              <p className="note" style={{ marginTop: 6 }}>{t(SITES_DIFFER.imageCaption)}</p>
             </div>
             {CAMPUSES.map(c => (
               <div key={c.id} className="sitecard">
