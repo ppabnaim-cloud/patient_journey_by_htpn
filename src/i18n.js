@@ -193,7 +193,7 @@ export const T = {
   d_wayfinding: L('Find the right building and department', 'Cari bangunan dan jabatan yang betul'),
   d_iqms: L('Check the queue before you set off', 'Semak giliran sebelum anda bertolak'),
   d_myubat: L('Have repeat medicines delivered', 'Dapatkan ubat ulangan dihantar ke rumah'),
-  d_rakyat: L('When to come, and when not to', 'Bila perlu datang, dan bila tidak perlu'),
+  d_rakyat: L('Your part in a healthier nation', 'Peranan anda ke arah negara sihat'),
   d_feedback: L('Thank the team, or tell us what to fix', 'Hargai pasukan kami, atau beritahu apa perlu diperbaiki'),
   /* --- the merged record section --- */
   tab_rec: L('1 Patient 1 Record', '1 Pesakit 1 Rekod'),
