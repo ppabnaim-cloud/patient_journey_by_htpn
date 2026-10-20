@@ -458,6 +458,7 @@ export const T = {
     'Membuka peta memerlukan sambungan internet. Senarai ini berfungsi tanpa talian.'
   ),
   way_sites_differ: L('Not the same place', 'Bukan tempat yang sama'),
+  way_signboard: L('Look for the sign', 'Cari papan tanda'),
   way_photo_soon: L('Photograph to come', 'Gambar akan menyusul'),
   way_hours: L('Opening hours', 'Waktu urusan'),
   way_admission: L('Being admitted', 'Masuk Wad'),

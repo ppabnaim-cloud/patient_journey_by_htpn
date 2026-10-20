@@ -77,6 +77,13 @@ export const CAMPUSES = [
    Everything here is in the Main Building. That is stated once, as a banner
    above the list, rather than repeated on all sixteen cards.
 
+   `signboard` IS THE SIGN ABOVE THE DOOR, TRANSCRIBED FROM HTPN'S OWN
+   PHOTOGRAPHS. It is not the department's official name and often differs
+   from it — location 1 is "Klinik Pakar 2" in the directory but the board
+   over the entrance reads KLINIK PERUBATAN AM / KLINIK ORTOPEDIK. A patient
+   standing in the car park is reading the board, not the directory, so the
+   board is what the card shows them to look for.
+
    NO ACCESS LABELS. This build added "visitors by arrangement" and "staff
    area" chips on the theatre, ICU, dietetics and the logistics pharmacy.
    HTPN removed them, and was right to: the theatre and ICU have daily
@@ -96,6 +103,7 @@ const DEPARTMENT_LIST = [
   { icon: 'clinic',
     en: 'Specialist Clinic 2 — General Medicine & Orthopaedics',
     ms: 'Klinik Pakar 2 — Perubatan Am & Ortopedik',
+    signboard: 'KLINIK PERUBATAN AM · KLINIK ORTOPEDIK',
     map: 'https://maps.app.goo.gl/bY8cEXWnWYxw69Dw5' },
 
   { icon: 'office',
@@ -106,11 +114,21 @@ const DEPARTMENT_LIST = [
   { icon: 'radiology',
     en: 'Radiology Department — X-ray & CT scan',
     ms: 'Jabatan Radiologi — X-ray & Imbasan CT',
+    signboard: 'IMBASAN TOMOGRAF BERKOMPUTER (CT SCAN)',
     map: 'https://maps.app.goo.gl/onqXD8CAeZaFsUUZ6' },
 
   { icon: 'emergency',
     en: 'Emergency & Trauma Department',
     ms: 'Jabatan Kecemasan & Trauma',
+    signboard: 'JABATAN KECEMASAN & TRAUMA · KAUNTER SARINGAN UTAMA',
+    /* The gantry over the approach road splits three ways, and which lane a
+       family takes matters: walking up the ambulance lane puts people in
+       front of a reversing ambulance. Transcribed from the sign itself. */
+    split: [
+      { dir: 'left', en: 'Public', ms: 'Awam' },
+      { dir: 'right', en: 'Ambulance route', ms: 'Laluan Ambulans' }
+    ],
+    why: { en: 'Green Zone building, Emergency & Trauma', ms: 'Bangunan Zon Hijau, Jabatan Kecemasan dan Trauma' },
     map: 'https://maps.app.goo.gl/4qbAZVq1znC3E2iL6' },
 
   { icon: 'rehab',
@@ -192,6 +210,7 @@ const DEPARTMENT_LIST = [
   { icon: 'office',
     en: 'Revenue Unit — Patient & Emergency Registration',
     ms: 'Unit Hasil — Pendaftaran Pesakit & Kecemasan',
+    signboard: 'UNIT HASIL · PENDAFTARAN PESAKIT & KECEMASAN',
     map: null, photo: 'brand/bu-unit-hasil.jpg',
     hours: {
       en: 'Revenue Unit: Monday to Friday, 8am to 5pm. The ward admission counter is open 24 hours.',
@@ -202,6 +221,7 @@ const DEPARTMENT_LIST = [
   { icon: 'radiology',
     en: 'Diagnostic Imaging Department',
     ms: 'Jabatan Pengimejan Diagnostik',
+    signboard: 'JABATAN PENGIMEJAN DIAGNOSTIK',
     map: null, photo: 'brand/bu-pengimejan.jpg',
     /* The department's own signboard splits here, with an arrow each way.
        Reproduced rather than summarised: at the door, the arrow is the
@@ -212,46 +232,11 @@ const DEPARTMENT_LIST = [
     ] },
 
   { icon: 'office',
-    en: 'Management Division',
-    ms: 'Bahagian Pengurusan',
+    en: 'Director\u2019s Office & Management Division',
+    ms: 'Pejabat Pengarah & Pejabat Pengurusan',
+    signboard: 'BAHAGIAN PENGURUSAN',
     map: null, photo: 'brand/bu-pengurusan.jpg' }
 ]
-
-/* ---------------------------------------------------------------------------
-   THE ADMISSION AND DISCHARGE PATHWAY
-
-   Transcribed from the flow chart on the wall beside the Unit Hasil counter,
-   photographed by HTPN. It is the hospital's own chart, in the hospital's own
-   order, and it answers the question a family actually asks at that counter:
-   what happens next, and where do I pay.
-   ------------------------------------------------------------------------ */
-export const ADMISSION_FLOW = {
-  title: { en: 'Being admitted to a ward', ms: 'Aliran Pesakit Dalam' },
-  source: { en: 'From the chart at the Revenue Unit counter', ms: 'Daripada carta di kaunter Unit Hasil' },
-  steps: [
-    { en: 'Admitted by the medical officer', ms: 'Masuk oleh Pegawai Perubatan' },
-    { en: 'Ward admission registered at the Admissions Unit', ms: 'Pendaftaran masuk wad di Unit Daftar Masuk' },
-    { en: 'Deposit paid, where one applies', ms: 'Bayaran cagaran (yang berkenaan)' },
-    { en: 'Admitted to the ward', ms: 'Masuk wad' },
-    { en: 'Patient discharged', ms: 'Discaj pesakit' },
-    { en: 'Bill paid at the Revenue Unit, or at ward registration after office hours',
-      ms: 'Bayaran bil di Unit Hasil, atau Daftar Wad selepas waktu pejabat' },
-    { en: 'Collect medicines, and any documents, from the ward', ms: 'Ambil ubat dan dokumen di wad (jika ada)' }
-  ]
-}
-
-/* What the Emergency Department's own signage asks of the public, transcribed
-   from the notice beside its door. It belongs on the way-finding screen
-   because that is where somebody deciding whether to go is standing. */
-export const ED_NOTICE = {
-  counter: { en: 'Main Screening Counter', ms: 'Kaunter Saringan Utama' },
-  zone: { en: 'Green Zone, Emergency & Trauma Department', ms: 'Zon Hijau, Jabatan Kecemasan dan Trauma' },
-  body: {
-    en: 'The Emergency & Trauma Department is for emergencies. Priority goes to emergency and critical cases. For ordinary, non-emergency problems, please use the health facility nearest you — it helps us ease the crowding here.',
-    ms: 'Jabatan Kecemasan dan Trauma adalah untuk kes KECEMASAN. Keutamaan diberikan kepada kes kecemasan dan kritikal. Bagi kes biasa dan BUKAN kecemasan, sila gunakan fasiliti kesihatan yang berhampiran — bantulah kami mengurangkan kesesakan di Jabatan Kecemasan.'
-  },
-  source: { en: 'Transcribed from the department\u2019s own notice', ms: 'Disalin daripada notis jabatan itu sendiri' }
-}
 
 /* ---------------------------------------------------------------------------
    THE TWO SITES ARE NOT THE SAME PLACE, AND THAT IS THE HEADLINE
@@ -281,30 +266,6 @@ export const DEPARTMENTS_BUILDING = { en: 'Main Building', ms: 'Bangunan Utama' 
 
 /* What each access level means on screen. Worded so a patient knows whether
    to walk there, and worded carefully for the one that matters most. */
-export const ACCESS_NOTES_REMOVED_BY_HTPN = {
-  public: null,
-  restricted: {
-    label: { en: 'Visitors by arrangement', ms: 'Pelawat mengikut kebenaran' },
-    note: {
-      en: 'A closed unit. Visiting is by the ward\u2019s arrangement, not by walking in — ask the nurse in charge first.',
-      ms: 'Unit tertutup. Lawatan adalah mengikut kebenaran wad, bukan dengan masuk terus — sila tanya jururawat bertugas dahulu.'
-    }
-  },
-  staff: {
-    label: { en: 'Staff area', ms: 'Kawasan kakitangan' },
-    note: {
-      en: 'A service department rather than a patient one. The location is here for staff and for deliveries.',
-      ms: 'Jabatan sokongan, bukan untuk pesakit. Lokasi ini disertakan untuk kakitangan dan urusan penghantaran.'
-    }
-  },
-  escorted: {
-    label: { en: 'Please ask at the counter first', ms: 'Sila tanya di kaunter dahulu' },
-    note: {
-      en: 'Families are accompanied here by hospital staff. If you have been asked to come, speak to the counter or the ward first so that somebody meets you.',
-      ms: 'Keluarga akan diiringi ke sini oleh pihak hospital. Sekiranya anda diminta hadir, sila berhubung dengan kaunter atau wad terlebih dahulu supaya ada yang menyambut anda.'
-    }
-  }
-}
 
 export const DEPARTMENTS = DEPARTMENT_LIST.map((d, i) => ({
   id: 'dept_' + String(i + 1).padStart(2, '0'),
@@ -321,6 +282,7 @@ export const DEPARTMENTS = DEPARTMENT_LIST.map((d, i) => ({
      a corridor has no pin, and inventing one is worse than offering none. */
   map: d.map || (d.latLng ? `https://www.google.com/maps/search/?api=1&query=${d.latLng}` : null),
   photo: d.photo || null,
+  signboard: d.signboard || null,
   hours: d.hours || null,
   sign: d.sign || null,
   split: d.split || null,

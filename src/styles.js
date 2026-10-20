@@ -693,6 +693,9 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .splitrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .splitway { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
   background: var(--brand-tint); color: var(--brand); }
+.dboard { display: block; font-size: 10.5px; color: var(--ink-soft); margin-top: 3px;
+  line-height: 1.35; }
+.dboard b { color: var(--ink); letter-spacing: .01em; }
 .dhours, .dsign { display: block; font-size: 11px; color: var(--ink-soft); margin-top: 3px;
   line-height: 1.35; }
 .pin.muted { color: var(--ink-faint); text-decoration: none; cursor: default; }

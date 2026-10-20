@@ -26,7 +26,7 @@ import { readText, draftMedicationsFrom, draftLabsFrom, draftDateFrom, ocrAvaila
 import { sendUsage, onUsageStatus, newDeviceCode, LAST_RECORD_FOR_DISPLAY } from './usage.js'
 import {
   CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl, confirmedCount,
-  DEPARTMENTS_BUILDING, SITES_DIFFER, ADMISSION_FLOW, ED_NOTICE
+  DEPARTMENTS_BUILDING, SITES_DIFFER
 } from './data/wayfinding.js'
 import {
   FLOORS, TOTAL_ITEMS, findFloor, BUILDING_QUERY,
@@ -1763,7 +1763,6 @@ function FloorView ({ onLightbox }) {
 function TabWayfinding ({ onEvent, online, onLightbox }) {
   const [t] = useT()
   const [view, setView] = useState('sites')
-  const paged = usePaged(DEPARTMENTS, PAGE.depts)
   const go = (item) => onEvent('wayfinding_map_opened', item.detailKey)
 
   return (
@@ -1827,7 +1826,7 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
               <span><b>{t(DEPARTMENTS_BUILDING)}</b> · {t(T.way_all_here)}</span>
             </div>
             <div className="linkgrid">
-              {paged.slice.map(d => (
+              {DEPARTMENTS.map(d => (
                 <div key={d.id} className={'deptcard' + (d.confirmed ? '' : ' unconfirmed')}>
                   <span className="ic"><Icon d={DEPT_ICONS[d.icon] || DEPT_ICONS.pin} /></span>
                   <span className="tx">
@@ -1854,6 +1853,11 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
                         ))}
                       </span>
                     ) : null}
+                    {/* The wording actually painted above the door, which
+                        is what somebody in the car park is reading. */}
+                    {d.signboard ? (
+                      <span className="dboard">{t(T.way_signboard)}: <b>{d.signboard}</b></span>
+                    ) : null}
                     {d.hours ? <span className="dhours">🕐 {t(d.hours)}</span> : null}
                     {d.sign ? <span className="dsign">{t(d.sign)}</span> : null}
                   </span>
@@ -1869,21 +1873,6 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
               ))}
             </div>
 
-            <div className="card tight">
-              <p className="card-t">{t(ED_NOTICE.counter)} · {t(ED_NOTICE.zone)}</p>
-              <p className="card-s">{t(ED_NOTICE.body)}</p>
-              <p className="cite" style={{ marginTop: 6 }}><b>{t(T.basedOn)}:</b> {t(ED_NOTICE.source)}</p>
-            </div>
-            <div className="card tight">
-              <p className="card-t">{t(ADMISSION_FLOW.title)}</p>
-              <ol className="flowlist">
-                {ADMISSION_FLOW.steps.map((x, i) => <li key={i}>{t(x)}</li>)}
-              </ol>
-              <p className="cite" style={{ marginTop: 6 }}><b>{t(T.basedOn)}:</b> {t(ADMISSION_FLOW.source)}</p>
-            </div>
-
-            <span style={{ flex: 1 }} />
-            <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
           </>
         )}
       </div>
@@ -2167,8 +2156,6 @@ function TabRakyat ({ onEvent, onLightbox }) {
                 </button>
               ))}
             </div>
-            <span style={{ flex: 1 }} />
-            <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
           </>
         )}
       </div>
