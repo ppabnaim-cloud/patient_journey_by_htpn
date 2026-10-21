@@ -525,13 +525,6 @@ function AppointmentCard ({ appt, today, lang, t, onCalendar, onRemove }) {
    up, entries held — and shows nothing where the patient has entered nothing.
    No invented figures: the rule from the dashboard applies here too.
    ========================================================================= */
-const HERO_CHIPS = [
-  { en: 'Active', ms: 'Aktif' },
-  { en: 'Organised', ms: 'Tersusun' },
-  { en: 'Simple', ms: 'Mudah' },
-  { en: 'Meaningful', ms: 'Bermakna' }
-]
-
 const HUB_DESC = {
   wayfinding: T.d_wayfinding,
   feedback: T.d_feedback,
@@ -562,14 +555,10 @@ function TabHome ({ record, goTo }) {
   return (
     <div className="pane">
       <div className="pane-body">
-        <div className="hero">
-          <p className="hero-t">{t(T.home_title)}</p>
-          <p className="hero-s">{t(THEME.full)}</p>
-          <div className="hero-chips">
-            {HERO_CHIPS.map((c, i) => <span className="hero-chip" key={i}>{t(c)}</span>)}
-          </div>
-        </div>
-
+        {/* No banner. The header above this screen already carries "Patient
+            Journey — Towards 1 Patient 1 Record"; repeating it here, with
+            four adjectives under it, cost a patient the top of the screen
+            and told them nothing. Straight to the buttons. */}
         <div className="hubgrid">
           {hubItems().map(h => {
             const tab = tabOf(h.id)
@@ -2051,12 +2040,24 @@ function SiteView ({ site, go, onLightbox, children }) {
    naming on a bar above them: the patient is already on the Main Building
    screen, with its photograph at the top.
    ========================================================================= */
-function DeptList ({ go }) {
-  const [t] = useT()
+function DeptList ({ go, onLightbox }) {
+  const [t, lang] = useT()
+  /* A photograph of the door is the thing that actually finds a counter
+     along a corridor, so it is drawn at the top of the card. A file that is
+     not in the repository yet must not leave a broken-image box: the img
+     removes itself on error, and the card reads exactly as it did before. */
+  const [broken, setBroken] = useState({})
   return (
     <div className="linkgrid">
       {DEPARTMENTS.map(d => (
         <div key={d.id} className={'deptcard' + (d.confirmed ? '' : ' unconfirmed')}>
+          {d.photo && !broken[d.id] ? (
+            <button type="button" className="deptshot"
+                    onClick={() => onLightbox({ src: d.photo, caption: pick(d.name, lang) })}>
+              <img src={d.photo} alt={pick(d.name, lang)} loading="lazy"
+                   onError={() => setBroken(b => ({ ...b, [d.id]: true }))} />
+            </button>
+          ) : null}
           <span className="ic"><Icon d={DEPT_ICONS[d.icon] || DEPT_ICONS.pin} /></span>
           <span className="tx">
             <a className="nm" href={directionsUrl(d.destination)} target="_blank" rel="noreferrer"
@@ -2087,14 +2088,15 @@ function DeptList ({ go }) {
             {d.hours ? <span className="dhours">🕐 {t(d.hours)}</span> : null}
             {d.sign ? <span className="dsign">{t(d.sign)}</span> : null}
           </span>
-          {/* No pin was supplied for the three doors photographed along a
-              corridor, so the card says so instead of offering a link to
-              somewhere invented. */}
+          {/* No saved pin was supplied for the three doors photographed along
+              a corridor. The slot is simply left empty rather than filled
+              with an apology: "Get directions" above it already works, and a
+              line of grey text here squeezed the name into a narrow column. */}
           {d.map ? (
             <a className="pin" href={d.map} target="_blank" rel="noreferrer" onClick={() => go(d)}>
               {t(T.way_exact)}
             </a>
-          ) : <span className="pin muted">{t(T.way_photo_soon)}</span>}
+          ) : null}
         </div>
       ))}
     </div>
@@ -2146,7 +2148,7 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
         ) : null}
         {view === 'main' ? (
           <SiteView site={CAMPUSES.find(c => c.id === 'main')} go={go} onLightbox={onLightbox}>
-            <DeptList go={go} />
+            <DeptList go={go} onLightbox={onLightbox} />
           </SiteView>
         ) : null}
         {view === 'sites' ? (

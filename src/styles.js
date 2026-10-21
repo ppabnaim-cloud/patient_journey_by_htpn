@@ -33,9 +33,7 @@ export const CSS = `
      card surfaces; see the header of src/charts.jsx. */
   --s1: #2a78d6;  --s2: #eb6834;  --s3: #1baf7a;  --s4: #eda100;
   --c-appointments: #6D3BBF; --c-appointments-t: #F0E9FA;
-  --c-dashboard:    #1F6FD0; --c-dashboard-t:    #E6F0FC;
-  --c-records:      #0E7C73; --c-records-t:      #E0F2F0;
-  --c-measurements: #2F8A4E; --c-measurements-t: #E5F3E9;
+  --c-record:       #0E7C73; --c-record-t:       #E0F2F0;
   --c-wayfinding:   #C2621B; --c-wayfinding-t:   #FBEDE1;
   --c-iqms:         #3B5BBF; --c-iqms-t:         #E9EDFB;
   --c-myubat:       #A8357F; --c-myubat-t:       #FAE7F3;
@@ -62,9 +60,7 @@ export const CSS = `
     --calm: #A6CDB4; --calm-bg: #19291F;
     --s1: #3987e5;  --s2: #d95926;  --s3: #199e70;  --s4: #c98500;
     --c-appointments: #C0A2EC; --c-appointments-t: #2B2140;
-    --c-dashboard:    #93C0F0; --c-dashboard-t:    #152638;
-    --c-records:      #7ECFC6; --c-records-t:      #12302D;
-    --c-measurements: #9ED5AE; --c-measurements-t: #16301E;
+    --c-record:       #7ECFC6; --c-record-t:       #12302D;
     --c-wayfinding:   #F0B183; --c-wayfinding-t:   #352211;
     --c-iqms:         #A9B8F0; --c-iqms-t:         #1B2240;
     --c-myubat:       #EFA3D2; --c-myubat-t:       #341630;
@@ -600,7 +596,16 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .deptcard {
   display: flex; align-items: center; gap: 9px; text-align: left; text-decoration: none; color: inherit;
   border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 8px 10px;
+  flex-wrap: wrap;
 }
+/* The photograph of the door, where HTPN supplied one. Full width across the
+   top of the card, because it is what the patient matches against what they
+   are standing in front of; the icon, name and pin keep their row below it. */
+.deptshot {
+  flex: 1 1 100%; display: block; padding: 0; border: 0; background: none;
+  cursor: pointer; border-radius: 9px; overflow: hidden; margin-bottom: 3px;
+}
+.deptshot img { width: 100%; display: block; height: 122px; object-fit: cover; }
 .deptcard .ic {
   width: 32px; height: 32px; flex: 0 0 auto; border-radius: 9px;
   background: var(--brand-tint); color: var(--brand);
@@ -740,16 +745,9 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 /* The landing screen. Big targets, one colour each, so a patient who opens
    the app for the first time can see everything it does without reading a
    tab bar of nine small words. */
-.hero { flex: 0 0 auto; border-radius: var(--r); padding: 15px 16px; margin-bottom: 10px;
-  background: linear-gradient(135deg, var(--brand) 0%, #8249C4 55%, #B06FD8 100%);
-  color: #fff; }
-:root[data-theme="dark"] .hero, :root:not([data-theme="light"]) .hero {
-  background: linear-gradient(135deg, #3C1E63 0%, #5B2D8E 55%, #7A47B0 100%); }
-.hero-t { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -0.3px; }
-.hero-s { margin: 4px 0 0; font-size: 12.5px; opacity: .92; line-height: 1.45; }
-.hero-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.hero-chip { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; padding: 3px 9px;
-  border-radius: 999px; background: rgba(255,255,255,.18); color: #fff; }
+/* The banner that used to sit above the buttons is gone: it repeated the
+   header's own title and sub-title, and the four adjectives under it told a
+   patient nothing. The buttons start at the top of the screen. */
 
 .hubgrid { display: grid; grid-template-columns: repeat(3, 1fr);
   grid-auto-rows: minmax(0, 1fr); gap: 10px; flex: 1 1 auto; min-height: 0;
