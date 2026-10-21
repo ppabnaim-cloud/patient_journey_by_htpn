@@ -1,40 +1,23 @@
 /* ===========================================================================
    gallery.js — appreciation HTPN has received, as pictures.
 
-   HTPN'S DECISION ON NAMES
-   HTPN has directed that these pictures be shown as supplied: appreciation is
-   meant to be seen, the authors published most of it themselves, and the names
-   are not to be covered. That decision is HTPN's to make and is recorded here.
+   SHOWN AS SUPPLIED, BY HTPN'S DECISION
+   These are the five photographs HTPN supplied, unaltered. HTPN directed that
+   they be shown that way: appreciation is meant to be seen, the people who
+   wrote it published it themselves, and covering the names takes the thanks
+   away from the staff it was written for. That call is HTPN's to make.
 
-   WHAT THE FILES IN THIS REPOSITORY ACTUALLY ARE
-   The four files under public/brand/appreciation/ are still the versions with
-   black bars over names, faces, wards and bed numbers. This build was not
-   permitted to write the unredacted originals into the repository, so the
-   bars are there whether or not HTPN wants them. Each card therefore still
-   says what is covered, because black bars with no explanation read worse
-   than black bars with one.
+   The one that was not self-published is the handwritten Ramadan note, left
+   on a ward. HTPN, which holds it, has decided the same for it.
 
-   TO SHOW THEM AS SUPPLIED — two steps, and the second is one word.
-   1. Replace these four files with the originals. Same four names:
-          public/brand/appreciation/note-ramadhan.jpg
-          public/brand/appreciation/gift-tags.jpg
-          public/brand/appreciation/fb-ward-visit.jpg
-          public/brand/appreciation/fb-emergency.jpg
-   2. Change IMAGES_ARE_REDACTED below from true to false. Every "what was
-      removed" line disappears from the screen at once, because each one is
-      drawn only while that flag is true. Nothing else needs editing.
-
-   One factual note for the record, not an argument: three of these four were
-   published by their authors. The handwritten Ramadan note was not — it was
-   left on a ward, and it carries a patient's name together with her ward, bed
-   number and admission dates.
+   The IMAGES_ARE_REDACTED switch below is off. It stays in the file so that
+   if HTPN ever supplies covered versions of these files, one word turns the
+   matching "what was removed" lines back on, and the pictures and the words
+   describing them can never disagree.
    ========================================================================= */
 
-/* The one switch. True while the files in this repository still carry black
-   bars; false once the originals replace them. It governs every line on the
-   screen that mentions a redaction, so the pictures and the words describing
-   them can never disagree. */
-export const IMAGES_ARE_REDACTED = true
+/* Off: the files under public/brand/appreciation/ are the originals. */
+export const IMAGES_ARE_REDACTED = false
 
 export const GALLERY = [
   {
@@ -72,6 +55,15 @@ export const GALLERY = [
       ms: 'Sebuah keluarga mengucapkan terima kasih kepada Jabatan Kecemasan dan pasukan rawatan paliatif atas penjagaan terhadap saudara mereka pada hari-hari terakhirnya.'
     },
     redacted: { en: 'Family names and the doctor’s name removed', ms: 'Nama keluarga dan nama doktor dibuang' }
+  },
+  {
+    id: 'fb_pac',
+    src: 'brand/appreciation/fb-pac-birth.jpg',
+    caption: {
+      en: 'A mother writes about the night her son was born, and the PAC staff — from the security officer at the door to the nurses in the labour room — who saw her through it.',
+      ms: 'Seorang ibu menulis tentang malam kelahiran anaknya, dan kakitangan PAC — daripada pegawai keselamatan di pintu hingga jururawat di bilik bersalin — yang menemaninya sepanjang waktu itu.'
+    },
+    redacted: { en: 'Names and the baby’s photograph removed', ms: 'Nama dan gambar bayi dibuang' }
   }
 ]
 
