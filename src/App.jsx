@@ -3241,8 +3241,11 @@ function TabFeedback ({ onEvent, onLightbox }) {
             </div>
 
             <span style={{ flex: 1 }} />
+            {/* One sentence, not two. The grey line is the standing state
+                before anyone presses Send; the yellow one is the answer to
+                having pressed it. Showing both said the same thing twice. */}
             {problem ? <div className="flagline">⚠ {problem}</div> : null}
-            {!feedbackConfigured()
+            {!feedbackConfigured() && !problem
               ? <p className="note">{t(T.fb_fail_off)}</p>
               : null}
             <button className="btn wide" onClick={submit} disabled={sending}>

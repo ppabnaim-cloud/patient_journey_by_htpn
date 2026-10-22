@@ -213,3 +213,25 @@ Once you paste it, the change is a few minutes' work in
 | `FEEDBACK_ENABLED` | `apps-script/Feedback.gs`, line ~45 | `false` |
 | `VITE_APPRECIATION_CSV` | deployment env | unset — the board shows the dated figures that ship with the app |
 | Which category goes to HTPN's form | `src/data/officialForm.js`, `ROUTE` | complaint and improvement → HTPN's form |
+
+---
+
+## The feedback Sheet already exists
+
+Created 22 October 2026 in ppnaim@moh.gov.my's Drive:
+
+**HTPN — Maklum Balas Pesakit (Patient Journey app)**
+https://docs.google.com/spreadsheets/d/1VVEsLyrUOizL9tllXTRhPOxy6T3nKpbGw1cJ9VI2q-k/edit
+
+Its first tab, **MULA DI SINI**, carries the six set-up steps in Bahasa
+Malaysia, in order, with the exact menu names. Follow that tab rather than
+this file; this file is the longer reference behind it.
+
+What could be done for HTPN, and what could not:
+
+- The Sheet itself, its name, and the step-by-step tab — done.
+- Pasting `apps-script/Feedback.gs` into Extensions › Apps Script, running
+  `setup()`, and deploying it as a Web App — **only HTPN can do this.** A
+  deployment runs as a Google account and has to be authorised by the person
+  who owns it, in their own browser. No tool can authorise it on their
+  behalf, and nothing should be able to.
