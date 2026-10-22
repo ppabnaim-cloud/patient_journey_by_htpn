@@ -52,7 +52,10 @@ export const T = {
     'Add an entry below, or photograph the document and let the app read it for you.',
     'Tambah catatan di bawah, atau ambil gambar dokumen dan biarkan aplikasi membacanya untuk anda.'
   ),
-  offlineReady: L('Works offline', 'Berfungsi luar talian'),
+  /* Said only while the device is actually offline. The bar used to claim
+     "Works offline" at all times, which overstated it: the maps, the queue
+     number, MyUbat and sending feedback all need a connection. */
+  offlineNow: L('No internet connection', 'Tiada sambungan internet'),
   needsInternet: L('Requires an internet connection', 'Memerlukan sambungan internet'),
   settings: L('Privacy & settings', 'Privasi & Tetapan'),
   example: L('Example', 'Contoh'),

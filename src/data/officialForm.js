@@ -36,8 +36,15 @@
    ========================================================================= */
 
 export const OFFICIAL_FORM = {
-  /* Supplied by HTPN. Not found, not derived — this is the address given. */
-  url: 'https://forms.gle/J4sdRmTrUiDW7kQC6',
+  /* Supplied by HTPN. Not found, not derived.
+
+     HTPN gave the address ending /formResponse. That is the endpoint a
+     submitted form POSTs to, not a page anybody can read: opened in a
+     browser it gives an error. The same form ID with /viewform is the form
+     itself, and that is what a patient needs. The short link HTPN gave
+     earlier, https://forms.gle/J4sdRmTrUiDW7kQC6, resolves to the same
+     form. */
+  url: 'https://docs.google.com/forms/d/e/1FAIpQLSdgovF7MxctsACEwmYS5zxsZk5XsfoATdmoVYRHWTwlcZHteQ/viewform',
   source: { en: 'Supplied by HTPN', ms: 'Diberikan oleh HTPN' },
   goesTo: {
     en: 'Public Relations Office, HTPN',

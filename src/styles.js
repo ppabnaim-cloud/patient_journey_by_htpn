@@ -613,10 +613,25 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 }
 .deptcard .ic svg { width: 18px; height: 18px; }
 .deptcard .tx { min-width: 0; flex: 1; }
-.deptcard .nm { font-size: 12.5px; font-weight: 650; line-height: 1.2; }
-.deptcard .sub { font-size: 10.5px; color: var(--brand); font-weight: 600; }
+/* The whole of this is one link to the directions. It is the card's main
+   action and deserves the card's whole width, not one line of it. */
+.deptmain {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 9px;
+  text-decoration: none; color: inherit; border-radius: 9px;
+  margin: -4px; padding: 4px;
+}
+.deptmain:hover { background: var(--brand-tint); }
+.deptcard .nm { display: block; font-size: 12.5px; font-weight: 650; line-height: 1.2; }
+.deptcard .sub { display: block; font-size: 10.5px; color: var(--brand); font-weight: 600; }
 .deptcard.unconfirmed .sub { color: var(--ink-faint); font-weight: 500; }
-.deptcard .pin { flex: 0 0 auto; font-size: 10.5px; color: var(--brand); font-weight: 700; text-decoration: underline; }
+/* A thumb is about 9mm across. The negative margin keeps the card looking
+   the same while giving the link a target somebody can actually hit. */
+.deptcard .pin {
+  flex: 0 0 auto; font-size: 10.5px; color: var(--brand); font-weight: 700;
+  text-decoration: underline; padding: 10px 6px; margin: -10px -2px -10px 0;
+  border-radius: 8px;
+}
+.deptcard .pin:hover { background: var(--brand-tint); }
 .deptcard.unconfirmed .ic { background: var(--line); color: var(--ink-faint); }
 
 /* ---------- triage: emergency or not ---------- */

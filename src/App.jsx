@@ -2058,36 +2058,41 @@ function DeptList ({ go, onLightbox }) {
                    onError={() => setBroken(b => ({ ...b, [d.id]: true }))} />
             </button>
           ) : null}
-          <span className="ic"><Icon d={DEPT_ICONS[d.icon] || DEPT_ICONS.pin} /></span>
-          <span className="tx">
-            <a className="nm" href={directionsUrl(d.destination)} target="_blank" rel="noreferrer"
-               onClick={() => go(d)} style={{ color: 'inherit', textDecoration: 'none', display: 'block' }}>
-              {d.index}. {t(d.name)}
-            </a>
-            <span className="sub">➤ {t(T.way_directions)}</span>
-            {/* Why somebody comes here, where HTPN said. Not a
-                restriction — every location below gives directions. */}
-            {d.why ? <span className="dwhy">{t(d.why)}</span> : null}
-            {/* At the door, the arrow IS the instruction, so the
-                signboard's own split is reproduced rather than
-                flattened into prose. */}
-            {d.split ? (
-              <span className="splitrow">
-                {d.split.map((x, i) => (
-                  <span className="splitway" key={i}>
-                    {x.dir === 'left' ? '←' : '→'} {t(x)}
-                  </span>
-                ))}
-              </span>
-            ) : null}
-            {/* The wording actually painted above the door, which is what
-                somebody in the car park is reading. */}
-            {d.signboard ? (
-              <span className="dboard">{t(T.way_signboard)}: <b>{d.signboard}</b></span>
-            ) : null}
-            {d.hours ? <span className="dhours">🕐 {t(d.hours)}</span> : null}
-            {d.sign ? <span className="dsign">{t(d.sign)}</span> : null}
-          </span>
+          {/* The WHOLE card is the directions link, icon and name and all.
+              It used to be only the name: "➤ Get directions" sat beside it
+              looking exactly like a link, in the same purple, and did
+              nothing when tapped. Nobody would guess the name was the
+              target, so nobody could reach the directions. */}
+          <a className="deptmain" href={directionsUrl(d.destination)}
+             target="_blank" rel="noreferrer" onClick={() => go(d)}>
+            <span className="ic"><Icon d={DEPT_ICONS[d.icon] || DEPT_ICONS.pin} /></span>
+            <span className="tx">
+              <span className="nm">{d.index}. {t(d.name)}</span>
+              <span className="sub">➤ {t(T.way_directions)}</span>
+              {/* Why somebody comes here, where HTPN said. Not a
+                  restriction — every location below gives directions. */}
+              {d.why ? <span className="dwhy">{t(d.why)}</span> : null}
+              {/* At the door, the arrow IS the instruction, so the
+                  signboard's own split is reproduced rather than
+                  flattened into prose. */}
+              {d.split ? (
+                <span className="splitrow">
+                  {d.split.map((x, i) => (
+                    <span className="splitway" key={i}>
+                      {x.dir === 'left' ? '←' : '→'} {t(x)}
+                    </span>
+                  ))}
+                </span>
+              ) : null}
+              {/* The wording actually painted above the door, which is what
+                  somebody in the car park is reading. */}
+              {d.signboard ? (
+                <span className="dboard">{t(T.way_signboard)}: <b>{d.signboard}</b></span>
+              ) : null}
+              {d.hours ? <span className="dhours">🕐 {t(d.hours)}</span> : null}
+              {d.sign ? <span className="dsign">{t(d.sign)}</span> : null}
+            </span>
+          </a>
           {/* No saved pin was supplied for the three doors photographed along
               a corridor. The slot is simply left empty rather than filled
               with an apology: "Get directions" above it already works, and a
@@ -3797,7 +3802,12 @@ export default function App () {
         <div className="statusbar">
           <span className={'dot ' + (status === 'sent' ? '' : status === 'failed' || status === 'refused' ? 'bad' : 'off')} />
           <span className="st">{pick(statusText, lang)}</span>
-          <span className="net">· {online ? pick(T.offlineReady, lang) : '⚠ ' + pick(T.offlineReady, lang)}</span>
+          {/* Nothing here while the connection is fine. This app is a web
+              app and most of what a patient comes to it for — directions,
+              the queue number, MyUbat, sending feedback — needs the
+              internet, so a standing "works offline" badge was a claim it
+              could not keep. */}
+          {!online ? <span className="net">· ⚠ {pick(T.offlineNow, lang)}</span> : null}
           <span className="sp" />
           <span className="credit">{pick(T.credit, lang)}</span>
         </div>
