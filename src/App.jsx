@@ -39,12 +39,12 @@ import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
 import { CAMPAIGN, HASHTAG } from './data/campaign.js'
 import { TAGS, TEMPLATES, GROUPS, HTPN_PAGE, TEMPLATE_NOTE, UNCHECKED_NOTE, BEFORE_POSTING } from './data/templates.js'
 import { DEPARTMENTS as CLINIC_DEPTS, CLINIC_INDEX } from './data/departments.js'
-import {
-  RATING_LABELS, RATING_MAX, CATEGORIES, FEEDBACK_AREAS, CONSENT,
-  HANDLING, URGENT, OFFICIAL_CHANNEL, IMAGE_LIMITS
-} from './data/feedback.js'
-import { ASK_FOR_IC, newTicket, downscaleImage, validateFeedback, ageFromIc } from './feedback.js'
-import { sendFeedback, feedbackConfigured } from './feedbackSend.js'
+/* Only the urgent-case warning is still rendered. The rating labels, the
+   categories, the department list, the consent wording, the image limits and
+   the whole send path belonged to the in-app form, which HTPN replaced with
+   the hospital's own. They stay in ./data/feedback.js, ./feedback.js and
+   ./feedbackSend.js, unreferenced, in case HTPN ever wants its own channel. */
+import { URGENT } from './data/feedback.js'
 import {
   APPRECIATION_2026, TOTAL_2026, AS_AT, APPRECIATION_YEAR,
   SOURCE_NOTE, QUERIED_NOTE, parseSummaryCsv
@@ -52,7 +52,7 @@ import {
 import {
   GALLERY, GALLERY_NOTE, GALLERY_LINKS, GALLERY_LINKS_NOTE, IMAGES_ARE_REDACTED
 } from './data/gallery.js'
-import { OFFICIAL_FORM, ROUTE, buildPrefillUrl } from './data/officialForm.js'
+import { OFFICIAL_FORM } from './data/officialForm.js'
 import {
   dueState, daysUntil, reminderDate, upcoming, pastAppointments,
   REMIND_DAYS_BEFORE, APPT_SOURCE,
@@ -2734,31 +2734,6 @@ function ShareIt ({ onEvent }) {
 
 
 
-/* ===========================================================================
-   Feedback — the last tab, and the only screen in the app that transmits
-   what the patient types.
-
-   The banner at the top of every view of this tab says so. It is not a
-   disclaimer in small print at the bottom: a patient deciding whether to
-   name a nurse needs to know where the sentence is going before they write
-   it, not after.
-
-   This component reads `record` for nothing. It is not even passed in.
-   ========================================================================= */
-function Stars ({ value, onChange, t, lang }) {
-  return (
-    <div className="stars" role="radiogroup" aria-label={t(T.fb_rating)}>
-      {RATING_LABELS.map(r => (
-        <button key={r.v} type="button" role="radio" aria-checked={value === r.v}
-                className={'star' + (value >= r.v ? ' on' : '')}
-                onClick={() => onChange(value === r.v ? 0 : r.v)}>
-          <span className="star-g">{value >= r.v ? '★' : '☆'}</span>
-          <span className="star-l">{pick(r, lang)}</span>
-        </button>
-      ))}
-    </div>
-  )
-}
 
 /* The hashtags and one ready-made post, offered at the moment a patient has
    just said something kind and might want to say it publicly too. It replaces
@@ -2965,99 +2940,27 @@ function Gallery ({ onLightbox }) {
   )
 }
 
+/* ===========================================================================
+   TabFeedback — the gallery, the board, and HTPN's own form.
+
+   THE APP NO LONGER TAKES THE WORDS ITSELF
+   There used to be a three-step form here: category, rating, department,
+   free text, photograph, consent, sent to a Google Sheet. HTPN removed it in
+   favour of the hospital's own form, and that is the right way round. A
+   second complaints inbox competes with the one that already has an owner
+   and a service standard behind it; a complaint typed here would have landed
+   in a spreadsheet nobody was named to read.
+
+   The form code is not deleted from the repository — apps-script/Feedback.gs,
+   src/feedback.js, src/feedbackSend.js and api/ still hold it, should HTPN
+   ever want its own channel. Nothing in the app reaches them.
+
+   The gallery comes first, on HTPN's instruction: what appreciation looks
+   like is the reason somebody writes the next one.
+   ========================================================================= */
 function TabFeedback ({ onEvent, onLightbox }) {
-  const [t, lang] = useT()
-  const [view, setView] = useState('board')
-  const [sending, setSending] = useState(false)
-  const [done, setDone] = useState(null)
-  const [problem, setProblem] = useState(null)
-  const today = isoDay(new Date())
-
-  const [form, setForm] = useState({
-    category: '', areaId: '', rating: 0, visitDate: '', message: '',
-    anonymous: false, name: '', rn: '', email: '', ageYears: '', ic: '',
-    consentReply: false, consentPublish: false, publishAs: 'anonymous',
-    image: null, lang
-  })
-  const set = (patch) => setForm(f => ({ ...f, ...patch }))
-  const category = CATEGORIES.find(c => c.id === form.category) || null
-
-  const onImage = async (file) => {
-    if (!file) return
-    setProblem(null)
-    try {
-      const img = await downscaleImage(file, IMAGE_LIMITS)
-      set({ image: img })
-    } catch (e) {
-      setProblem(e?.message === 'too_large' ? t(T.fb_photo_toobig) : String(e?.message || e))
-    }
-  }
-
-  const submit = async () => {
-    const problems = validateFeedback({ ...form, lang })
-    if (problems.includes('email_needed_for_reply')) return setProblem(t(T.fb_need_email))
-    if (problems.includes('email')) return setProblem(t(T.fb_bad_email))
-    if (problems.length) return setProblem(t(T.fb_need))
-    setProblem(null); setSending(true)
-    const ticket = newTicket()
-    const res = await sendFeedback({ ...form, lang }, ticket)
-    setSending(false)
-    if (res.ok) {
-      setDone(res.ticket)
-      onEvent('feedback_sent', form.category)
-      return
-    }
-    /* The form is left exactly as it was. Nothing a patient wrote is thrown
-       away because a network was down. */
-    setProblem(res.reason === 'server_off' || res.reason === 'not_configured'
-      ? t(T.fb_fail_off) : t(T.fb_fail_net))
-  }
-
-  const reset = () => {
-    setDone(null); setProblem(null); setView('board')
-    setForm({
-      category: '', areaId: '', rating: 0, visitDate: '', message: '',
-      anonymous: false, name: '', rn: '', email: '', ageYears: '', ic: '',
-      consentReply: false, consentPublish: false, publishAs: 'anonymous',
-      image: null, lang
-    })
-  }
-
-  if (done) {
-    return (
-      <div className="pane">
-        <div className="pane-head">
-          <h1 className="pane-title">{t(T.fb_sent)}</h1>
-        </div>
-        <div className="pane-body">
-          <div className="card tight">
-            <p className="card-t">{t(T.fb_ref)}</p>
-            <p className="hashtag">{done}</p>
-            <p className="card-s">{t(T.fb_ref_note)}</p>
-          </div>
-          {form.category === 'appreciation' ? (
-            <>
-              <div className="card tight">
-                <p className="card-t">{t(T.fb_also_share)}</p>
-                <p className="card-s">{t(CAMPAIGN.lead)}</p>
-                <div className="taggrid" style={{ marginTop: 8 }}>
-                  {TAGS.filter(x => x.group === 'hargai').map(x => (
-                    <div key={x.id} className="tagchip">
-                      <span className="hashtag sm">#{x.tag}</span>
-                      <span className="tagtheme">{t(x.theme)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <ShareTemplate group="hargai" onEvent={onEvent} />
-            </>
-          ) : null}
-          <span style={{ flex: 1 }} />
-          <button className="btn wide" onClick={reset}>{t(T.fb_another)}</button>
-        </div>
-      </div>
-    )
-  }
+  const [t] = useT()
+  const [view, setView] = useState('gallery')
 
   return (
     <div className="pane">
@@ -3065,24 +2968,20 @@ function TabFeedback ({ onEvent, onLightbox }) {
         <h1 className="pane-title">{t(T.fb_title)}</h1>
         <p className="pane-lead">{t(T.fb_lead)}</p>
       </div>
-      {/* On every view of this tab, not just the last one. */}
-      <div className="sendbar">↑ {t(T.fb_sent_banner)}</div>
       <div className="subtabs">
-        <button className="subtab" aria-selected={view === 'board'} onClick={() => setView('board')}>{t(T.fb_board)}</button>
         <button className="subtab" aria-selected={view === 'gallery'} onClick={() => setView('gallery')}>{t(T.fb_gallery)}</button>
-        <button className="subtab" aria-selected={view === 'what'} onClick={() => setView('what')}>{t(T.fb_step_what)}</button>
-        <button className="subtab" aria-selected={view === 'detail'} onClick={() => setView('detail')}>{t(T.fb_step_detail)}</button>
-        <button className="subtab" aria-selected={view === 'you'} onClick={() => setView('you')}>{t(T.fb_step_you)}</button>
+        <button className="subtab" aria-selected={view === 'board'} onClick={() => setView('board')}>{t(T.fb_board)}</button>
+        <button className="subtab" aria-selected={view === 'form'} onClick={() => setView('form')}>{t(T.fb_tell_us)}</button>
       </div>
 
       <div className="pane-body">
-        {view === 'board' ? <AppreciationBoard /> : null}
         {view === 'gallery' ? <Gallery onLightbox={onLightbox} /> : null}
+        {view === 'board' ? <AppreciationBoard /> : null}
 
-        {view === 'official' ? (
+        {view === 'form' ? (
           <>
             <div className="card tight">
-              <p className="card-t">{t(category || { en: 'Feedback', ms: 'Maklum balas' })}</p>
+              <p className="card-t">{t(OFFICIAL_FORM.open)}</p>
               <p className="card-s">{t(OFFICIAL_FORM.lead)}</p>
               <p className="note" style={{ marginTop: 7 }}>
                 <b>{t(T.fb_goes_to)}:</b> {t(OFFICIAL_FORM.goesTo)}
@@ -3091,179 +2990,13 @@ function TabFeedback ({ onEvent, onLightbox }) {
             <div className="card tight">
               <p className="card-s">{t(OFFICIAL_FORM.leaving)}</p>
               <a className="btn wide" style={{ marginTop: 9 }}
-                 href={buildPrefillUrl({ category: form.category, areaId: form.areaId, message: form.message })}
-                 target="_blank" rel="noreferrer"
-                 onClick={() => onEvent('official_form_opened', form.category || 'none')}>
+                 href={OFFICIAL_FORM.url} target="_blank" rel="noreferrer"
+                 onClick={() => onEvent('official_form_opened', 'feedback')}>
                 {t(OFFICIAL_FORM.open)} ↗
               </a>
             </div>
             <span style={{ flex: 1 }} />
             <div className="emergency">⚠ {t(URGENT)}</div>
-            <button className="btn quiet" onClick={() => { set({ category: '' }); setView('what') }}>
-              ‹ {t(T.fb_back)}
-            </button>
-          </>
-        ) : null}
-
-        {view === 'what' ? (
-          <>
-            {/* The reason to open the board, offered where the patient is
-                deciding whether to bother saying anything at all. */}
-            <button type="button" className="teaser" onClick={() => setView('board')}>
-              {t(T.fb_board_teaser).replace('{n}', String(TOTAL_2026))} ›
-            </button>
-            {CATEGORIES.map(c => (
-              <button key={c.id} type="button"
-                      className={'card tight pickcard' + (form.category === c.id ? ' on' : '')}
-                      onClick={() => {
-                        set({ category: c.id, consentPublish: false })
-                        setView(ROUTE[c.id] === 'official' ? 'official' : 'detail')
-                      }}>
-                <p className="card-t">{t(c)}</p>
-                <p className="card-s">{t(c.lead)}</p>
-              </button>
-            ))}
-            <span style={{ flex: 1 }} />
-            <div className="emergency">⚠ {t(URGENT)}</div>
-          </>
-        ) : null}
-
-        {view === 'detail' ? (
-          <>
-            <div className="card tight">
-              <p className="card-t">{t(T.fb_rating)}</p>
-              <Stars value={form.rating} onChange={v => set({ rating: v })} t={t} lang={lang} />
-            </div>
-            <div className="card tight">
-              <div className="frm two">
-                <Field label={t(T.fb_area)}>
-                  <select value={form.areaId} onChange={e => set({ areaId: e.target.value })}>
-                    <option value="">{t(T.fb_area_pick)}</option>
-                    {FEEDBACK_AREAS.map(g => (
-                      <optgroup key={g.items[0]?.id} label={t(g.group)}>
-                        {g.items.map(i => <option key={i.id} value={i.id}>{t(i)}</option>)}
-                      </optgroup>
-                    ))}
-                  </select>
-                </Field>
-                <Field label={t(T.fb_visit)}>
-                  <input type="date" max={today} value={form.visitDate}
-                         onChange={e => set({ visitDate: e.target.value })} />
-                </Field>
-              </div>
-              <Field label={t(T.fb_message)} hint={t(T.fb_message_eg)}>
-                <textarea rows={4} value={form.message}
-                          onChange={e => set({ message: e.target.value })} />
-              </Field>
-            </div>
-            <div className="card tight">
-              <p className="card-t">{t(T.fb_photo)}</p>
-              {form.image ? (
-                <div className="apptrow">
-                  <span className="note">{Math.round(form.image.bytes / 1024)} KB · {form.image.width}×{form.image.height}</span>
-                  <span style={{ flex: 1 }} />
-                  <button className="pgbtn" onClick={() => set({ image: null })}
-                          aria-label={t(T.fb_photo_remove)}>✕</button>
-                </div>
-              ) : (
-                <input type="file" accept="image/*"
-                       onChange={e => onImage(e.target.files?.[0])} />
-              )}
-              <p className="note" style={{ marginTop: 6 }}>{t(T.fb_photo_note)}</p>
-            </div>
-            <span style={{ flex: 1 }} />
-            <button className="btn wide" onClick={() => setView('you')}>{t(T.next)} ›</button>
-          </>
-        ) : null}
-
-        {view === 'you' ? (
-          <>
-            <div className="card tight">
-              <label className="chk">
-                <input type="checkbox" checked={form.anonymous}
-                       onChange={e => set({ anonymous: e.target.checked, consentReply: false })} />
-                <span><b>{t(T.fb_anon)}</b><br /><span className="card-s">{t(T.fb_anon_note)}</span></span>
-              </label>
-            </div>
-
-            {!form.anonymous ? (
-              <div className="card tight">
-                <div className="frm two">
-                  <Field label={t(T.fb_name)}>
-                    <input type="text" value={form.name} onChange={e => set({ name: e.target.value })} />
-                  </Field>
-                  <Field label={t(T.fb_age)}>
-                    <input type="number" inputMode="numeric" value={form.ageYears}
-                           onChange={e => set({ ageYears: e.target.value })} />
-                  </Field>
-                  <Field label={t(T.fb_rn)} hint={t(T.fb_rn_note)}>
-                    <input type="text" value={form.rn} onChange={e => set({ rn: e.target.value })} />
-                  </Field>
-                  <Field label={t(T.fb_email)}>
-                    <input type="email" inputMode="email" value={form.email}
-                           onChange={e => set({ email: e.target.value })} />
-                  </Field>
-                  {/* Off by default. See src/data/feedback.js for why, and
-                      src/feedback.js for the one line that turns it on. */}
-                  {ASK_FOR_IC ? (
-                    <Field label={t(T.fb_ic)}>
-                      <input type="text" value={form.ic}
-                             onChange={e => {
-                               const ic = e.target.value
-                               const age = ageFromIc(ic)
-                               set(age ? { ic, ageYears: String(age) } : { ic })
-                             }} />
-                    </Field>
-                  ) : null}
-                </div>
-                <label className="chk" style={{ marginTop: 8 }}>
-                  <input type="checkbox" checked={form.consentReply}
-                         onChange={e => set({ consentReply: e.target.checked })} />
-                  <span>{t(CONSENT.reply)}<br /><span className="note">{t(CONSENT.reply.note)}</span></span>
-                </label>
-              </div>
-            ) : null}
-
-            {/* Publication is offered only where it makes sense, and it is a
-                separate tick from sending. */}
-            {category?.canPublish ? (
-              <div className="card tight">
-                <label className="chk">
-                  <input type="checkbox" checked={form.consentPublish}
-                         onChange={e => set({ consentPublish: e.target.checked })} />
-                  <span><b>{t(CONSENT.publish)}</b><br /><span className="note">{t(CONSENT.publish.note)}</span></span>
-                </label>
-                {form.consentPublish ? (
-                  <div style={{ marginTop: 8 }}>
-                    <Field label={t(CONSENT.publish.nameChoice)}>
-                      <select value={form.publishAs} onChange={e => set({ publishAs: e.target.value })}>
-                        {CONSENT.publish.nameOptions.map(o => (
-                          <option key={o.id} value={o.id}>{t(o)}</option>
-                        ))}
-                      </select>
-                    </Field>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            <div className="card tight">
-              <p className="card-t">{t(T.fb_who_reads)}</p>
-              <p className="card-s">{t(HANDLING.note)}</p>
-              <p className="note" style={{ marginTop: 6 }}>{t(OFFICIAL_CHANNEL)}</p>
-            </div>
-
-            <span style={{ flex: 1 }} />
-            {/* One sentence, not two. The grey line is the standing state
-                before anyone presses Send; the yellow one is the answer to
-                having pressed it. Showing both said the same thing twice. */}
-            {problem ? <div className="flagline">⚠ {problem}</div> : null}
-            {!feedbackConfigured() && !problem
-              ? <p className="note">{t(T.fb_fail_off)}</p>
-              : null}
-            <button className="btn wide" onClick={submit} disabled={sending}>
-              {sending ? t(T.fb_sending) : t(T.fb_send)}
-            </button>
           </>
         ) : null}
       </div>

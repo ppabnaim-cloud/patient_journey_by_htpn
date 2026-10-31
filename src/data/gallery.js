@@ -2,7 +2,7 @@
    gallery.js — appreciation HTPN has received, as pictures.
 
    SHOWN AS SUPPLIED, BY HTPN'S DECISION
-   These are the five photographs HTPN supplied, unaltered. HTPN directed that
+   These are the seven photographs HTPN supplied, unaltered. HTPN directed that
    they be shown that way: appreciation is meant to be seen, the people who
    wrote it published it themselves, and covering the names takes the thanks
    away from the staff it was written for. That call is HTPN's to make.
@@ -64,6 +64,24 @@ export const GALLERY = [
       ms: 'Seorang ibu menulis tentang malam kelahiran anaknya, dan kakitangan PAC — daripada pegawai keselamatan di pintu hingga jururawat di bilik bersalin — yang menemaninya sepanjang waktu itu.'
     },
     redacted: { en: 'Names and the baby’s photograph removed', ms: 'Nama dan gambar bayi dibuang' }
+  },
+  {
+    id: 'th_ed_night',
+    src: 'brand/appreciation/th-emergency-night.jpg',
+    caption: {
+      en: 'An evening in the Emergency Department, written up by somebody who sat through it: how many seriously ill people came through, and how patiently every one of them was taken in turn.',
+      ms: 'Satu petang di Jabatan Kecemasan, ditulis oleh seseorang yang menunggu di situ: berapa ramai pesakit serius yang datang, dan betapa sabarnya setiap seorang dilayan mengikut giliran.'
+    },
+    redacted: { en: 'Names removed', ms: 'Nama dibuang' }
+  },
+  {
+    id: 'th_wcc_ward',
+    src: 'brand/appreciation/th-wcc-ward.png',
+    caption: {
+      en: 'A mother writes about the Women & Children Complex — how comfortable the ward was, and the specialist who came to see her child three times a day.',
+      ms: 'Seorang ibu menulis tentang Kompleks Wanita & Kanak-Kanak — betapa selesanya wad itu, dan pakar yang datang melihat anaknya tiga kali sehari.'
+    },
+    redacted: { en: 'Names removed', ms: 'Nama dibuang' }
   }
 ]
 
@@ -75,8 +93,8 @@ export const GALLERY_NOTE = IMAGES_ARE_REDACTED ? {
   ms: 'Penghargaan yang dikongsikan oleh HTPN, sebagaimana ia diberikan.'
 }
 
-/* Five more, supplied by HTPN as links rather than pictures: one TikTok
-   video and four Threads posts. The TikTok video used to sit on the
+/* Six more, supplied by HTPN as links rather than pictures: one TikTok
+   video and five Threads posts. The TikTok video used to sit on the
    dashboard; it belongs here with the rest of the appreciation.
 
    NO PREVIEW IMAGE IS GENERATED FOR THESE, and that is deliberate. This
@@ -93,7 +111,8 @@ export const GALLERY_LINKS = [
   { id: 'th1', platform: 'Threads', url: 'https://www.threads.com/share/ECkvPAwlR/' },
   { id: 'th2', platform: 'Threads', url: 'https://www.threads.com/share/Gsd3odtwz/' },
   { id: 'th3', platform: 'Threads', url: 'https://www.threads.com/share/Fztb953SS/' },
-  { id: 'th4', platform: 'Threads', url: 'https://www.threads.com/share/KXWZzcWrR/' }
+  { id: 'th4', platform: 'Threads', url: 'https://www.threads.com/share/KXWZzcWrR/' },
+  { id: 'th5', platform: 'Threads', url: 'https://www.threads.com/share/_hluW9Pxw/' }
 ]
 
 export const GALLERY_LINKS_NOTE = {
