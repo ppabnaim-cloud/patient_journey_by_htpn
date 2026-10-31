@@ -493,10 +493,6 @@ export const T = {
   way_campuses: L('The two main sites', 'Dua Lokasi Utama'),
   way_directions: L('Get directions', 'Dapatkan Arah'),
   way_exact: L('Exact location', 'Lokasi tepat'),
-  way_needs_net: L(
-    'Opening a map requires an internet connection. The list itself works offline.',
-    'Membuka peta memerlukan sambungan internet. Senarai ini berfungsi tanpa talian.'
-  ),
   way_sites_differ: L('Not the same place', 'Bukan tempat yang sama'),
   way_signboard: L('Look for the sign', 'Cari papan tanda'),
   way_photo_soon: L('Photograph to come', 'Gambar akan menyusul'),
@@ -508,8 +504,6 @@ export const T = {
   way_find_eg: L('Type a ward, clinic or unit', 'Taip nama wad, klinik atau unit'),
   way_found: L('{n} found', '{n} dijumpai'),
   way_nofound: L('Nothing on the board matches that', 'Tiada yang sepadan pada papan direktori'),
-  way_board: L('The directory board', 'Papan direktori'),
-  way_levels: L('{n} levels · {m} departments and units', '{n} aras · {m} jabatan dan unit'),
   way_access: L('Before you go', 'Sebelum anda pergi'),
   way_unconfirmed_banner: L(
     'HTPN has not yet confirmed names for the remaining points. Their exact-location links still open the correct place in Google Maps.',

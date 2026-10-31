@@ -25,12 +25,12 @@ import * as store from './storage.js'
 import { readText, draftMedicationsFrom, draftLabsFrom, draftDateFrom, ocrAvailable } from './ocr.js'
 import { sendUsage, onUsageStatus, newDeviceCode, LAST_RECORD_FOR_DISPLAY } from './usage.js'
 import {
-  CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, DIRECTIONS_NOTE, directionsUrl, confirmedCount,
+  CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, directionsUrl, confirmedCount,
   SITES_DIFFER
 } from './data/wayfinding.js'
 import {
   FLOORS, TOTAL_ITEMS, findFloor,
-  DIRECTORY_PHOTO, DIRECTORY_CAPTION, TRANSCRIPTION_NOTES
+  DIRECTORY_PHOTO, DIRECTORY_CAPTION
 } from './data/floors.js'
 import { buildSummary } from './engine/summary.js'
 import { IQMS, MYUBAT, EMERGENCY } from './data/services.js'
@@ -1926,10 +1926,12 @@ function TabMeasurements ({ record, update, onEvent }) {
    ========================================================================= */
 function FloorView ({ onLightbox }) {
   const [t, lang] = useT()
-  const narrow = useNarrow()
   const [q, setQ] = useState('')
   const hits = findFloor(q, lang)
-  const paged = usePaged(FLOORS, narrow ? FLOORS.length : 3)
+  /* All nine levels, on one scrolling page. They used to be paged three at a
+     time, which put Aras 9 two taps and a "Halaman 1 daripada 3" behind the
+     one thing somebody opens this board for — the level their ward is on.
+     Scrolling is the cheaper gesture, and the pane already scrolls. */
 
   return (
     <>
@@ -1954,7 +1956,7 @@ function FloorView ({ onLightbox }) {
       {q.trim().length < 2 ? (
         <>
           <div className="linkgrid">
-            {paged.slice.map(f => (
+            {FLOORS.map(f => (
               <div className="card tight floorcard" key={f.level}>
                 <p className="fl-head"><span className="fl-badge">{t(f)}</span></p>
                 <ul className="fl-list">
@@ -1966,18 +1968,18 @@ function FloorView ({ onLightbox }) {
             ))}
           </div>
           <span style={{ flex: 1 }} />
-          {!narrow ? <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} /> : null}
           <div className="card tight">
             <button type="button" className="boardshot"
                     onClick={() => onLightbox({ src: DIRECTORY_PHOTO, caption: pick(DIRECTORY_CAPTION, lang) })}>
+              {/* The photograph of the board, and nothing printed under it.
+                  Who took it and how carefully it was transcribed is this
+                  build's bookkeeping, not something a patient looking for a
+                  ward needs to read. The caption survives as the image's alt
+                  text and in the lightbox, where it is the only description
+                  a screen-reader user gets. */}
               <img src={DIRECTORY_PHOTO} alt={pick(DIRECTORY_CAPTION, lang)} loading="lazy" />
-              <span className="note">{t(T.way_board)} — {t(DIRECTORY_CAPTION)}</span>
             </button>
           </div>
-          <p className="note">
-            {t(T.way_levels).replace('{n}', String(FLOORS.length)).replace('{m}', String(TOTAL_ITEMS))}
-            {' · '}{t(TRANSCRIPTION_NOTES)}
-          </p>
           {/* "These nine levels are the WCC, the Main Building is a separate
               site" used to be repeated here. It is not needed now: this board
               sits inside the WCC screen, and the two-sites warning is on the
@@ -2027,7 +2029,6 @@ function SiteView ({ site, go, onLightbox, children }) {
           first thing this section opens on. */}
       {children}
       <span style={{ flex: 1 }} />
-      <p className="note">{t(DIRECTIONS_NOTE)}</p>
     </>
   )
 }
@@ -2122,7 +2123,7 @@ function DeptList ({ go, onLightbox }) {
    Main Building, and all nine levels are the WCC's. Filing each under its own
    site is one fewer thing for a patient to work out.
    ========================================================================= */
-function TabWayfinding ({ onEvent, online, onLightbox }) {
+function TabWayfinding ({ onEvent, onLightbox }) {
   const [t, lang] = useT()
   const [view, setView] = useState('sites')
   const go = (item) => onEvent('wayfinding_map_opened', item.detailKey)
@@ -2188,7 +2189,6 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
                 </div>
               </div>
             ))}
-            <p className="note">{t(DIRECTIONS_NOTE)} {online ? '' : '· ⚠ '}{t(T.way_needs_net)}</p>
           </>
         ) : null}
       </div>
@@ -3779,7 +3779,7 @@ export default function App () {
           <TabRecord record={record} update={update} onEvent={onEvent}
                      goTo={goTo} onPrint={() => setShowPrint(true)} />
         ) : null}
-        {tab === 'wayfinding' ? <TabWayfinding onEvent={onEvent} online={online} onLightbox={setLightbox} /> : null}
+        {tab === 'wayfinding' ? <TabWayfinding onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'iqms' ? <TabIqms onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'myubat' ? <TabMyUbat onEvent={onEvent} onLightbox={setLightbox} /> : null}
         {tab === 'rakyat' ? <TabRakyat onEvent={onEvent} onLightbox={setLightbox} /> : null}

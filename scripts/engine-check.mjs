@@ -4,6 +4,7 @@ import { SRC, BMI_BANDS, WAIST_THRESHOLD, FPG_BANDS, HBA1C_BANDS, LAB_PANEL } fr
 import { calcBMI, classifyBMI, classifyWaist, classifyBP } from '../src/engine/anthro.js'
 import { classifyResult } from '../src/engine/labs.js'
 import { reviewRecord, summarise } from '../src/engine/review.js'
+import { DEPARTMENTS, CAMPUSES, directionsUrl } from '../src/data/wayfinding.js'
 
 const line = (s='') => console.log(s)
 const cite = id => SRC[id].full.en
@@ -122,6 +123,19 @@ check('imaging findings appear', !!findings.find(f => f.id === 'imaging_count'),
 check('blood pressure is reviewed', findings.find(f => f.id === 'bp')?.level, 'attention')
 check('severe allergy is never folded', findings[0].folded, false)
 check('every finding carries a source', findings.every(f => !!f.source), true)
+
+/* Every location offers the same two things. HTPN asked for the standard to
+   hold across the whole list, and a card quietly missing one of them is the
+   kind of gap nobody notices until a patient is standing in a car park. */
+line('\n--- way-finding: both links on every location ---')
+check('nineteen locations', DEPARTMENTS.length, 19)
+const noDirections = DEPARTMENTS.filter(d => !d.destination || !directionsUrl(d.destination))
+check('every location can give directions', noDirections.map(d => d.en).join(', '), '')
+const noPin = DEPARTMENTS.filter(d => !d.map)
+check('every location has an exact-location pin', noPin.map(d => d.en).join(', '), '')
+const badPin = DEPARTMENTS.filter(d => d.map && !/^https:\/\//.test(d.map))
+check('every pin is a real link', badPin.map(d => d.en).join(', '), '')
+check('both sites keep their own pin', CAMPUSES.every(c => !!c.map), true)
 
 line('\n' + (fail === 0 ? 'ALL CHECKS PASSED' : fail + ' CHECK(S) FAILED'))
 process.exit(fail === 0 ? 0 : 1)

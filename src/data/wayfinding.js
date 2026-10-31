@@ -26,6 +26,12 @@
 
 const HOSPITAL = 'Hospital Tengku Permaisuri Norashikin, Kajang, Selangor'
 
+/* The Main Building's own saved place, as supplied by HTPN for the site card
+   below. Every department on this page is inside that building, so it is the
+   pin for the three counters HTPN photographed without one — see the note
+   above them. */
+const MAIN_BUILDING_MAP = 'https://maps.app.goo.gl/39pox6E6PciNfYTz5'
+
 /* Origin omitted on purpose — see the note at the top of this file. */
 export function directionsUrl (destinationText) {
   return 'https://www.google.com/maps/dir/?api=1&destination=' +
@@ -47,7 +53,7 @@ export const CAMPUSES = [
       ms: 'Kecemasan, klinik pakar, wad, farmasi dan makmal.'
     },
     destination: HOSPITAL,
-    map: 'https://maps.app.goo.gl/39pox6E6PciNfYTz5'
+    map: MAIN_BUILDING_MAP
   },
   {
     id: 'wcc',
@@ -202,16 +208,25 @@ const DEPARTMENT_LIST = [
     ms: 'Jabatan Forensik',
     map: 'https://maps.app.goo.gl/G8g1wyB1fJJU3ES1A' },
 
-  /* The three below were photographed by HTPN inside the Main Building. No
-     map pin has been supplied for them, so `map` is null and the card offers
-     directions to the hospital rather than to a guessed coordinate. The
-     photographs and the signage are what actually find these counters: they
-     are doors along a corridor, not places a satellite can point at. */
+  /* The three below were photographed by HTPN inside the Main Building, and
+     no saved place of their own was supplied for any of them.
+
+     They point at the MAIN BUILDING's pin rather than at nothing, so that
+     every location on this page offers the same two things and a patient
+     never meets a card that is missing one. That is not a guess: these are
+     doors along a corridor inside that building, and the building is where
+     somebody drives to. The signboard line on each card is what finds the
+     door once they are through it — which is why these three are the cards
+     that carry one.
+
+     A coordinate is still not invented. If HTPN supplies a saved place for
+     any of the three, replace MAIN_BUILDING_MAP on that entry with it and
+     nothing else changes. */
   { icon: 'office',
     en: 'Revenue Unit — Patient & Emergency Registration',
     ms: 'Unit Hasil — Pendaftaran Pesakit & Kecemasan',
     signboard: 'UNIT HASIL · PENDAFTARAN PESAKIT & KECEMASAN',
-    map: null, photo: 'brand/bu-unit-hasil.jpg',
+    map: MAIN_BUILDING_MAP, photo: 'brand/bu-unit-hasil.jpg',
     hours: {
       en: 'Revenue Unit: Monday to Friday, 8am to 5pm. The ward admission counter is open 24 hours.',
       ms: 'Unit Hasil: Isnin hingga Jumaat, 8 pagi hingga 5 petang. Kaunter Daftar Masuk Wad dibuka 24 jam.'
@@ -222,7 +237,7 @@ const DEPARTMENT_LIST = [
     en: 'Diagnostic Imaging Department',
     ms: 'Jabatan Pengimejan Diagnostik',
     signboard: 'JABATAN PENGIMEJAN DIAGNOSTIK',
-    map: null, photo: 'brand/bu-pengimejan.jpg',
+    map: MAIN_BUILDING_MAP, photo: 'brand/bu-pengimejan.jpg',
     /* The department's own signboard splits here, with an arrow each way.
        Reproduced rather than summarised: at the door, the arrow is the
        instruction. */
@@ -235,7 +250,7 @@ const DEPARTMENT_LIST = [
     en: 'Director\u2019s Office & Management Division',
     ms: 'Pejabat Pengarah & Pejabat Pengurusan',
     signboard: 'BAHAGIAN PENGURUSAN',
-    map: null, photo: 'brand/bu-pengurusan.jpg' }
+    map: MAIN_BUILDING_MAP, photo: 'brand/bu-pengurusan.jpg' }
 ]
 
 /* ---------------------------------------------------------------------------
@@ -305,9 +320,11 @@ export const UNCONFIRMED_NOTE = {
   ms: 'HTPN masih belum mengesahkan nama bagi titik ini. Pautan lokasi tepat tetap membuka tempat yang betul dalam Google Maps, yang memaparkan nama sebenarnya.'
 }
 
-export const DIRECTIONS_NOTE = {
-  en: 'Directions start from wherever your phone is now. This app never sees your location — Google Maps reads it on its own.',
-  ms: 'Arah bermula dari kedudukan telefon anda sekarang. Aplikasi ini tidak sekali-kali melihat lokasi anda — Google Maps membacanya sendiri.'
-}
+/* DIRECTIONS_NOTE was here — "directions start from wherever your phone is,
+   this app never sees your location". Removed on HTPN's instruction: it is
+   reassurance about the app's own plumbing, which a patient looking for a
+   clinic does not need to read. Nothing about the behaviour changed — the
+   origin is still left out of every Maps URL, so the app still never sees a
+   coordinate. */
 
 export const confirmedCount = () => DEPARTMENTS.filter(d => d.confirmed).length

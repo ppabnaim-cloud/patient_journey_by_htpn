@@ -142,16 +142,6 @@ export const FLOORS = [
   }
 ]
 
-/* Two things the board itself does, transcribed rather than tidied:
-   - "Unit Pendidikan Kesihatan" is printed on BOTH Aras 5 and Aras 9. It may
-     be two rooms, or the board may be out of date. It is left on both.
-   - "Jabatan Farmasi" on Aras 5 and "Farmasi Klinik Pakar" on Aras 2 are
-     different counters, which is why HTPN renamed the clinic one: an
-     unqualified "Farmasi" sends a patient to whichever the search finds. */
-export const TRANSCRIPTION_NOTES = {
-  en: 'Transcribed exactly as printed, including the Health Education Unit appearing on both Level 5 and Level 9.',
-  ms: 'Disalin tepat sebagaimana tercetak, termasuk Unit Pendidikan Kesihatan yang muncul pada Aras 5 dan Aras 9.'
-}
 
 export const TOTAL_ITEMS = FLOORS.reduce((n, f) => n + f.items.length, 0)
 
