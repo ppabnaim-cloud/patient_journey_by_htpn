@@ -209,15 +209,12 @@ export const BEFORE_YOU_COME = {
   points: [
     { en: 'Check which of the two sites your appointment letter names. They are not next door to each other.',
       ms: 'Semak lokasi mana antara dua yang dinyatakan dalam surat janji temu anda. Keduanya tidak bersebelahan.' },
-    { en: 'Bring your appointment letter, your IC, and your medicines or their boxes.',
-      ms: 'Bawa surat janji temu, kad pengenalan, dan ubat anda atau kotaknya.' },
-    /* "My Records will print one for you" used to follow this line. It is
-       gone. It offered a printout typed by the patient as a stand-in for the
-       medicines themselves, and staff reconciling medicines off an unverified
-       list can get a dose, a strength or a drug wrong. The boxes are the
-       source; nothing this app prints replaces them. */
-    { en: 'If you cannot bring the medicines, bring the boxes or the pharmacy label. Staff need to read the exact name and strength.',
-      ms: 'Jika anda tidak dapat membawa ubat, bawa kotaknya atau label farmasi. Kakitangan perlu membaca nama dan kekuatan ubat yang tepat.' }
+    /* Medicines are not mentioned here at all, on HTPN's instruction. Two
+       lines about which medicines to bring, in which packaging, and why staff
+       need them were more than a patient on their way out of the door needs
+       from a way-finding screen. The counter asks for what it asks for. */
+    { en: 'Bring your appointment letter and your IC.',
+      ms: 'Bawa surat janji temu dan kad pengenalan.' }
   ]
 }
 
