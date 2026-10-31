@@ -211,8 +211,13 @@ export const BEFORE_YOU_COME = {
       ms: 'Semak lokasi mana antara dua yang dinyatakan dalam surat janji temu anda. Keduanya tidak bersebelahan.' },
     { en: 'Bring your appointment letter, your IC, and your medicines or their boxes.',
       ms: 'Bawa surat janji temu, kad pengenalan, dan ubat anda atau kotaknya.' },
-    { en: 'If you cannot bring the medicines, bring the list. My Records will print one for you.',
-      ms: 'Jika anda tidak dapat membawa ubat, bawa senarainya. Rekod Saya boleh mencetaknya untuk anda.' }
+    /* "My Records will print one for you" used to follow this line. It is
+       gone. It offered a printout typed by the patient as a stand-in for the
+       medicines themselves, and staff reconciling medicines off an unverified
+       list can get a dose, a strength or a drug wrong. The boxes are the
+       source; nothing this app prints replaces them. */
+    { en: 'If you cannot bring the medicines, bring the boxes or the pharmacy label. Staff need to read the exact name and strength.',
+      ms: 'Jika anda tidak dapat membawa ubat, bawa kotaknya atau label farmasi. Kakitangan perlu membaca nama dan kekuatan ubat yang tepat.' }
   ]
 }
 
