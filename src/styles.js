@@ -578,15 +578,26 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 .stationwrap { position: relative; z-index: 0; }
 
 /* ---------- wayfinding cards with a photograph ---------- */
+.sitegrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px; flex: 0 0 auto; }
+
+/* The card is its own size. It used to be flex: 1 1 0, dividing whatever
+   vertical space was left between the two cards — on anything but a tall
+   tablet there was almost none, so each photograph collapsed to its 56px
+   floor and the building came out as a 950x56 letterbox. A photograph
+   squashed to a sliver is worse than no photograph: the only reason it is
+   here is so somebody can recognise the building from the road. */
 .sitecard {
-  flex: 1 1 0; min-height: 0; display: flex; flex-direction: column;
+  flex: 0 0 auto; display: flex; flex-direction: column;
   border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card);
 }
  /* Full-bleed: the photograph fills the card edge to edge. The crop is from
-    sky and foreground, so the building itself — the thing a patient is looking
-    for from the road — stays whole. */
-.sitecard img { width: 100%; flex: 1 1 auto; min-height: 56px; object-fit: cover;
-  object-position: center; display: block; background: var(--brand-tint); }
+    sky and foreground, so the building itself stays whole. The height is
+    bounded rather than negotiated, so it is the same recognisable shape on a
+    phone, a tablet and a laptop; the pane scrolls if the two cards do not
+    fit, which is the cheaper trade. */
+.sitecard img { width: 100%; flex: 0 0 auto; height: clamp(140px, 23vh, 230px);
+  object-fit: cover; object-position: center; display: block; background: var(--brand-tint); }
 .sitecard .body { flex: 0 0 auto; padding: 9px 11px 10px; display: flex; flex-direction: column; gap: 2px; }
 .sitecard .nm { font-size: 15px; font-weight: 700; line-height: 1.2; }
 .sitecard .sub { font-size: 11.5px; color: var(--ink-soft); line-height: 1.3; }
@@ -716,7 +727,17 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   max-height: 300px; object-fit: cover; }
 .twosites { display: block; width: 100%; margin-top: 9px; padding: 0; border: 0;
   background: none; cursor: pointer; }
-.twosites img { width: 100%; display: block; border-radius: 9px;
+/* Bounded like the site photographs, and for the mirror-image reason: with
+   no height at all, this 1500x687 satellite view filled a laptop screen on
+   its own and pushed both buildings below the fold.
+
+   Bounded by its OWN proportions, not by a crop. Cover cut the Women and
+   Children Complex pin off the bottom edge — and a map of two sites that
+   shows one of them is worse than no map. aspect-ratio keeps all of it;
+   max-height stops it taking the screen on a short window, and tapping it
+   still opens it full size, which is where somebody studies a map. */
+.twosites img { display: block; margin: 0 auto; border-radius: 9px;
+  width: auto; height: auto; max-width: 100%; max-height: 38vh;
   border: 1px solid var(--attention); }
 .splitrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .splitway { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;

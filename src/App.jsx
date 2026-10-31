@@ -2178,6 +2178,11 @@ function TabWayfinding ({ onEvent, onLightbox }) {
                 </button>
               ) : null}
             </div>
+            {/* Side by side where there is room, stacked where there is not.
+                One card per row on a wide screen made each photograph a
+                950px-wide band whatever its height; two columns give each
+                one a shape a building is recognisable in. */}
+            <div className="sitegrid">
             {CAMPUSES.map(c => (
               <div key={c.id} className="sitecard">
                 <img src={c.image} alt={t(c.name)} />
@@ -2195,6 +2200,7 @@ function TabWayfinding ({ onEvent, onLightbox }) {
                 </div>
               </div>
             ))}
+            </div>
           </>
         ) : null}
       </div>
