@@ -618,6 +618,17 @@ export const T = {
     'Tell a doctor or pharmacist about this before you take it again. If it is happening now, go to the Emergency Department or call 999.',
     'Beritahu doktor atau ahli farmasi tentang ini sebelum anda mengambilnya semula. Jika ia berlaku sekarang, pergi ke Jabatan Kecemasan atau hubungi 999.'
   ),
+  /* Said against the date the patient typed off the box, never against
+     anything this app claims to know about the medicine itself. */
+  med_expired: L('Past this date — check the box', 'Melepasi tarikh ini — sila semak kotaknya'),
+  med_expiring: L('Expires within a month', 'Luput dalam sebulan'),
+  med_stopped_on: L('Stopped on', 'Dihentikan pada'),
+  /* Column 11. The cells are always editable; this decides whether they are
+     live, so a stray thumb on a phone cannot change a dose. */
+  med_edit_col: L('Edit', 'Sunting'),
+  med_edit: L('Edit', 'Sunting'),
+  med_done: L('Done', 'Selesai'),
+  med_changed: L('changed', 'diubah'),
   med_disclaimer: L(
     'Typed and photographed by you, and kept on this phone only. It is not the hospital record and has not been checked against it. Show it to staff as a prompt, not as a prescription.',
     'Ditaip dan dirakam oleh anda, dan disimpan dalam telefon ini sahaja. Ia bukan rekod hospital dan belum disemak dengannya. Tunjukkan kepada kakitangan sebagai panduan, bukan sebagai preskripsi.'

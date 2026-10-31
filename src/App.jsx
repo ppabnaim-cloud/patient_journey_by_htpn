@@ -33,7 +33,8 @@ import {
   DIRECTORY_PHOTO, DIRECTORY_CAPTION
 } from './data/floors.js'
 import {
-  MED_COLUMNS, EMPTY_MED, readMedSheet, durationLabel, expandFrequency, missingFields
+  MED_COLUMNS, MED_STATUS, EMPTY_MED, readMedSheet, durationLabel, expandFrequency,
+  missingFields, expiryState, statusLabel
 } from './engine/medsheet.js'
 import { IQMS, MYUBAT, EMERGENCY } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
@@ -1029,12 +1030,54 @@ function MedCapture ({ onRows, onEvent }) {
    columns and as a labelled card on one that is not — the same fields and the
    same editing either way, because a nine-column table on a phone is a
    sideways scroll nobody completes. */
-function MedCell ({ col, med, onEdit }) {
+function MedCell ({ col, med, onEdit, locked }) {
   const [t, lang] = useT()
   if (col.derived) {
     const d = durationLabel(med)
     return <span className="mdur">{d ? t(d) : '—'}</span>
   }
+
+  /* Locked is the resting state. A table made of live inputs means one stray
+     thumb on a phone changes a dose and nothing anywhere says it happened. */
+  if (locked) {
+    if (col.type === 'status') {
+      const lab = statusLabel(med.status)
+      return lab
+        ? <span className={'mstat ' + med.status}>
+            {t(lab)}{med.status === 'stopped' && med.statusOn ? ` · ${med.statusOn}` : ''}
+          </span>
+        : <span className="mdur">—</span>
+    }
+    const v = String(med[col.id] || '')
+    const exp = col.id === 'expiryOn' ? expiryState(med, isoDay(new Date())) : null
+    return (
+      <span className={'mval' + (exp === 'expired' ? ' bad' : exp === 'soon' ? ' warn' : '')}>
+        {v || '—'}
+        {col.id === 'frequency' && expandFrequency(v)
+          ? <span className="mfreq">{t(expandFrequency(v))}</span> : null}
+        {exp === 'expired' ? <span className="mfreq">⚠ {t(T.med_expired)}</span> : null}
+        {exp === 'soon' ? <span className="mfreq">{t(T.med_expiring)}</span> : null}
+      </span>
+    )
+  }
+
+  if (col.type === 'status') {
+    return (
+      <>
+        <select value={med.status || ''} aria-label={pick(col, lang)}
+                onChange={e => onEdit({ status: e.target.value, ...(e.target.value === 'stopped' ? {} : { statusOn: '' }) })}>
+          <option value="">—</option>
+          {MED_STATUS.map(o => <option key={o.id} value={o.id}>{t(o)}</option>)}
+        </select>
+        {/* The date only appears for the one status that needs it. */}
+        {med.status === 'stopped' ? (
+          <input type="date" value={med.statusOn || ''} aria-label={t(T.med_stopped_on)}
+                 onChange={e => onEdit({ statusOn: e.target.value })} />
+        ) : null}
+      </>
+    )
+  }
+
   const expanded = col.id === 'frequency' ? expandFrequency(med.frequency) : null
   return (
     <>
@@ -1046,44 +1089,63 @@ function MedCell ({ col, med, onEdit }) {
   )
 }
 
-function MedRow ({ med, onEdit, onDelete, onReact }) {
+function MedRow ({ med, onEdit, onDelete, onReact, editing, onToggleEdit }) {
   const [t, lang] = useT()
   const narrow = useNarrow()
   const missing = missingFields(med).length
+  const cls = [med.fromOcr ? 'fromocr' : '', editing ? 'editing' : ''].filter(Boolean).join(' ')
+
+  /* Column 11. The cells are editable either way — this button decides
+     WHETHER THEY ARE LIVE, and stamps the row when somebody closes it, so a
+     change made at a clinic desk is visible to the patient afterwards. */
+  const editBtn = (
+    <button className={'btn btn-sm ' + (editing ? '' : 'ghost')} onClick={onToggleEdit}>
+      {editing ? t(T.med_done) : t(T.med_edit)}
+    </button>
+  )
+  const changed = med.updatedAt
+    ? <span className="mchanged">{t(T.med_changed)} {String(med.updatedAt).slice(0, 10)}</span>
+    : null
 
   if (!narrow) {
     return (
-      <tr className={med.fromOcr ? 'fromocr' : ''}>
+      <tr className={cls}>
         {MED_COLUMNS.map(c => (
           <td key={c.id} className={c.wide ? 'wide' : ''}>
-            <MedCell col={c} med={med} onEdit={onEdit} />
+            <MedCell col={c} med={med} onEdit={onEdit} locked={!editing} />
+            {c.id === 'name' ? changed : null}
           </td>
         ))}
         <td className="acts">
           <button className="btn quiet btn-sm" onClick={onReact}>
             {med.reactions?.length ? `⚠ ${med.reactions.length}` : t(T.med_react_add)}
           </button>
-          <button className="linkish" onClick={onDelete}>{t(T.remove)}</button>
+        </td>
+        <td className="acts">
+          {editBtn}
+          {editing ? <button className="linkish" onClick={onDelete}>{t(T.remove)}</button> : null}
         </td>
       </tr>
     )
   }
 
   return (
-    <div className={'card tight medcard' + (med.fromOcr ? ' fromocr' : '')}>
+    <div className={'card tight medcard' + (cls ? ' ' + cls : '')}>
       <div className="frm two">
         {MED_COLUMNS.map(c => (
           <Field key={c.id} label={pick(c, lang)}>
-            <MedCell col={c} med={med} onEdit={onEdit} />
+            <MedCell col={c} med={med} onEdit={onEdit} locked={!editing} />
           </Field>
         ))}
       </div>
-      {missing ? <p className="hint">{t(T.med_missing).replace('{n}', String(missing))}</p> : null}
+      {changed}
+      {editing && missing ? <p className="hint">{t(T.med_missing).replace('{n}', String(missing))}</p> : null}
       <div className="btnrow" style={{ marginTop: 8 }}>
+        {editBtn}
         <button className="btn ghost btn-sm" onClick={onReact}>
           {med.reactions?.length ? `⚠ ${t(T.med_react_n).replace('{n}', String(med.reactions.length))}` : t(T.med_react_add)}
         </button>
-        <button className="btn quiet btn-sm" onClick={onDelete}>{t(T.remove)}</button>
+        {editing ? <button className="btn quiet btn-sm" onClick={onDelete}>{t(T.remove)}</button> : null}
       </div>
     </div>
   )
@@ -1145,15 +1207,33 @@ function TabRecord ({ record, update, onEvent, goTo, onPrint }) {
   const [t, lang] = useT()
   const narrow = useNarrow()
   const [reactOn, setReactOn] = useState(null)
+  /* Which rows are unlocked. A set, not a single id: a doctor correcting
+     three medicines at a desk should not have to close one to open the next. */
+  const [editing, setEditing] = useState(() => new Set())
   const meds = record.medicines || []
+  const toggleEdit = id => setEditing(prev => {
+    const next = new Set(prev)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    return next
+  })
 
   const addRows = rows => update(r => ({
     ...r,
     medicines: [...(r.medicines || []), ...rows.map(x => ({ ...x, id: store.newId(), recordedAt: store.stampNow() }))]
   }))
-  const addBlank = () => addRows([{ ...EMPTY_MED }])
+  /* A row added by hand opens unlocked — there is nothing in it to protect,
+     and asking somebody to press Edit on a blank row is a pointless tap. */
+  const addBlank = () => {
+    const id = store.newId()
+    update(r => ({ ...r, medicines: [...(r.medicines || []), { ...EMPTY_MED, id, recordedAt: store.stampNow() }] }))
+    setEditing(prev => new Set(prev).add(id))
+  }
+  /* updatedAt is stamped on every change, so the row can say when it was
+     last touched. It is only shown once the row is closed. */
   const edit = (id, patch) => update(r => ({
-    ...r, medicines: r.medicines.map(m => m.id === id ? { ...m, ...patch, fromOcr: false } : m)
+    ...r,
+    medicines: r.medicines.map(m => m.id === id
+      ? { ...m, ...patch, fromOcr: false, updatedAt: store.stampNow() } : m)
   }))
   const drop = id => update(r => ({ ...r, medicines: r.medicines.filter(m => m.id !== id) }))
   const react = (id, entry) => update(r => ({
@@ -1177,7 +1257,8 @@ function TabRecord ({ record, update, onEvent, goTo, onPrint }) {
           meds.map(m => (
             <MedRow key={m.id} med={m}
                     onEdit={p => edit(m.id, p)} onDelete={() => drop(m.id)}
-                    onReact={() => setReactOn(m.id)} />
+                    onReact={() => setReactOn(m.id)}
+                    editing={editing.has(m.id)} onToggleEdit={() => toggleEdit(m.id)} />
           ))
         ) : (
           <div className="medtable">
@@ -1186,13 +1267,15 @@ function TabRecord ({ record, update, onEvent, goTo, onPrint }) {
                 <tr>
                   {MED_COLUMNS.map(c => <th key={c.id} className={c.wide ? 'wide' : ''}>{pick(c, lang)}</th>)}
                   <th>{t(T.med_react_col)}</th>
+                  <th>{t(T.med_edit_col)}</th>
                 </tr>
               </thead>
               <tbody>
                 {meds.map(m => (
                   <MedRow key={m.id} med={m}
                           onEdit={p => edit(m.id, p)} onDelete={() => drop(m.id)}
-                          onReact={() => setReactOn(m.id)} />
+                          onReact={() => setReactOn(m.id)}
+                          editing={editing.has(m.id)} onToggleEdit={() => toggleEdit(m.id)} />
                 ))}
               </tbody>
             </table>

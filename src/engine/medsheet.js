@@ -36,12 +36,29 @@ export const MED_COLUMNS = [
   { id: 'startedOn', en: 'Prescribed on', ms: 'Tarikh Preskripsi', type: 'date' },
   { id: 'lastOn', en: 'Last prescribed', ms: 'Preskripsi Terakhir', type: 'date' },
   { id: 'duration', en: 'Duration', ms: 'Tempoh', derived: true },
+  /* The date on the packet, not the prescription. A patient holding a box
+     they were given months ago has no other way to be told it is past. */
+  { id: 'expiryOn', en: 'Expires', ms: 'Tarikh Luput', type: 'date' },
+  /* Still taking it, finished the course, or told to stop — and WHEN, which
+     is the half that makes "stopped" mean anything to the next clinician. */
+  { id: 'status', en: 'Status', ms: 'Status', type: 'status' },
   { id: 'hospital', en: 'Prescribed by', ms: 'Hospital Preskripsi' }
 ]
 
+/* The three states a medicine is actually in. "Stopped" carries the date
+   separately rather than as free text, because "stopped by doctor" with no
+   date tells the next clinician nothing they can act on. */
+export const MED_STATUS = [
+  { id: 'active', en: 'Still taking', ms: 'Masih diambil' },
+  { id: 'completed', en: 'Course finished', ms: 'Tamat rawatan' },
+  { id: 'stopped', en: 'Stopped by the doctor', ms: 'Dihentikan oleh doktor' }
+]
+export const statusLabel = id => MED_STATUS.find(s => s.id === id) || null
+
 export const EMPTY_MED = {
   name: '', brand: '', dose: '', frequency: '',
-  startedOn: '', lastOn: '', hospital: '', reactions: []
+  startedOn: '', lastOn: '', expiryOn: '', status: '', statusOn: '',
+  hospital: '', reactions: []
 }
 
 /* ── frequency ────────────────────────────────────────────────────────────
@@ -197,6 +214,22 @@ export function readMedSheet (text) {
     if (seen.has(k)) return false
     seen.add(k); return true
   }).slice(0, 25)
+}
+
+/* ── expiry ───────────────────────────────────────────────────────────────
+   Said against a date the PATIENT typed, never against anything this app
+   claims to know. It is a prompt to look at the box, not a ruling on the
+   medicine, and it says so on screen. */
+export function expiryState (med, today) {
+  const d = String(med?.expiryOn || '')
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return null
+  const now = String(today || '')
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(now)) return null
+  if (d < now) return 'expired'
+  /* A month's notice is what makes the warning useful rather than a surprise
+     on the day. */
+  const soon = new Date(Date.parse(now + 'T00:00:00Z') + 30 * 86400000).toISOString().slice(0, 10)
+  return d <= soon ? 'soon' : 'ok'
 }
 
 /* What the patient still has to fill in, said per row so the table can mark

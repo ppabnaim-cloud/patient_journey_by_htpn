@@ -287,10 +287,29 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
   border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--ink);
 }
 .medtable tr.fromocr td input { background: var(--brand-tint); }
-.medtable td.acts { white-space: nowrap; display: flex; gap: 6px; align-items: center; padding-top: 4px; }
+/* NOT display:flex. A <td> made into a flex container stops being a table
+   cell, and the two action columns dropped below each other instead of
+   sitting in their own columns. */
+.medtable td.acts { white-space: nowrap; padding-top: 4px; vertical-align: top; }
+.medtable td.acts > * { vertical-align: middle; }
+.medtable td.acts .linkish { margin-left: 6px; }
 .mdur { display: inline-block; padding: 6px 2px; font-size: 12px; color: var(--ink-soft); }
 .mfreq { display: block; margin-top: 2px; font-size: 10.5px; color: var(--brand); font-weight: 600; }
+/* A locked cell reads as text, not as an empty-looking box. */
+.mval { display: block; padding: 6px 2px; font-size: 12px; color: var(--ink); }
+.mval.bad { color: var(--attention); font-weight: 650; }
+.mval.warn { color: var(--watch); font-weight: 650; }
+.mstat { display: inline-block; padding: 3px 9px; border-radius: 999px;
+  font-size: 10.5px; font-weight: 700; background: var(--line); color: var(--ink-soft); }
+.mstat.active { background: var(--brand-tint); color: var(--brand); }
+.mstat.completed { background: var(--calm-bg); color: var(--calm); }
+.mstat.stopped { background: var(--attention-bg); color: var(--attention); }
+.mchanged { display: block; margin-top: 3px; font-size: 10px; color: var(--ink-faint); }
+.medtable td select { width: 100%; min-width: 86px; padding: 6px 7px; font-size: 12px;
+  border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--ink); }
+.medtable tr.editing td { background: var(--brand-tint); }
 .medcard { margin-top: 9px; }
+.medcard.editing { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand-tint); }
 /* A row the device read, not the patient: tinted until they touch it, so it
    is obvious at a glance which cells are still a machine's guess. */
 .medcard.fromocr { border-color: var(--brand); }

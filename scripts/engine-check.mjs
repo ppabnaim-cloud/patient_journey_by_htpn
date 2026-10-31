@@ -5,7 +5,7 @@ import { calcBMI, classifyBMI, classifyWaist, classifyBP } from '../src/engine/a
 import { classifyResult } from '../src/engine/labs.js'
 import { reviewRecord, summarise } from '../src/engine/review.js'
 import { DEPARTMENTS, DEPARTMENTS_WCC, CAMPUSES, directionsUrl } from '../src/data/wayfinding.js'
-import { readMedSheet, durationOf, durationLabel, normaliseFreq, readDate, MED_COLUMNS } from '../src/engine/medsheet.js'
+import { readMedSheet, durationOf, durationLabel, normaliseFreq, readDate, MED_COLUMNS, expiryState, MED_STATUS } from '../src/engine/medsheet.js'
 
 const line = (s='') => console.log(s)
 const cite = id => SRC[id].full.en
@@ -167,7 +167,15 @@ check('both sites keep their own pin', CAMPUSES.every(c => !!c.map), true)
 /* The medicines sheet: what the device can read off a label, and what it
    must refuse to guess at. */
 line('\n--- the medicines sheet ---')
-check('nine columns, eight stored and one computed', MED_COLUMNS.length, 8)
+check('ten columns, nine stored and one computed', MED_COLUMNS.length, 10)
+check('three medicine states', MED_STATUS.map(x => x.id).join(','), 'active,completed,stopped')
+/* Expiry is judged against the date the PATIENT typed, and against nothing
+   else. A blank or malformed date says nothing rather than something. */
+check('an expired date is flagged', expiryState({ expiryOn: '2026-10-01' }, '2026-10-31'), 'expired')
+check('a month ahead is a warning', expiryState({ expiryOn: '2026-11-10' }, '2026-10-31'), 'soon')
+check('a year ahead is fine', expiryState({ expiryOn: '2027-06-01' }, '2026-10-31'), 'ok')
+check('no expiry date says nothing', expiryState({ expiryOn: '' }, '2026-10-31'), null)
+check('a malformed expiry says nothing', expiryState({ expiryOn: 'next year' }, '2026-10-31'), null)
 const LABEL = ['HOSPITAL TENGKU PERMAISURI NORASHIKIN', 'FARMASI PESAKIT LUAR',
                'Tarikh: 23/10/2026', '1. METFORMIN 500mg tablet TDS',
                '2) Amlodipine 10 mg OD', '3 - Atorvastatin 20mg ON', 'Qty 90'].join('\n')
