@@ -129,8 +129,22 @@ check('every finding carries a source', findings.every(f => !!f.source), true)
    kind of gap nobody notices until a patient is standing in a car park. */
 line('\n--- way-finding: both links on every location ---')
 const ALL = DEPARTMENTS.concat(DEPARTMENTS_WCC)
-check('nineteen Main Building locations', DEPARTMENTS.length, 19)
+check('twenty-eight Main Building locations', DEPARTMENTS.length, 28)
 check('six WCC locations', DEPARTMENTS_WCC.length, 6)
+/* Two cards pointing at one saved place sends somebody to the wrong door
+   with nothing anywhere saying so. Checked per site, because each site
+   legitimately has its own cafe, its own forensics and its own emergency
+   department — the same NAME twice is fine, the same PIN twice is not. */
+const mainPins = DEPARTMENTS.map(d => d.map)
+check('Main Building pins are all distinct',
+  [...new Set(mainPins.filter((u, i) => mainPins.indexOf(u) !== i))]
+    .filter(u => u !== 'https://maps.app.goo.gl/39pox6E6PciNfYTz5').join(', '), '')
+/* Every ward is named by its number. A speciality is only ever stated where
+   HTPN stated one — a guess sends a family to the wrong floor. */
+const wards = DEPARTMENTS.filter(d => d.icon === 'ward')
+/* Six cards, nine wards: 1 to 4 share one four-storey block and one pin. */
+check('six ward locations covering wards 1-9', wards.length, 6)
+check('every ward is numbered', wards.every(d => /\d/.test(d.name.ms)), true)
 const noDirections = ALL.filter(d => !d.destination || !directionsUrl(d.destination))
 check('every location can give directions', noDirections.map(d => d.name.en).join(', '), '')
 const noPin = ALL.filter(d => !d.map)

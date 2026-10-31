@@ -208,6 +208,58 @@ const DEPARTMENT_LIST = [
     ms: 'Jabatan Forensik',
     map: 'https://maps.app.goo.gl/G8g1wyB1fJJU3ES1A' },
 
+  /* ---- the wards, the psychiatry clinic, the cafe and the public health
+     offices, all supplied by HTPN as saved places -------------------------
+
+     Wad 5 and Wad 9 are listed by number and nothing else, because that is
+     what HTPN gave. A ward's speciality is not something to infer from its
+     number, and a wrong guess sends a family to the wrong floor. If HTPN
+     names them, the name goes beside the number as it does for 6, 7 and 8. */
+  { icon: 'clinic',
+    en: 'Psychiatry Specialist Clinic',
+    ms: 'Klinik Pakar Psikiatri',
+    map: 'https://maps.app.goo.gl/VhBEesH5v6AHQqyz5' },
+
+  { icon: 'ward',
+    en: 'Four-storey block — Wards 1, 2, 3 and 4',
+    ms: 'Bangunan 4 Tingkat — Wad 1, 2, 3 dan 4',
+    map: 'https://maps.app.goo.gl/Gc3pMfMPsfZy3yRf6' },
+
+  { icon: 'ward',
+    en: 'Ward 5',
+    ms: 'Wad 5',
+    map: 'https://maps.app.goo.gl/s3gdDiuEspc8nRuU6' },
+
+  { icon: 'ward',
+    en: 'Ward 6 — isolation',
+    ms: 'Wad 6 — Isolasi',
+    map: 'https://maps.app.goo.gl/8ZN2cbb59QUCB3db7' },
+
+  { icon: 'ward',
+    en: 'Ward 7 — surgical and orthopaedic',
+    ms: 'Wad 7 — Wad Pembedahan dan Ortopedik',
+    map: 'https://maps.app.goo.gl/ZdQL8qVNZYbYf18q8' },
+
+  { icon: 'ward',
+    en: 'Ward 8 — psychiatric',
+    ms: 'Wad 8 — Wad Psikiatri',
+    map: 'https://maps.app.goo.gl/fipssSWkAtocZpVK8' },
+
+  { icon: 'ward',
+    en: 'Ward 9',
+    ms: 'Wad 9',
+    map: 'https://maps.app.goo.gl/CHsXX3E6QRemhmrZ8' },
+
+  { icon: 'dietetics',
+    en: 'Hospital cafe',
+    ms: 'Kafe Hospital',
+    map: 'https://maps.app.goo.gl/PmuYbav1Y2y1pAfb8' },
+
+  { icon: 'office',
+    en: 'Public Health Unit · Occupational & Environmental Health Unit · Assistant Medical Officer Supervisor\u2019s Office',
+    ms: 'Unit Kesihatan Awam · Unit Kesihatan Pekerjaan & Persekitaran · Pejabat Penyelia Pembantu Pegawai Perubatan (PPP)',
+    map: 'https://maps.app.goo.gl/S1PGXBrnLq4UZYf76' },
+
   /* The three below were photographed by HTPN inside the Main Building, and
      no saved place of their own was supplied for any of them.
 

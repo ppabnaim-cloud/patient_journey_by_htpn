@@ -94,6 +94,10 @@ const DEPT_ICONS = {
   hall: ['M3 20h18', 'M5 20V9l7-5 7 5v11', 'M10 20v-6h4v6'],
   surgery: ['M4 14l10-10 3 3-10 10-3.6.6z', 'M14 17h6', 'M17 14v6'],
   icu: ['M3 12h4l2-5 3 10 2-5h7'],
+  /* A bed. Seven of the Main Building's locations are wards, and every other
+     glyph in this set would have been a lie about what the place is. */
+  ward: ['M3 7v12', 'M3 13h18v6', 'M6.6 11.4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3',
+         'M10 13v-2h5a3 3 0 0 1 3 2'],
   dietetics: ['M7 3v8a2.5 2.5 0 0 0 5 0V3', 'M9.5 11v10', 'M17 3c-1.6 1.6-2 3.6-2 6 0 1.6.6 2.6 2 3v9'],
   forensic: ['M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z', 'M12 9.5v3M12 15.5h.01'],
   pin: ['M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z', 'M12 10.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z']
