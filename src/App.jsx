@@ -25,7 +25,7 @@ import * as store from './storage.js'
 import { readText, draftMedicationsFrom, draftLabsFrom, draftDateFrom, ocrAvailable } from './ocr.js'
 import { sendUsage, onUsageStatus, newDeviceCode, LAST_RECORD_FOR_DISPLAY } from './usage.js'
 import {
-  CAMPUSES, DEPARTMENTS, UNCONFIRMED_NOTE, directionsUrl, confirmedCount,
+  CAMPUSES, DEPARTMENTS, DEPARTMENTS_WCC, UNCONFIRMED_NOTE, directionsUrl, confirmedCount,
   SITES_DIFFER
 } from './data/wayfinding.js'
 import {
@@ -2041,7 +2041,7 @@ function SiteView ({ site, go, onLightbox, children }) {
    naming on a bar above them: the patient is already on the Main Building
    screen, with its photograph at the top.
    ========================================================================= */
-function DeptList ({ go, onLightbox }) {
+function DeptList ({ go, onLightbox, items = DEPARTMENTS }) {
   const [t, lang] = useT()
   /* A photograph of the door is the thing that actually finds a counter
      along a corridor, so it is drawn at the top of the card. A file that is
@@ -2050,7 +2050,7 @@ function DeptList ({ go, onLightbox }) {
   const [broken, setBroken] = useState({})
   return (
     <div className="linkgrid">
-      {DEPARTMENTS.map(d => (
+      {items.map(d => (
         <div key={d.id} className={'deptcard' + (d.confirmed ? '' : ' unconfirmed')}>
           {d.photo && !broken[d.id] ? (
             <button type="button" className="deptshot"
@@ -2143,13 +2143,19 @@ function TabWayfinding ({ onEvent, onLightbox }) {
           {t(T.way_main)} · {DEPARTMENTS.length}
         </button>
         <button className="subtab" aria-selected={view === 'wcc'} onClick={() => setView('wcc')}>
-          {t(T.way_wcc)} · {FLOORS.length}
+          {t(T.way_wcc)} · {DEPARTMENTS_WCC.length + FLOORS.length}
         </button>
       </div>
 
       <div className="pane-body">
         {view === 'wcc' ? (
           <SiteView site={CAMPUSES.find(c => c.id === 'wcc')} go={go} onLightbox={onLightbox}>
+            {/* The WCC's own saved places first — the lobby, the triage
+                counter, PAC, forensics, the car park entrance and the café
+                are what a family asks for on arrival, and none of them is on
+                a directory board. The board, which answers "which level",
+                follows underneath. */}
+            <DeptList go={go} onLightbox={onLightbox} items={DEPARTMENTS_WCC} />
             <FloorView onLightbox={onLightbox} />
           </SiteView>
         ) : null}

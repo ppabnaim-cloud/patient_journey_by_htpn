@@ -4,7 +4,7 @@ import { SRC, BMI_BANDS, WAIST_THRESHOLD, FPG_BANDS, HBA1C_BANDS, LAB_PANEL } fr
 import { calcBMI, classifyBMI, classifyWaist, classifyBP } from '../src/engine/anthro.js'
 import { classifyResult } from '../src/engine/labs.js'
 import { reviewRecord, summarise } from '../src/engine/review.js'
-import { DEPARTMENTS, CAMPUSES, directionsUrl } from '../src/data/wayfinding.js'
+import { DEPARTMENTS, DEPARTMENTS_WCC, CAMPUSES, directionsUrl } from '../src/data/wayfinding.js'
 
 const line = (s='') => console.log(s)
 const cite = id => SRC[id].full.en
@@ -128,13 +128,25 @@ check('every finding carries a source', findings.every(f => !!f.source), true)
    hold across the whole list, and a card quietly missing one of them is the
    kind of gap nobody notices until a patient is standing in a car park. */
 line('\n--- way-finding: both links on every location ---')
-check('nineteen locations', DEPARTMENTS.length, 19)
-const noDirections = DEPARTMENTS.filter(d => !d.destination || !directionsUrl(d.destination))
-check('every location can give directions', noDirections.map(d => d.en).join(', '), '')
-const noPin = DEPARTMENTS.filter(d => !d.map)
-check('every location has an exact-location pin', noPin.map(d => d.en).join(', '), '')
-const badPin = DEPARTMENTS.filter(d => d.map && !/^https:\/\//.test(d.map))
-check('every pin is a real link', badPin.map(d => d.en).join(', '), '')
+const ALL = DEPARTMENTS.concat(DEPARTMENTS_WCC)
+check('nineteen Main Building locations', DEPARTMENTS.length, 19)
+check('six WCC locations', DEPARTMENTS_WCC.length, 6)
+const noDirections = ALL.filter(d => !d.destination || !directionsUrl(d.destination))
+check('every location can give directions', noDirections.map(d => d.name.en).join(', '), '')
+const noPin = ALL.filter(d => !d.map)
+check('every location has an exact-location pin', noPin.map(d => d.name.en).join(', '), '')
+const badPin = ALL.filter(d => d.map && !/^https:\/\//.test(d.map))
+check('every pin is a real link', badPin.map(d => d.name.en).join(', '), '')
+/* Two saved places that are the same place is a copy-paste slip, and it
+   sends a patient to the wrong door with no error anywhere. */
+const pins = ALL.map(d => d.map)
+const dupes = [...new Set(pins.filter((u, i) => pins.indexOf(u) !== i))]
+check('WCC pins are all distinct', DEPARTMENTS_WCC.filter(d => dupes.includes(d.map)).length, 0)
+/* Each site's locations send their directions to THEIR OWN site. The two are
+   a kilometre apart, so a WCC counter resolving to the Main Building is the
+   exact failure this section exists to prevent. */
+check('WCC directions name the WCC',
+  DEPARTMENTS_WCC.every(d => /Wanita dan Kanak-Kanak/.test(d.destination)), true)
 check('both sites keep their own pin', CAMPUSES.every(c => !!c.map), true)
 
 line('\n' + (fail === 0 ? 'ALL CHECKS PASSED' : fail + ' CHECK(S) FAILED'))

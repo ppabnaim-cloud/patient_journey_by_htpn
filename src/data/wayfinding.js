@@ -286,12 +286,70 @@ export const SITES_DIFFER = {
 
 /* Every department above is in the Main Building. Said once, here. */
 export const DEPARTMENTS_BUILDING = { en: 'Main Building', ms: 'Bangunan Utama' }
+const WCC_BUILDING = { en: 'Women & Children Complex (WCC)', ms: 'Kompleks Wanita & Kanak-Kanak (WCC)' }
+
+/* ---------------------------------------------------------------------------
+   THE WCC'S OWN LOCATIONS
+
+   The list above is the Main Building's. These six are the Women & Children
+   Complex's, supplied by HTPN as saved places.
+
+   WHY A SECOND FORENSIC DEPARTMENT IS NOT A MISTAKE
+   There is a Jabatan Forensik in the list above as well. The two sites each
+   have one, as they each have their own emergency department, and the WCC's
+   own directory board lists Unit Forensik on Aras 1. Somebody told to go to
+   "forensics" needs the site named before the department, which is the whole
+   reason this section is split by building.
+
+   The parking entrance and the café are here for the same reason as the
+   lobby: they are what a family actually asks for on arrival, and neither
+   appears on a directory board.
+   ------------------------------------------------------------------------ */
+const WCC = 'Hospital Tengku Permaisuri Norashikin (Pusat Rawatan Wanita dan Kanak-Kanak), Kajang'
+
+const DEPARTMENT_LIST_WCC = [
+  { icon: 'hall',
+    en: 'Main Lobby',
+    ms: 'Lobi Utama',
+    map: 'https://maps.app.goo.gl/XweXtDWaZHBgMjyaA' },
+
+  { icon: 'emergency',
+    en: 'Emergency Department — triage counter',
+    ms: 'Kaunter Triaj, Jabatan Kecemasan',
+    map: 'https://maps.app.goo.gl/W2mUSpUtieqTq1xg8' },
+
+  { icon: 'clinic',
+    en: 'Patient Assessment Centre (PAC) — maternity emergencies',
+    ms: 'Pusat Penilaian Pesakit (PAC) — Kecemasan Bersalin',
+    why: { en: 'Obstetrics & Gynaecology. This is where a maternity emergency is seen, not the main emergency department.',
+           ms: 'Jabatan Obstetrik & Ginekologi. Di sinilah kecemasan bersalin dilihat, bukan di Jabatan Kecemasan utama.' },
+    map: 'https://maps.app.goo.gl/L2VKUTVaJiCrP9zS7' },
+
+  { icon: 'forensic',
+    en: 'Forensic Department',
+    ms: 'Jabatan Forensik',
+    map: 'https://maps.app.goo.gl/PLucw3DV1bQDBLnX6' },
+
+  { icon: 'pin',
+    en: 'Multi-storey public car park — entrance',
+    ms: 'Laluan Masuk Parkir Awam Bertingkat',
+    map: 'https://maps.app.goo.gl/HuiyrBiW5LmKsFte8' },
+
+  { icon: 'dietetics',
+    en: 'Hospital café',
+    ms: 'Kafe Hospital',
+    map: 'https://maps.app.goo.gl/2SNUpmjcJNksbdTU7' }
+]
 
 /* What each access level means on screen. Worded so a patient knows whether
    to walk there, and worded carefully for the one that matters most. */
 
-export const DEPARTMENTS = DEPARTMENT_LIST.map((d, i) => ({
-  id: 'dept_' + String(i + 1).padStart(2, '0'),
+/* One builder, two lists. The WCC's locations get the same card, the same two
+   links and the same checks as the Main Building's — a second hand-rolled
+   shape would drift from this one within a week. */
+function buildList (list, building, destinationSite, prefix) {
+  return list.map((d, i) => ({
+  id: prefix + String(i + 1).padStart(2, '0'),
   index: i + 1,
   confirmed: true,
   icon: d.icon,
@@ -299,7 +357,7 @@ export const DEPARTMENTS = DEPARTMENT_LIST.map((d, i) => ({
   detailKey: 'department',
   /* Kept on the record for anything that reads a single department on its
      own; the list screen prints the building once instead. */
-  building: DEPARTMENTS_BUILDING,
+  building,
   /* A saved place where HTPN gave one, a Maps query where it gave
      coordinates, and null where it gave neither — a door photographed along
      a corridor has no pin, and inventing one is worse than offering none. */
@@ -312,8 +370,13 @@ export const DEPARTMENTS = DEPARTMENT_LIST.map((d, i) => ({
   name: { en: d.en, ms: d.ms },
   /* Coordinates beat a text search every time, so they are used where they
      exist and the department's own name is the fallback. */
-  destination: d.latLng || `${d.ms}, ${HOSPITAL}`
-}))
+  destination: d.latLng || `${d.ms}, ${destinationSite}`
+  }))
+}
+
+export const DEPARTMENTS = buildList(DEPARTMENT_LIST, DEPARTMENTS_BUILDING, HOSPITAL, 'dept_')
+export const DEPARTMENTS_WCC = buildList(DEPARTMENT_LIST_WCC, WCC_BUILDING, WCC, 'wccd_')
+export const WCC_BUILDING_NAME = WCC_BUILDING
 
 export const UNCONFIRMED_NOTE = {
   en: 'HTPN has not yet confirmed a name for this point. The exact-location link still opens the right place in Google Maps, where its real name is shown.',
