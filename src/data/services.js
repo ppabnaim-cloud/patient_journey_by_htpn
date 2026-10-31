@@ -202,21 +202,6 @@ export const MYUBAT = {
   }
 }
 
-/* Shown on the way-finding tab. Not clinical advice and not derived from any
-   guideline — it is the list the registration counter asks for. */
-export const BEFORE_YOU_COME = {
-  title: { en: 'Before you set off', ms: 'Sebelum anda bertolak' },
-  points: [
-    { en: 'Check which of the two sites your appointment letter names. They are not next door to each other.',
-      ms: 'Semak lokasi mana antara dua yang dinyatakan dalam surat janji temu anda. Keduanya tidak bersebelahan.' },
-    /* Medicines are not mentioned here at all, on HTPN's instruction. Two
-       lines about which medicines to bring, in which packaging, and why staff
-       need them were more than a patient on their way out of the door needs
-       from a way-finding screen. The counter asks for what it asks for. */
-    { en: 'Bring your appointment letter and your IC.',
-      ms: 'Bawa surat janji temu dan kad pengenalan.' }
-  ]
-}
 
 export const EMERGENCY = {
   number: '999',

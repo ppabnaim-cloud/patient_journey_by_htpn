@@ -33,7 +33,7 @@ import {
   DIRECTORY_PHOTO, DIRECTORY_CAPTION, TRANSCRIPTION_NOTES
 } from './data/floors.js'
 import { buildSummary } from './engine/summary.js'
-import { IQMS, MYUBAT, EMERGENCY, BEFORE_YOU_COME } from './data/services.js'
+import { IQMS, MYUBAT, EMERGENCY } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
 import { CAMPAIGN, HASHTAG } from './data/campaign.js'
@@ -2130,8 +2130,9 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
   return (
     <div className="pane">
       <div className="pane-head">
+        {/* No lead line. "HTPN is on two sites, check your letter" was the
+            warning card below it, word for word, two inches higher up. */}
         <h1 className="pane-title">{t(T.tab_wayfinding)}</h1>
-        <p className="pane-lead">{t(T.way_lead)}</p>
       </div>
       <div className="subtabs">
         <button className="subtab" aria-selected={view === 'sites'} onClick={() => setView('sites')}>
@@ -2169,7 +2170,6 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
                   <img src={SITES_DIFFER.image} alt={pick(SITES_DIFFER.imageCaption, lang)} loading="lazy" />
                 </button>
               ) : null}
-              <p className="note" style={{ marginTop: 6 }}>{t(SITES_DIFFER.imageCaption)}</p>
             </div>
             {CAMPUSES.map(c => (
               <div key={c.id} className="sitecard">
@@ -2188,10 +2188,6 @@ function TabWayfinding ({ onEvent, online, onLightbox }) {
                 </div>
               </div>
             ))}
-            <div className="card tight">
-              <p className="card-t">{t(T.before_you_come)}</p>
-              <ul className="bullets">{BEFORE_YOU_COME.points.map((p, i) => <li key={i}>{t(p)}</li>)}</ul>
-            </div>
             <p className="note">{t(DIRECTIONS_NOTE)} {online ? '' : '· ⚠ '}{t(T.way_needs_net)}</p>
           </>
         ) : null}

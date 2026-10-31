@@ -490,10 +490,6 @@ export const T = {
   ),
 
   /* --- wayfinding ---------------------------------------------------- */
-  way_lead: L(
-    'HTPN occupies two sites. Please check which one your appointment letter names before setting off.',
-    'HTPN terletak di dua lokasi. Sila semak lokasi yang dinyatakan dalam surat janji temu anda sebelum bertolak.'
-  ),
   way_campuses: L('The two main sites', 'Dua Lokasi Utama'),
   way_directions: L('Get directions', 'Dapatkan Arah'),
   way_exact: L('Exact location', 'Lokasi tepat'),
@@ -519,7 +515,6 @@ export const T = {
     'HTPN has not yet confirmed names for the remaining points. Their exact-location links still open the correct place in Google Maps.',
     'HTPN masih belum mengesahkan nama bagi titik yang selebihnya. Pautan lokasi tepatnya tetap membuka tempat yang betul dalam Google Maps.'
   ),
-  before_you_come: L('Before you set off', 'Sebelum Anda Bertolak'),
   emergencyHead: L('In an emergency', 'Dalam Kecemasan'),
 
   /* --- iqms ---------------------------------------------------------- */
