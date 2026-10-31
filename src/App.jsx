@@ -32,7 +32,9 @@ import {
   FLOORS, TOTAL_ITEMS, findFloor,
   DIRECTORY_PHOTO, DIRECTORY_CAPTION
 } from './data/floors.js'
-import { buildSummary } from './engine/summary.js'
+import {
+  MED_COLUMNS, EMPTY_MED, readMedSheet, durationLabel, expandFrequency, missingFields
+} from './engine/medsheet.js'
 import { IQMS, MYUBAT, EMERGENCY } from './data/services.js'
 import { SECTION as POSTER_SECTION, ROLES, POSTERS, postersForRole } from './data/posters.js'
 import { TRIAGE, TRIAGE_SOURCE } from './data/triage.js'
@@ -948,747 +950,272 @@ function TabDashboard ({ record, goTo, onPrint }) {
 /* The six stations of the record, in the order a patient is asked for them at
    a clinic desk. `field` is what makes a station count as done, which is what
    drives the progress state on the pipeline. */
-const REC_SECTIONS = [
-  { id: 'meds', label: T.sec_meds, short: T.short_meds, detail: 'meds', field: 'medications' },
-  { id: 'issues', label: T.sec_issues, short: T.short_issues, detail: 'issues', field: 'issues' },
-  { id: 'allergies', label: T.sec_allergies, short: T.short_allergies, detail: 'allergies', field: 'allergies' },
-  { id: 'surgery', label: T.sec_surgery, short: T.short_surgery, detail: 'surgery', field: 'surgeries' },
-  { id: 'bloods', label: T.sec_bloods, short: T.short_bloods, detail: 'bloods', field: 'labs' },
-  { id: 'imaging', label: T.sec_imaging, short: T.short_imaging, detail: 'bloods', field: 'imaging' },
-  { id: 'activity', label: T.sec_activity, short: T.short_activity, detail: 'manual', field: 'activity' }
-]
+/* ===========================================================================
+   1 PATIENT 1 RECORD — one job: the medicines a patient is actually on.
 
-/* The pipeline. Numbered, connected, and filled in as each station gets its
-   first entry — so "where am I up to" is answerable at a glance, which is the
-   thing the plain row of pills did not say. */
-function Stations ({ record, current, onPick }) {
-  const [t] = useT()
-  return (
-    <div className="stationwrap">
-      <div className="stations" role="tablist">
-        {REC_SECTIONS.map((sec, i) => {
-          const done = (record[sec.field] || []).length > 0
-          return (
-            <button key={sec.id} role="tab" className={'station' + (done ? ' done' : '')}
-                    aria-selected={current === sec.id} onClick={() => onPick(sec.id)}>
-              <span className="num">{done ? '✓' : i + 1}</span>
-              <span className="nm">{t(sec.short || sec.label)}</span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+   WHAT THIS SECTION USED TO BE, AND WHY IT IS NOT ANY MORE
+   Seven stations: medicines, problems, allergies, operations, bloods, scans,
+   walking; a summary; charts. HTPN cut all of it. A patient standing at a
+   counter does not fill in seven stations — they are asked one question, and
+   it is always the same question: what are you taking?
 
-function OcrPanel ({ onDraft, onEvent, kind }) {
+   WHAT IT DOES NOW
+   Photograph the packet, the prescription or the pharmacy sticker. The text
+   is read ON THIS DEVICE and sorted into the nine columns HTPN specified.
+   Every cell is editable and nothing is accepted without the patient seeing
+   it; see the head of src/engine/medsheet.js for why the reading is done by
+   the device rather than by a model somewhere else, and where a model would
+   go if HTPN decides that trade is worth making.
+   ========================================================================= */
+
+/* The capture card. Camera and gallery are separate inputs on purpose: a
+   phone offers "take a photo" only when `capture` is set, and a laptop has no
+   camera to offer, so the second is what makes this usable on both. */
+function MedCapture ({ onRows, onEvent }) {
   const [t] = useT()
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [text, setText] = useState(null)
-  const [err, setErr] = useState(null)
+  const [note, setNote] = useState(null)
   const camRef = useRef(null)
   const upRef = useRef(null)
 
   const handle = useCallback(async (file, how) => {
     if (!file) return
+    setNote(null)
+    /* A PDF is not an image and the on-device engine cannot open one. Saying
+       so, and saying what to do instead, beats a progress bar that ends in
+       "nothing found" and leaves somebody thinking the app is broken. */
+    if (/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name)) {
+      setNote(t(T.med_pdf)); onEvent('record_photo_added', 'pdf'); return
+    }
     onEvent('record_photo_added', how)
-    setErr(null); setText(null); setBusy(true); setProgress(0)
+    setBusy(true); setProgress(0)
     const res = await readText(file, p => setProgress(p))
     setBusy(false)
     onEvent('record_ocr_run', how)
-    if (!res.ok) { setErr(t(T.ocr_unavailable)); return }
-    if (!res.text) { setErr(t(T.ocr_nothing)); return }
-    setText(res.text)
-  }, [onEvent, t])
-
-  const accept = () => {
-    const draft = kind === 'bloods' ? draftLabsFrom(text, LAB_PANEL) : draftMedicationsFrom(text)
-    onDraft(draft, text)
-    onEvent('record_ocr_accepted', 'none')
-    setText(null)
-  }
+    if (!res.ok) { setNote(t(T.ocr_unavailable)); return }
+    const rows = readMedSheet(res.text)
+    if (!rows.length) { setNote(t(T.med_nothing)); return }
+    onRows(rows)
+    onEvent('record_ocr_accepted', 'meds')
+  }, [onRows, onEvent, t])
 
   return (
     <div className="card tight">
-      <div className="btnrow">
-        <button className="btn ghost" onClick={() => camRef.current?.click()} disabled={busy}>📷 {t(T.entry_camera)}</button>
-        <button className="btn ghost" onClick={() => upRef.current?.click()} disabled={busy}>🖼 {t(T.entry_upload)}</button>
-      </div>
-      <input ref={camRef} type="file" accept="image/*" capture="environment" className="sr"
-             onChange={e => handle(e.target.files?.[0], 'camera')} />
-      <input ref={upRef} type="file" accept="image/*" className="sr"
-             onChange={e => handle(e.target.files?.[0], 'upload')} />
-      {busy ? <p className="hint" style={{ marginTop: 8 }}>{t(T.ocr_working)} {Math.round(progress * 100)}%</p> : null}
-      {err ? <p className="hint" style={{ marginTop: 8, color: 'var(--attention)' }}>{err}</p> : null}
-      {text ? (
-        <div style={{ marginTop: 9 }}>
-          <p className="hint">{t(T.ocr_result_lead)}</p>
-          <pre style={{
-            margin: '6px 0', padding: 8, background: 'var(--bg)', border: '1px solid var(--line)',
-            borderRadius: 8, fontSize: 11, maxHeight: 92, overflow: 'auto', whiteSpace: 'pre-wrap'
-          }}>{text.slice(0, 600)}</pre>
-          <div className="btnrow">
-            <button className="btn" onClick={accept}>{t(T.ocr_accept)}</button>
-            <button className="btn quiet" onClick={() => setText(null)}>{t(T.ocr_discard)}</button>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-function MedsSection ({ record, update, onEvent }) {
-  const [t] = useT()
-  const [draft, setDraft] = useState({ drug: '', dose: '', indication: '', status: 'on', startedOn: '', endsOn: '' })
-  const meds = record.medications || []
-  const paged = usePaged(meds, PAGE.meds)
-
-  const add = () => {
-    if (!draft.drug.trim()) return
-    update(r => ({ ...r, medications: [...(r.medications || []), { ...draft, id: store.newId(), recordedAt: store.stampNow() }] }))
-    setDraft({ drug: '', dose: '', indication: '', status: 'on', startedOn: '', endsOn: '' })
-    onEvent('record_typed_entry', 'meds')
-  }
-  const toggle = id => update(r => ({
-    ...r, medications: r.medications.map(m => m.id === id ? { ...m, status: m.status === 'on' ? 'off' : 'on' } : m)
-  }))
-  const drop = id => update(r => ({ ...r, medications: r.medications.filter(m => m.id !== id) }))
-
-  return (
-    <>
-      <p className="note multisite">⌁ {t(ANNOUNCEMENT.medsNote)}</p>
-      <OcrPanel kind="meds" onEvent={onEvent} onDraft={(rows) => {
-        if (!rows.length) return
-        update(r => ({ ...r, medications: [...(r.medications || []), ...rows.map(x => ({ ...x, id: store.newId(), recordedAt: store.stampNow() }))] }))
-      }} />
-      <div className="card tight listcard">
-        {meds.length === 0
-          ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
-          : (
-            <table className="tbl">
-              <thead><tr>
-                <th>{t(T.col_drug)}</th><th>{t(T.col_dose)}</th>
-                <th>{t(T.col_indication)}</th><th>{t(T.col_status)}</th><th />
-              </tr></thead>
-              <tbody>
-                {paged.slice.map(m => (
-                  <tr key={m.id}>
-                    <td>
-                      <b>{m.drug}</b>
-                      {m.startedOn ? <div className="hint">{t(T.med_since)} {m.startedOn}</div> : null}
-                    </td>
-                    <td>{m.dose}</td>
-                    <td>{m.indication || <span className="hint">—</span>}</td>
-                    <td>
-                      <button className={'pill ' + (m.status === 'on' ? 'on' : 'off')} onClick={() => toggle(m.id)}>
-                        {t(m.status === 'on' ? T.status_on : T.status_off)}
-                      </button>
-                      {m.endsOn ? (
-                        <div className="hint">
-                          {m.status === 'on' ? t(T.med_until) : t(T.status_off).toLowerCase()} {m.endsOn}
-                        </div>
-                      ) : null}
-                    </td>
-                    <td><button className="pgbtn" onClick={() => drop(m.id)} aria-label={t(T.remove)}>✕</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        <span style={{ flex: 1 }} />
-        <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
-      </div>
-      <div className="card tight">
-        <div className="frm three">
-          <Field label={t(T.col_drug)}>
-            <input value={draft.drug} onChange={e => setDraft({ ...draft, drug: e.target.value })} />
-          </Field>
-          <Field label={t(T.col_dose)}>
-            <input value={draft.dose} onChange={e => setDraft({ ...draft, dose: e.target.value })} placeholder="500 mg BD" />
-          </Field>
-          <Field label={t(T.col_indication)}>
-            <input value={draft.indication} onChange={e => setDraft({ ...draft, indication: e.target.value })} />
-          </Field>
-          <Field label={t(T.col_status)}>
-            <select value={draft.status} onChange={e => setDraft({ ...draft, status: e.target.value })}>
-              <option value="on">{t(T.status_on)}</option>
-              <option value="off">{t(T.status_off)}</option>
-            </select>
-          </Field>
-          <Field label={t(T.col_started)}>
-            <input type="date" value={draft.startedOn}
-                   onChange={e => setDraft({ ...draft, startedOn: e.target.value })} />
-          </Field>
-          {/* The same field means two different things, so it is labelled by
-              the status rather than carrying a label that is half wrong. */}
-          <Field label={draft.status === 'on' ? t(T.col_until) : t(T.col_stopped)}
-                 hint={draft.status === 'on' ? t(T.med_until_help) : t(T.med_stopped_help)}>
-            <input type="date" value={draft.endsOn}
-                   onChange={e => setDraft({ ...draft, endsOn: e.target.value })} />
-          </Field>
-        </div>
-        <button className="btn wide" style={{ marginTop: 8 }} onClick={add} disabled={!draft.drug.trim()}>
-          + {t(T.add)}
+      <p className="card-t">{t(T.med_capture_t)}</p>
+      <p className="card-s">{t(T.med_capture_s)}</p>
+      <div className="btnrow" style={{ marginTop: 10 }}>
+        <button className="btn" onClick={() => camRef.current?.click()} disabled={busy}>
+          📷 {t(T.entry_camera)}
+        </button>
+        <button className="btn ghost" onClick={() => upRef.current?.click()} disabled={busy}>
+          🖼 {t(T.entry_upload)}
         </button>
       </div>
-    </>
-  )
-}
-
-function SimpleListSection ({ record, update, onEvent, field, columns, makeEmpty, detail }) {
-  const [t] = useT()
-  const [draft, setDraft] = useState(makeEmpty())
-  const rows = record[field] || []
-  const paged = usePaged(rows, PAGE.simple)
-  const primary = columns[0].key
-
-  const add = () => {
-    if (!String(draft[primary] || '').trim()) return
-    update(r => ({ ...r, [field]: [...(r[field] || []), { ...draft, id: store.newId(), recordedAt: store.stampNow() }] }))
-    setDraft(makeEmpty())
-    onEvent('record_typed_entry', detail)
-  }
-  const drop = id => update(r => ({ ...r, [field]: r[field].filter(x => x.id !== id) }))
-
-  return (
-    <>
-      <div className="card tight listcard">
-        {rows.length === 0
-          ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
-          : (
-            <table className="tbl">
-              <thead><tr>{columns.map(c => <th key={c.key}>{t(c.label)}</th>)}<th /></tr></thead>
-              <tbody>
-                {paged.slice.map(row => (
-                  <tr key={row.id}>
-                    {columns.map(c => (
-                      <td key={c.key}>
-                        {c.render ? c.render(row, t) : (row[c.key] || <span className="hint">—</span>)}
-                      </td>
-                    ))}
-                    <td><button className="pgbtn" onClick={() => drop(row.id)} aria-label={t(T.remove)}>✕</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        <span style={{ flex: 1 }} />
-        <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
-      </div>
-      <div className="card tight">
-        <div className={'frm ' + (columns.length > 2 ? 'three' : 'two')}>
-          {columns.map(c => (
-            <Field key={c.key} label={t(c.label)} hint={c.hint ? t(c.hint) : null}>
-              {c.options
-                ? (
-                  <select value={draft[c.key]} onChange={e => setDraft({ ...draft, [c.key]: e.target.value })}>
-                    {c.options.map(o => <option key={o.value} value={o.value}>{t(o.label)}</option>)}
-                  </select>
-                )
-                : (
-                  <input type={c.type || 'text'} value={draft[c.key] || ''}
-                         onChange={e => setDraft({ ...draft, [c.key]: e.target.value })} />
-                )}
-            </Field>
-          ))}
-        </div>
-        <button className="btn wide" style={{ marginTop: 8 }} onClick={add}
-                disabled={!String(draft[primary] || '').trim()}>+ {t(T.add)}</button>
-      </div>
-    </>
-  )
-}
-
-function BloodsSection ({ record, update, onEvent }) {
-  const [t] = useT()
-  const labs = record.labs || []
-  const [draft, setDraft] = useState({ analyteId: LAB_PANEL[0].id, value: '', date: '', refLow: '', refHigh: '' })
-  const [view, setView] = useState('list')
-  const sorted = useMemo(() => [...labs].sort((a, b) => String(b.date).localeCompare(String(a.date))), [labs])
-  const paged = usePaged(sorted, PAGE.labs)
-  const analyte = LAB_PANEL.find(a => a.id === draft.analyteId)
-  const needsRange = analyte && analyte.interpret === 'OWN_RANGE'
-
-  const add = () => {
-    if (draft.value === '' || !draft.date) return
-    update(r => ({ ...r, labs: [...(r.labs || []), { ...draft, value: parseFloat(draft.value), id: store.newId(), recordedAt: store.stampNow() }] }))
-    setDraft({ analyteId: draft.analyteId, value: '', date: '', refLow: '', refHigh: '' })
-    onEvent('record_typed_entry', 'bloods')
-  }
-  const drop = id => update(r => ({ ...r, labs: r.labs.filter(x => x.id !== id) }))
-
-  return (
-    <>
-      <div className="subtabs">
-        <button className="subtab" aria-selected={view === 'list'} onClick={() => setView('list')}>{t(T.col_value)}</button>
-        <button className="subtab" aria-selected={view === 'add'} onClick={() => setView('add')}>{t(T.add)}</button>
-        <button className="subtab" aria-selected={view === 'photo'} onClick={() => setView('photo')}>{t(T.entry_camera)}</button>
-      </div>
-
-      {view === 'photo' ? (
-        <OcrPanel kind="bloods" onEvent={onEvent} onDraft={(rows) => {
-          if (!rows.length) return
-          const today = new Date().toISOString().slice(0, 10)
-          update(r => ({ ...r, labs: [...(r.labs || []), ...rows.map(x => ({ ...x, date: today, id: store.newId(), recordedAt: store.stampNow() }))] }))
-          setView('list')
-        }} />
+      <input ref={camRef} type="file" accept="image/*" capture="environment" className="sr"
+             onChange={e => { handle(e.target.files?.[0], 'camera'); e.target.value = '' }} />
+      <input ref={upRef} type="file" accept="image/png,image/jpeg,image/webp,application/pdf" className="sr"
+             onChange={e => { handle(e.target.files?.[0], 'upload'); e.target.value = '' }} />
+      {busy ? (
+        <p className="hint" style={{ marginTop: 9 }}>{t(T.ocr_working)} {Math.round(progress * 100)}%</p>
       ) : null}
-
-      {view === 'add' ? (
-        <div className="card tight">
-          <div className="frm two">
-            <Field label={t(T.col_test)}>
-              <select value={draft.analyteId} onChange={e => setDraft({ ...draft, analyteId: e.target.value, refLow: '', refHigh: '' })}>
-                {LAB_PANEL.map(a => <option key={a.id} value={a.id}>{t(a.label)} ({a.unit})</option>)}
-              </select>
-            </Field>
-            <Field label={t(T.col_date)}>
-              <input type="date" value={draft.date} onChange={e => setDraft({ ...draft, date: e.target.value })} />
-            </Field>
-            <Field label={t(T.col_value) + ' (' + (analyte?.unit || '') + ')'}>
-              <input type="number" step="any" inputMode="decimal" value={draft.value}
-                     onChange={e => setDraft({ ...draft, value: e.target.value })} />
-            </Field>
-            {needsRange ? (
-              <Field label={t(T.col_range)} hint={t(T.range_help)}>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <input type="number" step="any" inputMode="decimal" placeholder={t(T.range_low)}
-                         value={draft.refLow} onChange={e => setDraft({ ...draft, refLow: e.target.value })} />
-                  <input type="number" step="any" inputMode="decimal" placeholder={t(T.range_high)}
-                         value={draft.refHigh} onChange={e => setDraft({ ...draft, refHigh: e.target.value })} />
-                </div>
-              </Field>
-            ) : <div />}
-          </div>
-          <button className="btn wide" style={{ marginTop: 8 }} onClick={add}
-                  disabled={draft.value === '' || !draft.date}>+ {t(T.add)}</button>
-        </div>
-      ) : null}
-
-      {view === 'list' ? (
-        <div className="card tight listcard">
-          {sorted.length === 0
-            ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
-            : (
-              <table className="tbl">
-                <thead><tr>
-                  <th>{t(T.col_date)}</th><th>{t(T.col_test)}</th>
-                  <th className="num">{t(T.col_value)}</th><th>{t(T.col_range)}</th><th />
-                </tr></thead>
-                <tbody>
-                  {paged.slice.map(row => {
-                    const a = LAB_PANEL.find(x => x.id === row.analyteId)
-                    const f = classifyResult(row.analyteId, row.value, { low: row.refLow, high: row.refHigh })
-                    return (
-                      <tr key={row.id}>
-                        <td style={{ whiteSpace: 'nowrap' }}>{row.date}</td>
-                        <td>{a ? t(a.label) : row.analyteId}</td>
-                        <td className="num">
-                          <b style={{ color: f && f.level !== 'none' ? 'var(--attention)' : 'inherit' }}>{row.value}</b>
-                          <span className="hint"> {a?.unit}</span>
-                        </td>
-                        <td className="hint">{row.refLow !== '' && row.refHigh !== '' ? `${row.refLow}–${row.refHigh}` : '—'}</td>
-                        <td><button className="pgbtn" onClick={() => drop(row.id)} aria-label={t(T.remove)}>✕</button></td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
-          <span style={{ flex: 1 }} />
-          <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
-        </div>
-      ) : null}
-    </>
-  )
-}
-
-const MODALITIES = [
-  { value: 'ct', label: T.modality_ct },
-  { value: 'mri', label: T.modality_mri },
-  { value: 'us', label: T.modality_us },
-  { value: 'xray', label: T.modality_xray },
-  { value: 'other', label: T.modality_other }
-]
-
-/* Imaging reports. The app stores the CONCLUSION the patient copies from the
-   report, not the whole report, and never interprets it — an imaging finding
-   has no threshold to compare against and no guideline in this app behind it.
-   It is kept so the patient can say what the last scan showed. */
-function ImagingSection ({ record, update, onEvent }) {
-  const [t] = useT()
-  const rows = useMemo(
-    () => [...(record.imaging || [])].sort((a, b) => String(b.date).localeCompare(String(a.date))),
-    [record.imaging]
-  )
-  const paged = usePaged(rows, PAGE.simple)
-  const [draft, setDraft] = useState({ modality: 'ct', bodyPart: '', date: '', finding: '' })
-  const [view, setView] = useState('list')
-
-  const add = () => {
-    if (!draft.finding.trim()) return
-    update(r => ({ ...r, imaging: [...(r.imaging || []), { ...draft, id: store.newId(), recordedAt: store.stampNow() }] }))
-    setDraft({ modality: draft.modality, bodyPart: '', date: '', finding: '' })
-    onEvent('record_typed_entry', 'bloods')
-    setView('list')
-  }
-  const drop = id => update(r => ({ ...r, imaging: r.imaging.filter(x => x.id !== id) }))
-
-  return (
-    <>
-      <div className="subtabs">
-        <button className="subtab" aria-selected={view === 'list'} onClick={() => setView('list')}>{t(T.col_value)}</button>
-        <button className="subtab" aria-selected={view === 'add'} onClick={() => setView('add')}>{t(T.add)}</button>
-        <button className="subtab" aria-selected={view === 'photo'} onClick={() => setView('photo')}>{t(T.entry_camera)}</button>
-      </div>
-
-      {view === 'photo' ? (
-        <OcrPanel kind="imaging" onEvent={onEvent} onDraft={(_, text) => {
-          setDraft(d => ({ ...d, finding: String(text || '').slice(0, 300), date: draftDateFrom(text) || d.date }))
-          setView('add')
-        }} />
-      ) : null}
-
-      {view === 'add' ? (
-        <div className="card tight">
-          <div className="frm two">
-            <Field label={t(T.col_modality)}>
-              <select value={draft.modality} onChange={e => setDraft({ ...draft, modality: e.target.value })}>
-                {MODALITIES.map(m => <option key={m.value} value={m.value}>{t(m.label)}</option>)}
-              </select>
-            </Field>
-            <Field label={t(T.col_date)}>
-              <input type="date" value={draft.date} onChange={e => setDraft({ ...draft, date: e.target.value })} />
-            </Field>
-            <Field label={t(T.col_bodypart)}>
-              <input value={draft.bodyPart} onChange={e => setDraft({ ...draft, bodyPart: e.target.value })} />
-            </Field>
-            <Field label={t(T.col_finding)} hint={t(T.img_help)}>
-              <input value={draft.finding} onChange={e => setDraft({ ...draft, finding: e.target.value })} />
-            </Field>
-          </div>
-          <button className="btn wide" style={{ marginTop: 8 }} onClick={add}
-                  disabled={!draft.finding.trim()}>+ {t(T.add)}</button>
-        </div>
-      ) : null}
-
-      {view === 'list' ? (
-        <div className="card tight listcard">
-          <p className="hint" style={{ marginBottom: 6 }}>{t(T.img_lead)}</p>
-          {rows.length === 0
-            ? <div className="empty"><span className="big">{t(T.none)}</span><span>{t(T.none_hint)}</span></div>
-            : (
-              <table className="tbl">
-                <thead><tr>
-                  <th>{t(T.col_date)}</th><th>{t(T.col_modality)}</th>
-                  <th>{t(T.col_bodypart)}</th><th>{t(T.col_finding)}</th><th />
-                </tr></thead>
-                <tbody>
-                  {paged.slice.map(r => {
-                    const m = MODALITIES.find(x => x.value === r.modality)
-                    return (
-                      <tr key={r.id}>
-                        <td style={{ whiteSpace: 'nowrap' }}>{r.date || '—'}</td>
-                        <td>{m ? t(m.label) : r.modality}</td>
-                        <td>{r.bodyPart || <span className="hint">—</span>}</td>
-                        <td>{r.finding}</td>
-                        <td><button className="pgbtn" onClick={() => drop(r.id)} aria-label={t(T.remove)}>✕</button></td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
-          <span style={{ flex: 1 }} />
-          <Pager page={paged.page} pages={paged.pages} onPage={paged.setPage} />
-        </div>
-      ) : null}
-    </>
-  )
-}
-
-
-/* ===========================================================================
-   TabRecord — My Journey, My Records and Monitoring, merged into one.
-
-   WHY THE MERGE
-   Three tabs described three ways of looking at the same thing, and a
-   patient had to know which of the three held what they wanted. There is now
-   one section with three jobs: read the summary, add something, look at the
-   trends.
-
-   WHAT THE SUMMARY IS
-   Five groupings computed from the patient's own entries, by rule, in the
-   browser: long-term conditions, active problems, medicines now and before,
-   investigation trends, imaging. See the head of engine/summary.js for why
-   it is rules and not a model — the short version is that theming a
-   patient's diagnoses with an API would mean sending them off the device,
-   and every other screen promises the opposite.
-
-   Every entry shows WHEN IT WAS TYPED IN as well as when it happened. A
-   result from March entered in October is both, and a record that shows only
-   one of those dates misleads about how current it is.
-   ========================================================================= */
-function Bucket ({ title, count, children, empty, t }) {
-  return (
-    <div className="card tight">
-      <p className="chart-t">
-        {title}
-        {count ? <span className="bcount">{count}</span> : null}
-      </p>
-      {count ? children : <p className="note">{empty || t(T.rec_none)}</p>}
+      {note ? <div className="flagline" style={{ marginTop: 9 }}>⚠ {note}</div> : null}
+      <p className="note" style={{ marginTop: 9 }}>{t(T.med_ondevice)}</p>
     </div>
   )
 }
 
-function Entered ({ entry, t }) {
-  if (!entry?.recordedAt) return null
-  return <span className="entered">{t(T.rec_entered)} {String(entry.recordedAt).slice(0, 10)}</span>
-}
-
-function RecordSummary ({ record, onAdd }) {
+/* One medicine. Rendered as a table row on a screen wide enough for nine
+   columns and as a labelled card on one that is not — the same fields and the
+   same editing either way, because a nine-column table on a phone is a
+   sideways scroll nobody completes. */
+function MedCell ({ col, med, onEdit }) {
   const [t, lang] = useT()
-  const today = isoDay(new Date())
-  const s = buildSummary(record, today)
-  const arrow = { up: '▲', down: '▼', same: '=' }
-  const findings = useMemo(() => reviewRecord(record), [record])
-  const actionable = findings.filter(f => f.level !== 'none')
-  const quiet = findings.filter(f => f.level === 'none')
-  const [showQuiet, setShowQuiet] = useState(false)
-
+  if (col.derived) {
+    const d = durationLabel(med)
+    return <span className="mdur">{d ? t(d) : '—'}</span>
+  }
+  const expanded = col.id === 'frequency' ? expandFrequency(med.frequency) : null
   return (
     <>
-      {/* A first-time patient meeting five empty buckets needs one clear way
-          in, not five statements of emptiness. */}
-      {store.entryCount(record) === 0 ? (
-        <div className="emptybar">
-          <span>{t(T.dash_empty_body)}</span>
-          <span className="sp" />
-          <button className="btn" style={{ padding: '6px 11px', fontSize: 12 }} onClick={onAdd}>
-            {t(T.dash_empty_cta)}
+      <input type={col.type === 'date' ? 'date' : 'text'} value={med[col.id] || ''}
+             aria-label={pick(col, lang)}
+             onChange={e => onEdit({ [col.id]: e.target.value })} />
+      {expanded ? <span className="mfreq">{t(expanded)}</span> : null}
+    </>
+  )
+}
+
+function MedRow ({ med, onEdit, onDelete, onReact }) {
+  const [t, lang] = useT()
+  const narrow = useNarrow()
+  const missing = missingFields(med).length
+
+  if (!narrow) {
+    return (
+      <tr className={med.fromOcr ? 'fromocr' : ''}>
+        {MED_COLUMNS.map(c => (
+          <td key={c.id} className={c.wide ? 'wide' : ''}>
+            <MedCell col={c} med={med} onEdit={onEdit} />
+          </td>
+        ))}
+        <td className="acts">
+          <button className="btn quiet btn-sm" onClick={onReact}>
+            {med.reactions?.length ? `⚠ ${med.reactions.length}` : t(T.med_react_add)}
           </button>
+          <button className="linkish" onClick={onDelete}>{t(T.remove)}</button>
+        </td>
+      </tr>
+    )
+  }
+
+  return (
+    <div className={'card tight medcard' + (med.fromOcr ? ' fromocr' : '')}>
+      <div className="frm two">
+        {MED_COLUMNS.map(c => (
+          <Field key={c.id} label={pick(c, lang)}>
+            <MedCell col={c} med={med} onEdit={onEdit} />
+          </Field>
+        ))}
+      </div>
+      {missing ? <p className="hint">{t(T.med_missing).replace('{n}', String(missing))}</p> : null}
+      <div className="btnrow" style={{ marginTop: 8 }}>
+        <button className="btn ghost btn-sm" onClick={onReact}>
+          {med.reactions?.length ? `⚠ ${t(T.med_react_n).replace('{n}', String(med.reactions.length))}` : t(T.med_react_add)}
+        </button>
+        <button className="btn quiet btn-sm" onClick={onDelete}>{t(T.remove)}</button>
+      </div>
+    </div>
+  )
+}
+
+/* Column 9. An allergy or a side effect belongs to ONE medicine, which is
+   why it is recorded here rather than on a list of its own: "rash" on a page
+   by itself tells a nurse nothing about which drug caused it. */
+function ReactionSheet ({ med, onSave, onClose }) {
+  const [t] = useT()
+  const [kind, setKind] = useState('side_effect')
+  const [what, setWhat] = useState('')
+  const [severity, setSeverity] = useState('mild')
+  if (!med) return null
+  return (
+    <div className="lightbox" role="dialog" aria-modal="true">
+      <div className="modal-card">
+        <p className="card-t">{t(T.med_react_t)} — {med.name || t(T.med_unnamed)}</p>
+        <div className="frm">
+          <Field label={t(T.med_react_kind)}>
+            <select value={kind} onChange={e => setKind(e.target.value)}>
+              <option value="side_effect">{t(T.med_side_effect)}</option>
+              <option value="allergy">{t(T.med_allergy)}</option>
+            </select>
+          </Field>
+          <Field label={t(T.med_react_what)} hint={t(T.med_react_eg)}>
+            <input value={what} onChange={e => setWhat(e.target.value)} />
+          </Field>
+          <Field label={t(T.med_react_sev)}>
+            <select value={severity} onChange={e => setSeverity(e.target.value)}>
+              <option value="mild">{t(T.med_sev_mild)}</option>
+              <option value="bad">{t(T.med_sev_bad)}</option>
+              <option value="severe">{t(T.med_sev_severe)}</option>
+            </select>
+          </Field>
         </div>
-      ) : null}
-
-      {/* Rule 4 of this project: what needs acting on comes first, and the
-          rest starts folded rather than deleted. */}
-      {actionable.length ? (
-        <div className="card tight">
-          <p className="chart-t">
-            {t(T.dash_sub_actions)}<span className="bcount">{actionable.length}</span>
-          </p>
-          <div className="findinglist">
-            {actionable.map(f => <Finding key={f.id} f={f} />)}
-          </div>
-        </div>
-      ) : null}
-
-      {quiet.length ? (
-        <div className="card tight">
-          <button type="button" className="foldhead" onClick={() => setShowQuiet(v => !v)}>
-            {showQuiet ? '▾' : '▸'} {t(T.dash_sub_checked)} · {quiet.length}
-          </button>
-          {showQuiet ? (
-            <div className="findinglist" style={{ marginTop: 8 }}>
-              {quiet.map(f => <Finding key={f.id} f={f} />)}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      <Bucket title={t(T.rec_comorbid)} count={s.comorbidities.length} t={t}>
-        <ul className="bullets">
-          {s.comorbidities.map(i => (
-            <li key={i.id}>{i.text} <Entered entry={i} t={t} /></li>
-          ))}
-        </ul>
-      </Bucket>
-
-      <Bucket title={t(T.rec_active)} count={s.activeIssues.length} t={t}>
-        <ul className="bullets">
-          {s.activeIssues.map(i => (
-            <li key={i.id}>{i.text} <Entered entry={i} t={t} /></li>
-          ))}
-        </ul>
-      </Bucket>
-
-      <Bucket title={t(T.rec_meds_now)} count={s.medicinesNow.length} t={t}>
-        <ul className="bullets">
-          {s.medicinesNow.map(m => (
-            <li key={m.id}>
-              <b>{m.drug}</b>{m.dose ? ' · ' + m.dose : ''}{m.indication ? ' · ' + m.indication : ''}
-              <Entered entry={m} t={t} />
-            </li>
-          ))}
-        </ul>
-      </Bucket>
-
-      {s.medicinesPast.length ? (
-        <Bucket title={t(T.rec_meds_past)} count={s.medicinesPast.length} t={t}>
-          <ul className="bullets dim">
-            {s.medicinesPast.map(m => (
-              <li key={m.id}>
-                {m.drug}{m.endsOn ? ' · ' + m.endsOn : ''}
-                <Entered entry={m} t={t} />
-              </li>
+        {severity === 'severe' ? <div className="emergency">⚠ {t(T.med_sev_warn)}</div> : null}
+        {med.reactions?.length ? (
+          <ul className="bullets" style={{ marginTop: 8 }}>
+            {med.reactions.map((r, i) => (
+              <li key={i}>{r.what} — {t(r.kind === 'allergy' ? T.med_allergy : T.med_side_effect)} · {t(
+                r.severity === 'severe' ? T.med_sev_severe : r.severity === 'bad' ? T.med_sev_bad : T.med_sev_mild)}</li>
             ))}
           </ul>
-        </Bucket>
-      ) : null}
-
-      <Bucket title={t(T.rec_investigations)} count={s.investigations.length} t={t}>
-        <div className="trendrows">
-          {s.investigations.map(v => (
-            <div className="trendrow" key={v.analyteId}>
-              <span className="tr-name">{v.finding?.label ? t(v.finding.label) : v.analyteId}</span>
-              <span className="tr-val">{v.latest.value}</span>
-              {/* A direction only where there are two readings to compare.
-                  One reading is not a trend and is not drawn as one. */}
-              {v.direction ? (
-                <span className={'tr-dir ' + v.direction}>
-                  {arrow[v.direction]} {v.delta > 0 ? '+' : ''}{Number(v.delta.toFixed(2))} {t(T.rec_since_last)}
-                </span>
-              ) : <span className="tr-dir none">{t(T.rec_one_reading)}</span>}
-              <span className="tr-n">{t(T.rec_readings).replace('{n}', String(v.count))}</span>
-            </div>
-          ))}
+        ) : null}
+        <div className="btnrow" style={{ marginTop: 10 }}>
+          <button className="btn" disabled={!what.trim()}
+                  onClick={() => { onSave({ kind, what: what.trim(), severity, recordedAt: store.stampNow() }); setWhat('') }}>
+            {t(T.add)}
+          </button>
+          <button className="btn quiet" onClick={onClose}>{t(T.close)}</button>
         </div>
-      </Bucket>
-
-      <Bucket title={t(T.rec_imaging)} count={s.imaging.length} t={t}>
-        <div className="trendrows">
-          {s.imaging.map(g => (
-            <div className="imgrow" key={g.bodyPart}>
-              <span className="tr-name">{g.bodyPart}</span>
-              <span className="tr-n">
-                {g.count} · {String(g.latest.date || '').slice(0, 10)}
-                {g.repeated ? ' · ' + t(T.rec_followed) : ''}
-              </span>
-              {g.latest.report ? <span className="imgtext">{g.latest.report}</span> : null}
-            </div>
-          ))}
-        </div>
-      </Bucket>
-
-      <span style={{ flex: 1 }} />
-      <div className="ondevice">{t(T.rec_ondevice)}</div>
-    </>
+      </div>
+    </div>
   )
 }
 
 function TabRecord ({ record, update, onEvent, goTo, onPrint }) {
-  const [t] = useT()
-  const [view, setView] = useState('summary')
+  const [t, lang] = useT()
+  const narrow = useNarrow()
+  const [reactOn, setReactOn] = useState(null)
+  const meds = record.medicines || []
+
+  const addRows = rows => update(r => ({
+    ...r,
+    medicines: [...(r.medicines || []), ...rows.map(x => ({ ...x, id: store.newId(), recordedAt: store.stampNow() }))]
+  }))
+  const addBlank = () => addRows([{ ...EMPTY_MED }])
+  const edit = (id, patch) => update(r => ({
+    ...r, medicines: r.medicines.map(m => m.id === id ? { ...m, ...patch, fromOcr: false } : m)
+  }))
+  const drop = id => update(r => ({ ...r, medicines: r.medicines.filter(m => m.id !== id) }))
+  const react = (id, entry) => update(r => ({
+    ...r, medicines: r.medicines.map(m => m.id === id ? { ...m, reactions: [...(m.reactions || []), entry] } : m)
+  }))
+  const current = reactOn ? meds.find(m => m.id === reactOn) : null
+
   return (
     <div className="pane">
       <div className="pane-head">
         <h1 className="pane-title">{t(T.tab_rec)}</h1>
-        <p className="pane-lead">{t(T.rec_merged_lead)}</p>
+        <p className="pane-lead">{t(T.med_lead)}</p>
       </div>
-      <div className="subtabs">
-        <button className="subtab" aria-selected={view === 'summary'} onClick={() => setView('summary')}>
-          {t(T.rec_sub_summary)}
-        </button>
-        <button className="subtab" aria-selected={view === 'add'} onClick={() => setView('add')}>
-          {t(T.rec_sub_add)}
-        </button>
-        <button className="subtab" aria-selected={view === 'trend'} onClick={() => setView('trend')}>
-          {t(T.rec_sub_trend)}
-        </button>
-      </div>
+
       <div className="pane-body">
-        {view === 'summary' ? <RecordSummary record={record} onAdd={() => setView('add')} /> : null}
-        {view === 'add' ? <RecordEditor record={record} update={update} onEvent={onEvent} /> : null}
-        {view === 'trend' ? (
-          <>
-            <Overview record={record} />
-            <span style={{ flex: 1 }} />
-            <button className="btn wide" onClick={onPrint}>{t(T.dash_print)}</button>
-          </>
-        ) : null}
+        <MedCapture onRows={addRows} onEvent={onEvent} />
+
+        {meds.length === 0 ? (
+          <div className="emptybar">{t(T.med_empty)}</div>
+        ) : narrow ? (
+          meds.map(m => (
+            <MedRow key={m.id} med={m}
+                    onEdit={p => edit(m.id, p)} onDelete={() => drop(m.id)}
+                    onReact={() => setReactOn(m.id)} />
+          ))
+        ) : (
+          <div className="medtable">
+            <table>
+              <thead>
+                <tr>
+                  {MED_COLUMNS.map(c => <th key={c.id} className={c.wide ? 'wide' : ''}>{pick(c, lang)}</th>)}
+                  <th>{t(T.med_react_col)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {meds.map(m => (
+                  <MedRow key={m.id} med={m}
+                          onEdit={p => edit(m.id, p)} onDelete={() => drop(m.id)}
+                          onReact={() => setReactOn(m.id)} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="btnrow" style={{ marginTop: 9 }}>
+          <button className="btn ghost" onClick={addBlank}>+ {t(T.med_add_blank)}</button>
+          {meds.length ? <button className="btn ghost" onClick={onPrint}>{t(T.dash_print)}</button> : null}
+        </div>
+
+        <span style={{ flex: 1 }} />
+        <p className="note">{t(T.med_disclaimer)}</p>
       </div>
+
+      {current ? (
+        <ReactionSheet med={current}
+                       onSave={e => react(current.id, e)}
+                       onClose={() => setReactOn(null)} />
+      ) : null}
     </div>
   )
 }
-
-/* The station pipeline and every section editor, with no pane of its own —
-   it is now one view inside the merged record tab rather than a tab. */
-function RecordEditor ({ record, update, onEvent }) {
-  const [t] = useT()
-  const [section, setSection] = useState('meds')
-  useEffect(() => { onEvent('record_section_open', REC_SECTIONS.find(s => s.id === section)?.detail || 'none') }, [section])
-
-  return (
-    <>
-      <Stations record={record} current={section} onPick={setSection} />
-      <div className="editorbody">
-        {section === 'meds' ? <MedsSection record={record} update={update} onEvent={onEvent} /> : null}
-
-        {section === 'issues' ? (
-          <SimpleListSection
-            record={record} update={update} onEvent={onEvent} field="issues" detail="issues"
-            makeEmpty={() => ({ text: '', since: '', status: 'active' })}
-            columns={[
-              { key: 'text', label: T.col_problem },
-              { key: 'since', label: T.col_since, type: 'date' },
-              { key: 'status', label: T.col_status, options: [
-                { value: 'active', label: T.status_active }, { value: 'resolved', label: T.status_resolved }
-              ], render: (row, tt) => (
-                <span className={'pill ' + (row.status === 'active' ? 'on' : 'off')}>
-                  {tt(row.status === 'active' ? T.status_active : T.status_resolved)}
-                </span>
-              ) }
-            ]} />
-        ) : null}
-
-        {section === 'allergies' ? (
-          <>
-            <SimpleListSection
-              record={record} update={update} onEvent={onEvent} field="allergies" detail="allergies"
-              makeEmpty={() => ({ substance: '', reaction: '', severity: 'mild' })}
-              columns={[
-                { key: 'substance', label: T.col_substance },
-                { key: 'reaction', label: T.col_reaction },
-                { key: 'severity', label: T.col_severity, hint: T.sev_severe_help, options: [
-                  { value: 'mild', label: T.sev_mild }, { value: 'severe', label: T.sev_severe }
-                ], render: (row, tt) => (
-                  <span className={'pill ' + (row.severity === 'severe' ? 'sev' : 'off')}>
-                    {tt(row.severity === 'severe' ? T.sev_severe : T.sev_mild)}
-                  </span>
-                ) }
-              ]} />
-            {(record.allergies || []).length === 0 ? (
-              <button className="btn quiet wide" onClick={() => {
-                update(r => ({ ...r, allergies: [{ id: store.newId(), recordedAt: store.stampNow(), substance: pick(T.allergy_none_known_label, 'en'), reaction: '', severity: 'mild', noneKnown: true }] }))
-                onEvent('record_typed_entry', 'allergies')
-              }}>{t(T.allergy_none_known)}</button>
-            ) : null}
-          </>
-        ) : null}
-
-        {section === 'surgery' ? (
-          <SimpleListSection
-            record={record} update={update} onEvent={onEvent} field="surgeries" detail="surgery"
-            makeEmpty={() => ({ name: '', date: '', where: '' })}
-            columns={[
-              { key: 'name', label: T.col_operation },
-              { key: 'date', label: T.col_date, type: 'date' },
-              { key: 'where', label: T.col_where }
-            ]} />
-        ) : null}
-
-        {section === 'bloods' ? <BloodsSection record={record} update={update} onEvent={onEvent} /> : null}
-        {section === 'imaging' ? <ImagingSection record={record} update={update} onEvent={onEvent} /> : null}
-        {section === 'activity' ? <ActivitySection record={record} update={update} onEvent={onEvent} /> : null}
-      </div>
-    </>
-  )
-}
-
-/* =========================================================================
-   TAB 3 — Measurements
-   ====================================================================== */
 function TabMeasurements ({ record, update, onEvent }) {
   const [t] = useT()
   const [view, setView] = useState('now')
@@ -3230,6 +2757,10 @@ function PrivacyScreen ({ record, prefs, onClose, onClear, onEvent, exampleRecor
 function PrintSheet ({ record, identifiers, lang }) {
   const t = (v) => pick(v, lang)
   const findings = reviewRecord(record).filter(f => f.level !== 'none')
+  /* The nine-column sheet is what this section collects now. The old lists
+     below still print where an existing user has data in them, so nothing
+     typed before this change becomes unprintable. */
+  const sheet = record.medicines || []
   const meds = (record.medications || []).filter(m => m.status !== 'off')
   const allergies = record.allergies || []
   const issues = (record.issues || []).filter(i => i.status !== 'resolved')
@@ -3266,9 +2797,50 @@ function PrintSheet ({ record, identifiers, lang }) {
         </>
       ) : null}
 
-      {meds.length ? (
+      {sheet.length ? (
         <>
           <h2>{t(T.sec_meds)}</h2>
+          <table>
+            <thead><tr>{MED_COLUMNS.map(c => <th key={c.id}>{t(c)}</th>)}</tr></thead>
+            <tbody>
+              {sheet.map(x => (
+                <tr key={x.id}>
+                  {MED_COLUMNS.map(c => (
+                    <td key={c.id}>
+                      {c.derived ? (durationLabel(x) ? t(durationLabel(x)) : '')
+                        : c.id === 'frequency' ? [x.frequency, expandFrequency(x.frequency) ? t(expandFrequency(x.frequency)) : '']
+                            .filter(Boolean).join(' — ')
+                        : (x[c.id] || '')}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {/* A reaction is the thing on this sheet staff most need to see, so
+              it is printed under the table rather than left in the app. */}
+          {sheet.some(x => x.reactions?.length) ? (
+            <>
+              <h2>{t(T.med_react_col)}</h2>
+              <table><tbody>
+                {sheet.flatMap(x => (x.reactions || []).map((r, i) => (
+                  <tr key={x.id + '-' + i}>
+                    <td><b>{x.name}</b></td>
+                    <td>{r.what}</td>
+                    <td>{t(r.kind === 'allergy' ? T.med_allergy : T.med_side_effect)}</td>
+                    <td>{t(r.severity === 'severe' ? T.med_sev_severe
+                          : r.severity === 'bad' ? T.med_sev_bad : T.med_sev_mild)}</td>
+                  </tr>
+                )))}
+              </tbody></table>
+            </>
+          ) : null}
+        </>
+      ) : null}
+
+      {meds.length ? (
+        <>
+          <h2>{t(T.sec_meds)} — {t(T.print_legacy)}</h2>
           <table>
             <thead><tr><th>{t(T.col_drug)}</th><th>{t(T.col_dose)}</th><th>{t(T.col_indication)}</th></tr></thead>
             <tbody>{meds.map(x => <tr key={x.id}><td>{x.drug}</td><td>{x.dose}</td><td>{x.indication}</td></tr>)}</tbody>

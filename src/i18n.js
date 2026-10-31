@@ -567,6 +567,62 @@ export const T = {
   coll_failed: L('The usage count could not be sent', 'Kiraan penggunaan tidak dapat dihantar'),
   coll_refused: L('The server declined the usage count', 'Pelayan menolak kiraan penggunaan'),
 
+  /* --- 1 Patient 1 Record: the medicines sheet ------------------------ */
+  med_lead: L(
+    'Photograph your medicine packet, your prescription or the pharmacy sticker. The writing is read on this phone and sorted into the table below, which you can correct.',
+    'Ambil gambar kotak ubat, preskripsi atau pelekat farmasi anda. Tulisan itu dibaca dalam telefon ini dan disusun ke dalam jadual di bawah, yang boleh anda betulkan.'
+  ),
+  med_capture_t: L('Photograph the medicine', 'Ambil Gambar Ubat'),
+  med_capture_s: L(
+    'The packet, the prescription, or the pharmacy sticker on the bag. One photograph can hold several medicines.',
+    'Kotak ubat, preskripsi, atau pelekat farmasi pada beg. Satu gambar boleh mengandungi beberapa ubat.'
+  ),
+  /* The promise this whole section rests on, said where the photograph is
+     taken rather than only in a disclaimer at the foot. */
+  med_ondevice: L(
+    'The photograph is read inside this phone. It is not uploaded, and neither is anything you type.',
+    'Gambar itu dibaca di dalam telefon ini. Ia tidak dimuat naik, begitu juga apa yang anda taip.'
+  ),
+  med_pdf: L(
+    'A PDF cannot be read on this device. Take a photograph of the page, or save it as a JPG or PNG first.',
+    'Fail PDF tidak dapat dibaca pada peranti ini. Sila ambil gambar halaman tersebut, atau simpan sebagai JPG atau PNG terlebih dahulu.'
+  ),
+  med_nothing: L(
+    'No medicine could be read from that picture. Try again in better light, closer, with the label flat — or add it by hand below.',
+    'Tiada ubat dapat dibaca daripada gambar itu. Cuba sekali lagi dengan cahaya yang lebih terang, lebih dekat dan label yang rata — atau tambah secara manual di bawah.'
+  ),
+  med_empty: L(
+    'No medicine recorded yet. Take a photograph above, or add one by hand.',
+    'Tiada ubat direkodkan lagi. Ambil gambar di atas, atau tambah secara manual.'
+  ),
+  med_add_blank: L('Add a medicine by hand', 'Tambah ubat secara manual'),
+  med_missing: L('{n} column(s) still empty', '{n} lajur masih kosong'),
+  med_unnamed: L('this medicine', 'ubat ini'),
+  /* Column 9 */
+  med_react_col: L('Allergy / side effect', 'Alahan / Kesan'),
+  med_react_add: L('+ Record', '+ Rekod'),
+  med_react_n: L('{n} recorded', '{n} direkodkan'),
+  med_react_t: L('Allergy or side effect', 'Alahan atau Kesan Sampingan'),
+  med_react_kind: L('Which is it?', 'Yang mana satu?'),
+  med_side_effect: L('Side effect', 'Kesan sampingan'),
+  med_allergy: L('Allergy', 'Alahan'),
+  med_react_what: L('What happened?', 'Apa yang berlaku?'),
+  med_react_eg: L('e.g. rash, swelling, nausea, dizziness', 'cth. ruam, bengkak, loya, pening'),
+  med_react_sev: L('How bad was it?', 'Sejauh mana teruknya?'),
+  med_sev_mild: L('Mild — I carried on taking it', 'Ringan — saya teruskan mengambilnya'),
+  med_sev_bad: L('Bad enough that I stopped', 'Cukup teruk sehingga saya berhenti'),
+  med_sev_severe: L('Severe — breathing, swelling of the face or throat, or hospital', 'Teruk — sukar bernafas, muka atau tekak bengkak, atau ke hospital'),
+  /* A severe reaction is the one thing on this screen that must not wait to
+     be shown to somebody. */
+  med_sev_warn: L(
+    'Tell a doctor or pharmacist about this before you take it again. If it is happening now, go to the Emergency Department or call 999.',
+    'Beritahu doktor atau ahli farmasi tentang ini sebelum anda mengambilnya semula. Jika ia berlaku sekarang, pergi ke Jabatan Kecemasan atau hubungi 999.'
+  ),
+  med_disclaimer: L(
+    'Typed and photographed by you, and kept on this phone only. It is not the hospital record and has not been checked against it. Show it to staff as a prompt, not as a prescription.',
+    'Ditaip dan dirakam oleh anda, dan disimpan dalam telefon ini sahaja. Ia bukan rekod hospital dan belum disemak dengannya. Tunjukkan kepada kakitangan sebagai panduan, bukan sebagai preskripsi.'
+  ),
+
   /* --- print --------------------------------------------------------- */
   print_title: L('Summary for the clinic', 'Ringkasan untuk Klinik'),
   print_name: L('Name', 'Nama'),
@@ -575,6 +631,9 @@ export const T = {
     'Your name and identity card number remain in this browser’s memory for the printout alone. They are never transmitted, and they are discarded when you close this page.',
     'Nama dan nombor kad pengenalan anda kekal dalam ingatan pelayar ini untuk cetakan sahaja. Ia tidak sekali-kali dihantar, dan akan dibuang apabila anda menutup halaman ini.'
   ),
+  /* Only ever seen by somebody who typed medicines into the old list before
+     the section was rebuilt. It keeps their work printable. */
+  print_legacy: L('entered before this app was updated', 'dimasukkan sebelum aplikasi ini dikemas kini'),
   print_do: L('Print', 'Cetak'),
   print_generated: L('Printed from Patient Journey by HTPN on', 'Dicetak daripada Perjalanan Pesakit oleh HTPN pada'),
   print_disclaimer: L(

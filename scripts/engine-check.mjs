@@ -5,6 +5,7 @@ import { calcBMI, classifyBMI, classifyWaist, classifyBP } from '../src/engine/a
 import { classifyResult } from '../src/engine/labs.js'
 import { reviewRecord, summarise } from '../src/engine/review.js'
 import { DEPARTMENTS, DEPARTMENTS_WCC, CAMPUSES, directionsUrl } from '../src/data/wayfinding.js'
+import { readMedSheet, durationOf, durationLabel, normaliseFreq, readDate, MED_COLUMNS } from '../src/engine/medsheet.js'
 
 const line = (s='') => console.log(s)
 const cite = id => SRC[id].full.en
@@ -162,6 +163,33 @@ check('WCC pins are all distinct', DEPARTMENTS_WCC.filter(d => dupes.includes(d.
 check('WCC directions name the WCC',
   DEPARTMENTS_WCC.every(d => /Wanita dan Kanak-Kanak/.test(d.destination)), true)
 check('both sites keep their own pin', CAMPUSES.every(c => !!c.map), true)
+
+/* The medicines sheet: what the device can read off a label, and what it
+   must refuse to guess at. */
+line('\n--- the medicines sheet ---')
+check('nine columns, eight stored and one computed', MED_COLUMNS.length, 8)
+const LABEL = ['HOSPITAL TENGKU PERMAISURI NORASHIKIN', 'FARMASI PESAKIT LUAR',
+               'Tarikh: 23/10/2026', '1. METFORMIN 500mg tablet TDS',
+               '2) Amlodipine 10 mg OD', '3 - Atorvastatin 20mg ON', 'Qty 90'].join('\n')
+const read = readMedSheet(LABEL)
+check('three medicines read from one label', read.length, 3)
+check('the list numbering is not part of the name', read[0].name, 'METFORMIN')
+check('strength is read', read[0].dose, '500 mg')
+check('frequency is normalised', read[0].frequency, 'tds')
+check('the dispensing date is applied to every row',
+  read.every(r => r.startedOn === '2026-10-23'), true)
+check('the hospital is read from the header', read[0].hospital,
+  'Hospital Tengku Permaisuri Norashikin')
+/* The refusals matter more than the readings. A wrong dose nobody notices is
+   worse than an empty cell somebody fills in. */
+check('nothing is read out of text with no medicine in it', readMedSheet('aaa\nbbb\n123').length, 0)
+check('a line with no strength is skipped', readMedSheet('Take one tablet daily').length, 0)
+check('an impossible date is refused rather than coerced', readDate('45/13/2026'), '')
+check('an unknown frequency is left empty', normaliseFreq('every so often'), '')
+check('duration needs both dates', durationOf({ startedOn: '2026-01-02', lastOn: '' }), null)
+check('duration refuses to run backwards', durationOf({ startedOn: '2026-04-02', lastOn: '2026-01-02' }), null)
+check('duration is computed, not typed',
+  durationLabel({ startedOn: '2026-01-02', lastOn: '2026-04-02' }).en, '3 months')
 
 line('\n' + (fail === 0 ? 'ALL CHECKS PASSED' : fail + ' CHECK(S) FAILED'))
 process.exit(fail === 0 ? 0 : 1)

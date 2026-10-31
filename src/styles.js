@@ -268,6 +268,35 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 }
 .subtab[aria-selected="true"] { background: var(--brand); color: #fff; border-color: var(--brand); }
 
+/* ---------- the medicines sheet ---------- */
+/* Nine columns is a table on a laptop and a stack of labelled cards on a
+   phone. Not a horizontally scrolling table on both: a sideways scroll is a
+   gesture people do not discover, and a column they never reach is a column
+   they never fill in. */
+.medtable { flex: 0 0 auto; margin-top: 9px; overflow-x: auto; }
+.medtable table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.medtable th {
+  text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .03em;
+  text-transform: uppercase; color: var(--ink-soft); padding: 0 6px 6px;
+  line-height: 1.25;
+}
+.medtable th.wide, .medtable td.wide { min-width: 150px; }
+.medtable td { padding: 3px 6px 3px 0; vertical-align: top; }
+.medtable td input {
+  width: 100%; min-width: 86px; padding: 6px 7px; font-size: 12px;
+  border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--ink);
+}
+.medtable tr.fromocr td input { background: var(--brand-tint); }
+.medtable td.acts { white-space: nowrap; display: flex; gap: 6px; align-items: center; padding-top: 4px; }
+.mdur { display: inline-block; padding: 6px 2px; font-size: 12px; color: var(--ink-soft); }
+.mfreq { display: block; margin-top: 2px; font-size: 10.5px; color: var(--brand); font-weight: 600; }
+.medcard { margin-top: 9px; }
+/* A row the device read, not the patient: tinted until they touch it, so it
+   is obvious at a glance which cells are still a machine's guess. */
+.medcard.fromocr { border-color: var(--brand); }
+.linkish { background: none; border: 0; padding: 4px 2px; font-size: 11.5px;
+  color: var(--ink-soft); text-decoration: underline; cursor: pointer; }
+
 /* ---------- tables ---------- */
 .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tbl th {

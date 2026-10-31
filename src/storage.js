@@ -21,6 +21,8 @@ export const EMPTY_RECORD = {
   gender: null,
   noKnownAllergy: false,
   medications: [],
+  /* v5: the nine-column medicines sheet. */
+  medicines: [],
   issues: [],
   allergies: [],
   surgeries: [],
@@ -79,6 +81,43 @@ function migrate (r) {
       }
     }
     r.version = 4
+  }
+  /* v5 is the medicines sheet HTPN asked for: nine columns, one row per
+     medicine. Anything already typed into the old `medications` list is
+     CARRIED ACROSS rather than dropped — somebody who listed eight medicines
+     last week must not open the app and find them gone. The old field is
+     left in place untouched, so nothing is destroyed by a migration that
+     turns out to be wrong.
+
+     Only the fields that mean the same thing are moved. The old list had no
+     brand, no prescribing hospital and no second date, so those arrive empty
+     for the patient to fill in; inventing them would be worse than a blank
+     column. The old `dose` held strength and frequency run together
+     ("500 mg TDS"), so the frequency is split back out where it is
+     recognisable and left in the dose when it is not. */
+  if (r.version < 5) {
+    if (!Array.isArray(r.medicines)) r.medicines = []
+    if (!r.medicines.length && Array.isArray(r.medications) && r.medications.length) {
+      const FREQ = /\b(od|om|on|bd|bid|tds|tid|qid|qds|prn|stat)\b/i
+      r.medicines = r.medications.map(m => {
+        const dose = String(m?.dose || '')
+        const f = dose.match(FREQ)
+        return {
+          id: m?.id || null,
+          name: String(m?.drug || '').trim(),
+          brand: '',
+          dose: (f ? dose.replace(f[0], '') : dose).replace(/\s+/g, ' ').trim(),
+          frequency: f ? f[1].toLowerCase() : '',
+          startedOn: m?.startedOn || '',
+          lastOn: m?.endsOn || '',
+          hospital: '',
+          reactions: [],
+          recordedAt: m?.recordedAt ?? null,
+          movedFrom: 'medications'
+        }
+      }).filter(x => x.name)
+    }
+    r.version = 5
   }
   return r
 }
