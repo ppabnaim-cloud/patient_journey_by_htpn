@@ -4,7 +4,7 @@ import { SRC, BMI_BANDS, WAIST_THRESHOLD, FPG_BANDS, HBA1C_BANDS, LAB_PANEL } fr
 import { calcBMI, classifyBMI, classifyWaist, classifyBP } from '../src/engine/anthro.js'
 import { classifyResult } from '../src/engine/labs.js'
 import { reviewRecord, summarise } from '../src/engine/review.js'
-import { DEPARTMENTS, DEPARTMENTS_WCC, CAMPUSES, directionsUrl } from '../src/data/wayfinding.js'
+import { DEPARTMENTS, DEPARTMENTS_WCC, CAMPUSES, DEPT_GROUPS, groupedDepartments, directionsUrl } from '../src/data/wayfinding.js'
 import { readMedSheet, durationOf, durationLabel, normaliseFreq, readDate, MED_COLUMNS, expiryState, MED_STATUS } from '../src/engine/medsheet.js'
 
 const line = (s='') => console.log(s)
@@ -130,7 +130,24 @@ check('every finding carries a source', findings.every(f => !!f.source), true)
    kind of gap nobody notices until a patient is standing in a car park. */
 line('\n--- way-finding: both links on every location ---')
 const ALL = DEPARTMENTS.concat(DEPARTMENTS_WCC)
-check('twenty-eight Main Building locations', DEPARTMENTS.length, 28)
+check('thirty-three Main Building locations', DEPARTMENTS.length, 33)
+/* Every location must sit under a heading. One with an unknown group still
+   appears on screen, under a heading of its own — but it is a mistake, and
+   this is where it gets caught rather than shipped. */
+const known = new Set(DEPT_GROUPS.map(g => g.id))
+check('every location has a known heading',
+  DEPARTMENTS.filter(d => !known.has(d.group)).map(d => d.name.en).join(', '), '')
+const sections = groupedDepartments(DEPARTMENTS)
+check('four headings, in HTPN\u2019s order plus emergency first',
+  sections.map(x => x.group.id).join(','), 'urgent,out,in,admin')
+check('grouping loses nobody',
+  sections.reduce((n, x) => n + x.items.length, 0), DEPARTMENTS.length)
+/* The numbers follow the eye, not the order of the source file. */
+const shown = sections.flatMap(x => x.items).map(d => d.displayIndex)
+check('numbered 1..n in reading order',
+  shown.every((v, i) => v === i + 1), true)
+/* The WCC's six are not grouped, and must not silently acquire a heading. */
+check('the WCC list stays flat', DEPARTMENTS_WCC.every(d => !d.group), true)
 check('six WCC locations', DEPARTMENTS_WCC.length, 6)
 /* Two cards pointing at one saved place sends somebody to the wrong door
    with nothing anywhere saying so. Checked per site, because each site

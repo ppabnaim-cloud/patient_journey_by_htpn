@@ -268,6 +268,22 @@ blockquote.quote cite { display: block; margin-top: 5px; font-style: normal;
 }
 .subtab[aria-selected="true"] { background: var(--brand); color: #fff; border-color: var(--brand); }
 
+/* Headings over the Main Building's locations. Thirty-three in one unbroken
+   list is a wall; the heading is what lets somebody skip two thirds of it. */
+.deptgroup { flex: 0 0 auto; margin-top: 12px; }
+.deptgroup:first-child { margin-top: 2px; }
+.deptgroup-h {
+  margin: 0 0 7px; font-size: 11px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--brand);
+  display: flex; align-items: center; gap: 8px;
+}
+.deptgroup-h::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.deptgroup-h span {
+  order: 3; font-size: 10px; font-weight: 700; letter-spacing: 0;
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--brand-tint); color: var(--brand);
+}
+
 /* ---------- the medicines sheet ---------- */
 /* Nine columns is a table on a laptop and a stack of labelled cards on a
    phone. Not a horizontally scrolling table on both: a sideways scroll is a

@@ -108,23 +108,27 @@ export const CAMPUSES = [
 const DEPARTMENT_LIST = [
   { icon: 'clinic',
     en: 'Specialist Clinic 2 — General Medicine & Orthopaedics',
+    group: 'out',
     ms: 'Klinik Pakar 2 — Perubatan Am & Ortopedik',
     signboard: 'KLINIK PERUBATAN AM · KLINIK ORTOPEDIK',
     map: 'https://maps.app.goo.gl/bY8cEXWnWYxw69Dw5' },
 
   { icon: 'office',
     en: 'Management Office 1 & Nursing Management Office',
+    group: 'admin',
     ms: 'Pejabat Pengurusan 1 & Pejabat Pengurusan Jururawat',
     map: 'https://maps.app.goo.gl/WuYSdY4AUdCgw78k8' },
 
   { icon: 'radiology',
     en: 'Radiology Department — X-ray & CT scan',
+    group: 'urgent',
     ms: 'Jabatan Radiologi — X-ray & Imbasan CT',
     signboard: 'IMBASAN TOMOGRAF BERKOMPUTER (CT SCAN)',
     map: 'https://maps.app.goo.gl/onqXD8CAeZaFsUUZ6' },
 
   { icon: 'emergency',
     en: 'Emergency & Trauma Department',
+    group: 'urgent',
     ms: 'Jabatan Kecemasan & Trauma',
     signboard: 'JABATAN KECEMASAN & TRAUMA · KAUNTER SARINGAN UTAMA',
     /* The gantry over the approach road splits three ways, and which lane a
@@ -139,11 +143,13 @@ const DEPARTMENT_LIST = [
 
   { icon: 'rehab',
     en: 'Rehabilitation Department',
+    group: 'out',
     ms: 'Jabatan Rehabilitasi',
     map: 'https://maps.app.goo.gl/c9y63sR5tv7WSs8g7' },
 
   { icon: 'dental',
     en: 'Oral & Maxillofacial Surgery Specialist Clinic',
+    group: 'out',
     ms: 'Klinik Pakar Bedah Mulut & Maksilofasial',
     map: 'https://maps.app.goo.gl/jV3jikoJCmLk1yYK9' },
 
@@ -152,16 +158,19 @@ const DEPARTMENT_LIST = [
      collecting a prescription to whichever one the search happened to find. */
   { icon: 'pharmacy',
     en: 'Specialist Clinic Pharmacy',
+    group: 'out',
     ms: 'Farmasi Klinik Pakar',
     map: 'https://maps.app.goo.gl/iJa5mMaP8qgkN9WQ8' },
 
   { icon: 'it',
     en: 'Management Office 2 — IT & Engineering Unit',
+    group: 'admin',
     ms: 'Pejabat Pengurusan 2 — Unit IT & Kejuruteraan',
     map: 'https://maps.app.goo.gl/NTbNN6VfJjrS7Ps29' },
 
   { icon: 'records',
     en: 'Medical Records Department',
+    group: 'in',
     ms: 'Unit Rekod Perubatan',
     map: 'https://maps.app.goo.gl/HnXQsXmNPuq3WvL19' },
 
@@ -171,42 +180,80 @@ const DEPARTMENT_LIST = [
      can resolve by text. */
   { icon: 'pharmacy',
     en: 'Pharmacy Green Zone Counter',
+    group: 'out',
     ms: 'Kaunter Zon Hijau Farmasi',
     latLng: '2.993372,101.792977' },
 
   { icon: 'hall',
     en: 'Dewan Bestari / Dewan Permaisuri (hall)',
+    group: 'admin',
     ms: 'Dewan Bestari / Dewan Permaisuri',
     map: 'https://maps.app.goo.gl/MsRkKipjFSRckRW88' },
 
   { icon: 'surgery',
     en: 'Operating Theatre',
+    group: 'in',
     ms: 'Dewan Bedah',
     why: { en: 'Daily visiting period for family', ms: 'Waktu melawat harian untuk ahli keluarga' },
     map: 'https://maps.app.goo.gl/s9VpMtv2NaeQxrWm9' },
 
   { icon: 'icu',
     en: 'Intensive Care Unit (ICU)',
+    group: 'in',
     ms: 'Unit Rawatan Rapi (ICU)',
     why: { en: 'Daily visiting period for family', ms: 'Waktu melawat harian untuk ahli keluarga' },
     map: 'https://maps.app.goo.gl/KN4nhPr8JJeeToWAA' },
 
   { icon: 'dietetics',
     en: 'Dietetics & Catering Department',
+    group: 'admin',
     ms: 'Jabatan Dietetik & Sajian',
     why: { en: 'The dietitian clinic is held here', ms: 'Klinik pakar diet diadakan di sini' },
     map: 'https://maps.app.goo.gl/nU1V1f9VupnsuG8V7' },
 
   { icon: 'pharmacy',
     en: 'Logistics Pharmacy',
+    group: 'admin',
     ms: 'Farmasi Logistik',
     why: { en: 'Bulk deliveries from suppliers', ms: 'Penghantaran pukal daripada pembekal' },
     map: 'https://maps.app.goo.gl/XLYRMo9B4BTEo7En7' },
 
   { icon: 'forensic',
     en: 'Forensic Department',
+    group: 'admin',
     ms: 'Jabatan Forensik',
     map: 'https://maps.app.goo.gl/G8g1wyB1fJJU3ES1A' },
+
+  /* ---- outpatient, added by HTPN ------------------------------------- */
+  { icon: 'clinic',
+    group: 'out',
+    en: 'Specialist Clinic 1 — Surgery',
+    ms: 'Klinik Pakar 1 — Pembedahan',
+    map: 'https://maps.app.goo.gl/NNyF5yEnDg1avx3h7' },
+
+  { icon: 'bloods',
+    group: 'out',
+    en: 'Phlebotomy — blood-taking room',
+    ms: 'Bilik Ambil Darah (Flebotomi)',
+    map: 'https://maps.app.goo.gl/MaybWsUznps2F7wF9' },
+
+  { icon: 'dental',
+    group: 'out',
+    en: 'Special Care Dentistry',
+    ms: 'Pergigian Penjagaan Khas',
+    map: 'https://maps.app.goo.gl/xXpD5bBgxJXqs7QYA' },
+
+  { icon: 'pharmacy',
+    group: 'out',
+    en: 'Drive-through pharmacy',
+    ms: 'Farmasi Pandu Lalu',
+    map: 'https://maps.app.goo.gl/GXWeWkCcnNpeb7Hn7' },
+
+  { icon: 'surau',
+    group: 'admin',
+    en: 'Surau',
+    ms: 'Surau Hospital',
+    map: 'https://maps.app.goo.gl/QmAwN7Pp1uQAGHvu8' },
 
   /* ---- the wards, the psychiatry clinic, the cafe and the public health
      offices, all supplied by HTPN as saved places -------------------------
@@ -217,46 +264,55 @@ const DEPARTMENT_LIST = [
      names them, the name goes beside the number as it does for 6, 7 and 8. */
   { icon: 'clinic',
     en: 'Psychiatry Specialist Clinic',
+    group: 'out',
     ms: 'Klinik Pakar Psikiatri',
     map: 'https://maps.app.goo.gl/VhBEesH5v6AHQqyz5' },
 
   { icon: 'ward',
     en: 'Four-storey block — Wards 1, 2, 3 and 4',
+    group: 'in',
     ms: 'Bangunan 4 Tingkat — Wad 1, 2, 3 dan 4',
     map: 'https://maps.app.goo.gl/Gc3pMfMPsfZy3yRf6' },
 
   { icon: 'ward',
     en: 'Ward 5',
+    group: 'in',
     ms: 'Wad 5',
     map: 'https://maps.app.goo.gl/s3gdDiuEspc8nRuU6' },
 
   { icon: 'ward',
     en: 'Ward 6 — isolation',
+    group: 'in',
     ms: 'Wad 6 — Isolasi',
     map: 'https://maps.app.goo.gl/8ZN2cbb59QUCB3db7' },
 
   { icon: 'ward',
     en: 'Ward 7 — surgical and orthopaedic',
+    group: 'in',
     ms: 'Wad 7 — Wad Pembedahan dan Ortopedik',
     map: 'https://maps.app.goo.gl/ZdQL8qVNZYbYf18q8' },
 
   { icon: 'ward',
     en: 'Ward 8 — psychiatric',
+    group: 'in',
     ms: 'Wad 8 — Wad Psikiatri',
     map: 'https://maps.app.goo.gl/fipssSWkAtocZpVK8' },
 
   { icon: 'ward',
     en: 'Ward 9',
+    group: 'in',
     ms: 'Wad 9',
     map: 'https://maps.app.goo.gl/CHsXX3E6QRemhmrZ8' },
 
   { icon: 'dietetics',
     en: 'Hospital cafe',
+    group: 'admin',
     ms: 'Kafe Hospital',
     map: 'https://maps.app.goo.gl/PmuYbav1Y2y1pAfb8' },
 
   { icon: 'office',
     en: 'Public Health Unit · Occupational & Environmental Health Unit · Assistant Medical Officer Supervisor\u2019s Office',
+    group: 'admin',
     ms: 'Unit Kesihatan Awam · Unit Kesihatan Pekerjaan & Persekitaran · Pejabat Penyelia Pembantu Pegawai Perubatan (PPP)',
     map: 'https://maps.app.goo.gl/S1PGXBrnLq4UZYf76' },
 
@@ -276,6 +332,7 @@ const DEPARTMENT_LIST = [
      nothing else changes. */
   { icon: 'office',
     en: 'Revenue Unit — Patient & Emergency Registration',
+    group: 'out',
     ms: 'Unit Hasil — Pendaftaran Pesakit & Kecemasan',
     signboard: 'UNIT HASIL · PENDAFTARAN PESAKIT & KECEMASAN',
     map: MAIN_BUILDING_MAP, photo: 'brand/bu-unit-hasil.jpg',
@@ -287,6 +344,7 @@ const DEPARTMENT_LIST = [
 
   { icon: 'radiology',
     en: 'Diagnostic Imaging Department',
+    group: 'urgent',
     ms: 'Jabatan Pengimejan Diagnostik',
     signboard: 'JABATAN PENGIMEJAN DIAGNOSTIK',
     map: MAIN_BUILDING_MAP, photo: 'brand/bu-pengimejan.jpg',
@@ -300,6 +358,7 @@ const DEPARTMENT_LIST = [
 
   { icon: 'office',
     en: 'Director\u2019s Office & Management Division',
+    group: 'admin',
     ms: 'Pejabat Pengarah & Pejabat Pengurusan',
     signboard: 'BAHAGIAN PENGURUSAN',
     map: MAIN_BUILDING_MAP, photo: 'brand/bu-pengurusan.jpg' }
@@ -338,6 +397,63 @@ export const SITES_DIFFER = {
 
 /* Every department above is in the Main Building. Said once, here. */
 export const DEPARTMENTS_BUILDING = { en: 'Main Building', ms: 'Bangunan Utama' }
+
+/* ---------------------------------------------------------------------------
+   THE MAIN BUILDING, GROUPED
+
+   Thirty-three locations in one unbroken list is a wall. HTPN asked for three
+   headings — outpatient, inpatient, administration — and they cover most of
+   it.
+
+   They do not cover three: the Emergency Department and the two imaging
+   departments. A casualty department is not an outpatient clinic, and filing
+   it under one to make the scheme tidy would be a guess with consequences for
+   somebody reading quickly. So those three have a heading of their own, and
+   it comes first, because that is the order of urgency rather than the order
+   HTPN listed.
+
+   `order` is the order the headings appear on screen; nothing infers it from
+   the order locations happen to sit in the list.
+   ------------------------------------------------------------------------ */
+export const DEPT_GROUPS = [
+  { id: 'urgent', order: 1,
+    en: 'Emergency & imaging', ms: 'Kecemasan & Pengimejan' },
+  { id: 'out', order: 2,
+    en: 'Outpatient services', ms: 'Perkhidmatan Pesakit Luar' },
+  { id: 'in', order: 3,
+    en: 'Inpatient services', ms: 'Perkhidmatan Pesakit Dalam' },
+  { id: 'admin', order: 4,
+    en: 'Administration & facilities', ms: 'Pentadbiran & Kemudahan' }
+]
+
+/* Locations in HTPN's heading order, with their heading. A location whose
+   group is unknown would vanish from a grouped list without a word, so it is
+   returned under a heading of its own instead — and engine-check fails on
+   it, which is how it gets fixed rather than shipped. */
+export function groupedDepartments (list) {
+  const seen = new Map()
+  for (const d of list) {
+    const g = d.group || 'ungrouped'
+    if (!seen.has(g)) seen.set(g, [])
+    seen.get(g).push(d)
+  }
+  const out = []
+  for (const g of [...DEPT_GROUPS].sort((a, b) => a.order - b.order)) {
+    if (seen.has(g.id)) { out.push({ group: g, items: seen.get(g.id) }); seen.delete(g.id) }
+  }
+  for (const [id, items] of seen) {
+    out.push({ group: { id, en: id, ms: id }, items })
+  }
+  /* Numbered in the order they are READ, not in the order they happen to sit
+     in the source list. Grouping scrambled the old numbers — the first three
+     cards read 3, 4, 32 — which looks like a list with holes in it. The
+     number is only a handle for pointing at a card, so it follows the eye. */
+  let n = 0
+  for (const section of out) {
+    section.items = section.items.map(d => ({ ...d, displayIndex: ++n }))
+  }
+  return out
+}
 const WCC_BUILDING = { en: 'Women & Children Complex (WCC)', ms: 'Kompleks Wanita & Kanak-Kanak (WCC)' }
 
 /* ---------------------------------------------------------------------------
@@ -405,6 +521,9 @@ function buildList (list, building, destinationSite, prefix) {
   index: i + 1,
   confirmed: true,
   icon: d.icon,
+  /* Which heading this location sits under. Null on the WCC's list, which
+     is six entries and needs none. */
+  group: d.group || null,
   why: d.why || null,
   detailKey: 'department',
   /* Kept on the record for anything that reads a single department on its

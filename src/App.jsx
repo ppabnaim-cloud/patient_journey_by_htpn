@@ -25,7 +25,8 @@ import * as store from './storage.js'
 import { readText, draftMedicationsFrom, draftLabsFrom, draftDateFrom, ocrAvailable } from './ocr.js'
 import { sendUsage, onUsageStatus, newDeviceCode, LAST_RECORD_FOR_DISPLAY } from './usage.js'
 import {
-  CAMPUSES, DEPARTMENTS, DEPARTMENTS_WCC, UNCONFIRMED_NOTE, directionsUrl, confirmedCount,
+  CAMPUSES, DEPARTMENTS, DEPARTMENTS_WCC, groupedDepartments,
+  UNCONFIRMED_NOTE, directionsUrl, confirmedCount,
   SITES_DIFFER
 } from './data/wayfinding.js'
 import {
@@ -97,6 +98,11 @@ const DEPT_ICONS = {
   hall: ['M3 20h18', 'M5 20V9l7-5 7 5v11', 'M10 20v-6h4v6'],
   surgery: ['M4 14l10-10 3 3-10 10-3.6.6z', 'M14 17h6', 'M17 14v6'],
   icu: ['M3 12h4l2-5 3 10 2-5h7'],
+  /* A blood tube, for phlebotomy. */
+  bloods: ['M8.5 3h7', 'M9.5 3v12a2.5 2.5 0 0 0 5 0V3', 'M9.5 9h5'],
+  /* A dome and a crescent, for the surau. */
+  surau: ['M4 21V12a8 8 0 0 1 16 0v9', 'M4 21h16', 'M10 21v-5h4v5',
+          'M12 4.5V2.5', 'M9.5 2.5h5'],
   /* A bed. Seven of the Main Building's locations are wards, and every other
      glyph in this set would have been a lie about what the place is. */
   ward: ['M3 7v12', 'M3 13h18v6', 'M6.6 11.4a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3',
@@ -1662,9 +1668,8 @@ function DeptList ({ go, onLightbox, items = DEPARTMENTS }) {
      not in the repository yet must not leave a broken-image box: the img
      removes itself on error, and the card reads exactly as it did before. */
   const [broken, setBroken] = useState({})
-  return (
-    <div className="linkgrid">
-      {items.map(d => (
+
+  const card = d => (
         <div key={d.id} className={'deptcard' + (d.confirmed ? '' : ' unconfirmed')}>
           {d.photo && !broken[d.id] ? (
             <button type="button" className="deptshot"
@@ -1682,7 +1687,10 @@ function DeptList ({ go, onLightbox, items = DEPARTMENTS }) {
              target="_blank" rel="noreferrer" onClick={() => go(d)}>
             <span className="ic"><Icon d={DEPT_ICONS[d.icon] || DEPT_ICONS.pin} /></span>
             <span className="tx">
-              <span className="nm">{d.index}. {t(d.name)}</span>
+              {/* Numbered in reading order, which grouping changes — see
+                  groupedDepartments(). Falls back to the flat index for the
+                  WCC's list, which has no groups. */}
+              <span className="nm">{(d.displayIndex ?? d.index)}. {t(d.name)}</span>
               <span className="sub">➤ {t(T.way_directions)}</span>
               {/* Why somebody comes here, where HTPN said. Not a
                   restriction — every location below gives directions. */}
@@ -1718,8 +1726,21 @@ function DeptList ({ go, onLightbox, items = DEPARTMENTS }) {
             </a>
           ) : null}
         </div>
+  )
+
+  /* Grouped where the list carries groups, flat where it does not — the WCC's
+     six need no headings, and giving them one would be ceremony. */
+  const groups = items.some(d => d.group) ? groupedDepartments(items) : null
+  if (!groups) return <div className="linkgrid">{items.map(card)}</div>
+  return (
+    <>
+      {groups.map(({ group, items: list }) => (
+        <div key={group.id} className="deptgroup">
+          <p className="deptgroup-h">{pick(group, lang)} <span>{list.length}</span></p>
+          <div className="linkgrid">{list.map(card)}</div>
+        </div>
       ))}
-    </div>
+    </>
   )
 }
 
