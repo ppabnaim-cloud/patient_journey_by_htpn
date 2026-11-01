@@ -509,18 +509,14 @@ const WCC_BUILDING = { en: 'Women & Children Complex (WCC)', ms: 'Kompleks Wanit
 const WCC = 'Hospital Tengku Permaisuri Norashikin (Pusat Rawatan Wanita dan Kanak-Kanak), Kajang'
 
 const DEPARTMENT_LIST_WCC = [
-  /* One saved place covering six counters. HTPN listed all six, and they are
-     all here — but as what somebody comes to the lobby FOR, under the lobby's
-     own name, rather than strung into a card title a hundred characters long
-     that wraps over four lines and buries the one word a patient is looking
-     for. Both are searchable; only the layout differs. */
+  /* HTPN asked twice for all six to be the card's NAME, not a line under it,
+     so that is what it is. It wraps over several lines on a phone; that is
+     HTPN's call to make and it has been made. The separate "what you come
+     here for" line is gone with it — it would have said the same six things
+     a second time. */
   { icon: 'hall',
-    en: 'WCC Main Lobby',
-    ms: 'Lobi Utama WCC',
-    why: {
-      en: 'Enquiries counter · Revenue counter for emergency and PAC patients · Radiology · Medical Social Work · General store',
-      ms: 'Kaunter Pertanyaan · Kaunter Hasil Pesakit Kecemasan & PAC · Jabatan Radiologi · Jabatan Kerja Sosial Perubatan · Kedai Serbaneka'
-    },
+    en: 'WCC Main Lobby, Kaunter Pertanyaan, Kaunter Hasil Pesakit Kecemasan & PAC, Radiology Department, Social Welfare Department, Kedai Serbaneka',
+    ms: 'Lobi Utama WCC, Kaunter Pertanyaan, Kaunter Hasil Pesakit Kecemasan & PAC, Jabatan Radiologi, Jabatan Kerja Sosial Perubatan, Kedai Serbaneka',
     map: 'https://maps.app.goo.gl/ssbH2ws1C24qRWM5A' },
 
   { icon: 'emergency',
