@@ -119,16 +119,34 @@ const DEPARTMENT_LIST = [
     ms: 'Pejabat Pengurusan 1 & Pejabat Pengurusan Jururawat',
     map: 'https://maps.app.goo.gl/WuYSdY4AUdCgw78k8' },
 
+  /* TWO radiology departments in the Main Building, not one: this is the CT
+     and X-ray department, and ultrasound and mammography are a separate
+     place with their own pin, under Outpatient. Each has its own saved
+     place, confirmed by HTPN.
+
+     What was merged into this card was a third entry for this same
+     department, named by its signboard rather than by its service. Its
+     signboard and its door arrows live here now — the arrows are what the
+     patient reads at the door, and the second name is what is painted
+     above it. */
   { icon: 'radiology',
     en: 'Radiology Department — X-ray & CT scan',
     group: 'urgent',
     ms: 'Jabatan Radiologi — X-ray & Imbasan CT',
-    signboard: 'IMBASAN TOMOGRAF BERKOMPUTER (CT SCAN)',
-    map: 'https://maps.app.goo.gl/onqXD8CAeZaFsUUZ6' },
+    signboard: 'JABATAN PENGIMEJAN DIAGNOSTIK · IMBASAN TOMOGRAF BERKOMPUTER (CT SCAN)',
+    photo: 'brand/bu-pengimejan.jpg',
+    split: [
+      { dir: 'left', en: 'CT scan', ms: 'CT Scan' },
+      { dir: 'right', en: 'Radiography A — X-ray', ms: 'Radiografi A — X-Ray' }
+    ],
+    map: 'https://maps.app.goo.gl/BbPR8WGtQWKwL41Y8' },
 
   { icon: 'emergency',
     en: 'Emergency & Trauma Department',
     group: 'urgent',
+    /* First in its group. Somebody reading this heading in a hurry is
+       looking for this one, not for the X-ray department. */
+    rank: 1,
     ms: 'Jabatan Kecemasan & Trauma',
     signboard: 'JABATAN KECEMASAN & TRAUMA · KAUNTER SARINGAN UTAMA',
     /* The gantry over the approach road splits three ways, and which lane a
@@ -180,7 +198,7 @@ const DEPARTMENT_LIST = [
      can resolve by text. */
   { icon: 'pharmacy',
     en: 'Pharmacy Green Zone Counter',
-    group: 'out',
+    group: 'urgent',
     ms: 'Kaunter Zon Hijau Farmasi',
     latLng: '2.993372,101.792977' },
 
@@ -230,6 +248,26 @@ const DEPARTMENT_LIST = [
     en: 'Specialist Clinic 1 — Surgery',
     ms: 'Klinik Pakar 1 — Pembedahan',
     map: 'https://maps.app.goo.gl/NNyF5yEnDg1avx3h7' },
+
+  /* A second revenue counter, distinct from the Unit Hasil above: this one
+     serves emergency patients and Specialist Clinic 2. Different counter,
+     different saved place — the pin check below would catch it if it were
+     the same one typed twice. */
+  { icon: 'office',
+    group: 'urgent',
+    en: 'Revenue counter — emergency patients & Specialist Clinic 2',
+    ms: 'Kaunter Hasil — Pesakit Kecemasan & Klinik Pakar 2',
+    map: 'https://maps.app.goo.gl/NKa24BCyfNBBYVWz5' },
+
+  /* Ultrasound and mammography sit under OUTPATIENT on HTPN's instruction,
+     apart from the X-ray and CT departments in the emergency group above.
+     They are different visits: these two are booked and attended, the other
+     two are where somebody is sent mid-emergency. */
+  { icon: 'radiology',
+    group: 'out',
+    en: 'Radiology Department — ultrasound & mammogram',
+    ms: 'Jabatan Radiologi — Ultrasound & Mamogram',
+    map: 'https://maps.app.goo.gl/CKN5XLkZYcf5Zv1a7' },
 
   { icon: 'bloods',
     group: 'out',
@@ -332,7 +370,7 @@ const DEPARTMENT_LIST = [
      nothing else changes. */
   { icon: 'office',
     en: 'Revenue Unit — Patient & Emergency Registration',
-    group: 'out',
+    group: 'urgent',
     ms: 'Unit Hasil — Pendaftaran Pesakit & Kecemasan',
     signboard: 'UNIT HASIL · PENDAFTARAN PESAKIT & KECEMASAN',
     map: MAIN_BUILDING_MAP, photo: 'brand/bu-unit-hasil.jpg',
@@ -342,19 +380,6 @@ const DEPARTMENT_LIST = [
     },
     sign: { en: 'Take your receipt after paying.', ms: 'Sila ambil resit selepas membuat pembayaran.' } },
 
-  { icon: 'radiology',
-    en: 'Diagnostic Imaging Department',
-    group: 'urgent',
-    ms: 'Jabatan Pengimejan Diagnostik',
-    signboard: 'JABATAN PENGIMEJAN DIAGNOSTIK',
-    map: MAIN_BUILDING_MAP, photo: 'brand/bu-pengimejan.jpg',
-    /* The department's own signboard splits here, with an arrow each way.
-       Reproduced rather than summarised: at the door, the arrow is the
-       instruction. */
-    split: [
-      { dir: 'left', en: 'CT scan', ms: 'CT Scan' },
-      { dir: 'right', en: 'Radiography A — X-ray', ms: 'Radiografi A — X-Ray' }
-    ] },
 
   { icon: 'office',
     en: 'Director\u2019s Office & Management Division',
@@ -416,8 +441,12 @@ export const DEPARTMENTS_BUILDING = { en: 'Main Building', ms: 'Bangunan Utama' 
    the order locations happen to sit in the list.
    ------------------------------------------------------------------------ */
 export const DEPT_GROUPS = [
+  /* Emergency, the two imaging departments, and the two counters that serve
+     the Emergency Department — registration and the green zone pharmacy.
+     HTPN moved those two here: somebody being sent to them is in the middle
+     of an emergency visit, not attending an outpatient clinic. */
   { id: 'urgent', order: 1,
-    en: 'Emergency & imaging', ms: 'Kecemasan & Pengimejan' },
+    en: 'Emergency, imaging & emergency counters', ms: 'Kecemasan, Pengimejan & Kaunter Kecemasan' },
   { id: 'out', order: 2,
     en: 'Outpatient services', ms: 'Perkhidmatan Pesakit Luar' },
   { id: 'in', order: 3,
@@ -437,6 +466,8 @@ export function groupedDepartments (list) {
     if (!seen.has(g)) seen.set(g, [])
     seen.get(g).push(d)
   }
+  /* Stable: equal ranks keep the order they were listed in. */
+  for (const [, list] of seen) list.sort((a, b) => (a.rank ?? 50) - (b.rank ?? 50))
   const out = []
   for (const g of [...DEPT_GROUPS].sort((a, b) => a.order - b.order)) {
     if (seen.has(g.id)) { out.push({ group: g, items: seen.get(g.id) }); seen.delete(g.id) }
@@ -524,6 +555,10 @@ function buildList (list, building, destinationSite, prefix) {
   /* Which heading this location sits under. Null on the WCC's list, which
      is six entries and needs none. */
   group: d.group || null,
+  /* Position within the group. Everything without one keeps the order it
+     sits in the list; a lower number pulls a location to the top of its
+     heading. */
+  rank: d.rank ?? 50,
   why: d.why || null,
   detailKey: 'department',
   /* Kept on the record for anything that reads a single department on its

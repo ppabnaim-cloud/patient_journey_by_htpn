@@ -130,7 +130,7 @@ check('every finding carries a source', findings.every(f => !!f.source), true)
    kind of gap nobody notices until a patient is standing in a car park. */
 line('\n--- way-finding: both links on every location ---')
 const ALL = DEPARTMENTS.concat(DEPARTMENTS_WCC)
-check('thirty-three Main Building locations', DEPARTMENTS.length, 33)
+check('thirty-four Main Building locations', DEPARTMENTS.length, 34)
 /* Every location must sit under a heading. One with an unknown group still
    appears on screen, under a heading of its own — but it is a mistake, and
    this is where it gets caught rather than shipped. */
@@ -142,6 +142,27 @@ check('four headings, in HTPN\u2019s order plus emergency first',
   sections.map(x => x.group.id).join(','), 'urgent,out,in,admin')
 check('grouping loses nobody',
   sections.reduce((n, x) => n + x.items.length, 0), DEPARTMENTS.length)
+/* The two counters that serve the Emergency Department sit with it, on
+   HTPN's instruction: somebody sent to either is mid-emergency, not at an
+   outpatient clinic. */
+check('the emergency group holds five',
+  sections.find(x => x.group.id === 'urgent').items.length, 5)
+/* Diagnostic Imaging was a second card for the department above it. Merged,
+   not deleted: its signboard and its door arrows moved onto the survivor. */
+check('no second imaging card',
+  DEPARTMENTS.filter(d => /Diagnostic Imaging|Pengimejan Diagnostik/i.test(d.name.en + d.name.ms)).length, 0)
+check('exactly one radiology card',
+  DEPARTMENTS.filter(d => /Radiolog/i.test(d.name.en)).length, 2)
+const imaging = DEPARTMENTS.find(d => /Radiology/.test(d.name.en))
+check('the survivor carries both signboards',
+  /PENGIMEJAN DIAGNOSTIK/.test(imaging.signboard) && /CT SCAN/.test(imaging.signboard), true)
+check('and the door arrows', (imaging.split || []).length, 2)
+check('and the Emergency Department leads it',
+  sections.find(x => x.group.id === 'urgent').items[0].name.en, 'Emergency & Trauma Department')
+for (const want of ['Pharmacy Green Zone Counter', 'Revenue Unit — Patient & Emergency Registration']) {
+  check(`"${want}" is in the emergency group`,
+    sections.find(x => x.group.id === 'urgent').items.some(d => d.name.en === want), true)
+}
 /* The numbers follow the eye, not the order of the source file. */
 const shown = sections.flatMap(x => x.items).map(d => d.displayIndex)
 check('numbered 1..n in reading order',
