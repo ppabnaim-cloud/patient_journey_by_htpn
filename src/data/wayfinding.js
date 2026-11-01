@@ -253,10 +253,23 @@ const DEPARTMENT_LIST = [
      serves emergency patients and Specialist Clinic 2. Different counter,
      different saved place — the pin check below would catch it if it were
      the same one typed twice. */
+  /* One counter, which had two cards: "Unit Hasil — Pendaftaran Pesakit &
+     Kecemasan" and this one. HTPN merged them. What the other card carried
+     is kept here rather than deleted with it — the signboard is what is
+     painted above the door, the hours are the difference between a wasted
+     trip and a useful one, and the receipt line is what people forget. The
+     card that went had no saved place of its own; this one does. */
   { icon: 'office',
     group: 'urgent',
     en: 'Revenue counter — emergency patients & Specialist Clinic 2',
     ms: 'Kaunter Hasil — Pesakit Kecemasan & Klinik Pakar 2',
+    signboard: 'UNIT HASIL · PENDAFTARAN PESAKIT & KECEMASAN',
+    photo: 'brand/bu-unit-hasil.jpg',
+    hours: {
+      en: 'Revenue Unit: Monday to Friday, 8am to 5pm. The ward admission counter is open 24 hours.',
+      ms: 'Unit Hasil: Isnin hingga Jumaat, 8 pagi hingga 5 petang. Kaunter Daftar Masuk Wad dibuka 24 jam.'
+    },
+    sign: { en: 'Take your receipt after paying.', ms: 'Sila ambil resit selepas membuat pembayaran.' },
     map: 'https://maps.app.goo.gl/NKa24BCyfNBBYVWz5' },
 
   /* Ultrasound and mammography sit under OUTPATIENT on HTPN's instruction,
@@ -368,17 +381,6 @@ const DEPARTMENT_LIST = [
      A coordinate is still not invented. If HTPN supplies a saved place for
      any of the three, replace MAIN_BUILDING_MAP on that entry with it and
      nothing else changes. */
-  { icon: 'office',
-    en: 'Revenue Unit — Patient & Emergency Registration',
-    group: 'urgent',
-    ms: 'Unit Hasil — Pendaftaran Pesakit & Kecemasan',
-    signboard: 'UNIT HASIL · PENDAFTARAN PESAKIT & KECEMASAN',
-    map: MAIN_BUILDING_MAP, photo: 'brand/bu-unit-hasil.jpg',
-    hours: {
-      en: 'Revenue Unit: Monday to Friday, 8am to 5pm. The ward admission counter is open 24 hours.',
-      ms: 'Unit Hasil: Isnin hingga Jumaat, 8 pagi hingga 5 petang. Kaunter Daftar Masuk Wad dibuka 24 jam.'
-    },
-    sign: { en: 'Take your receipt after paying.', ms: 'Sila ambil resit selepas membuat pembayaran.' } },
 
 
   { icon: 'office',
@@ -507,10 +509,19 @@ const WCC_BUILDING = { en: 'Women & Children Complex (WCC)', ms: 'Kompleks Wanit
 const WCC = 'Hospital Tengku Permaisuri Norashikin (Pusat Rawatan Wanita dan Kanak-Kanak), Kajang'
 
 const DEPARTMENT_LIST_WCC = [
+  /* One saved place covering six counters. HTPN listed all six, and they are
+     all here — but as what somebody comes to the lobby FOR, under the lobby's
+     own name, rather than strung into a card title a hundred characters long
+     that wraps over four lines and buries the one word a patient is looking
+     for. Both are searchable; only the layout differs. */
   { icon: 'hall',
-    en: 'Main Lobby',
-    ms: 'Lobi Utama',
-    map: 'https://maps.app.goo.gl/XweXtDWaZHBgMjyaA' },
+    en: 'WCC Main Lobby',
+    ms: 'Lobi Utama WCC',
+    why: {
+      en: 'Enquiries counter · Revenue counter for emergency and PAC patients · Radiology · Medical Social Work · General store',
+      ms: 'Kaunter Pertanyaan · Kaunter Hasil Pesakit Kecemasan & PAC · Jabatan Radiologi · Jabatan Kerja Sosial Perubatan · Kedai Serbaneka'
+    },
+    map: 'https://maps.app.goo.gl/ssbH2ws1C24qRWM5A' },
 
   { icon: 'emergency',
     en: 'Emergency Department — triage counter',
